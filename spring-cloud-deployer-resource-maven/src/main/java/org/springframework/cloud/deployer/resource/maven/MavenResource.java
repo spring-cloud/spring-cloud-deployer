@@ -53,6 +53,7 @@ import org.springframework.util.StringUtils;
  * @author David Turanski
  * @author Mark Fisher
  * @author Patrick Peralta
+ * @author Venil Noronha
  */
 public class MavenResource extends AbstractResource {
 
@@ -166,6 +167,13 @@ public class MavenResource extends AbstractResource {
 	@Override
 	public File getFile() throws IOException {
 		return resolver.resolve(this).getFile();
+	}
+	
+	@Override
+	public String getFilename() {
+		return StringUtils.hasLength(classifier) ?
+				String.format("%s-%s-%s.%s", artifactId, version, classifier, extension) :
+				String.format("%s-%s.%s", artifactId, version, extension);
 	}
 
 	@Override
