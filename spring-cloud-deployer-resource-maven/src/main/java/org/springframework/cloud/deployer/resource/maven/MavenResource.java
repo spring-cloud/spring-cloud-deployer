@@ -53,6 +53,7 @@ import org.springframework.util.StringUtils;
  * @author David Turanski
  * @author Mark Fisher
  * @author Patrick Peralta
+ * @author Venil Noronha
  */
 public class MavenResource extends AbstractResource {
 
@@ -68,7 +69,17 @@ public class MavenResource extends AbstractResource {
 	 * String representing an empty classifier.
 	 */
 	final static String EMPTY_CLASSIFIER = "";
+	
+	/**
+	 * String representing the - character.
+	 */
+	final static String HYPHEN = "-";
 
+	/**
+	 * String representing the . character.
+	 */
+	final static String DOT = ".";
+	
 	/**
 	 * Group ID for artifact; generally this includes the name of the
 	 * organization that generated the artifact.
@@ -166,6 +177,21 @@ public class MavenResource extends AbstractResource {
 	@Override
 	public File getFile() throws IOException {
 		return resolver.resolve(this).getFile();
+	}
+	
+	@Override
+	public String getFilename() {
+		StringBuilder filename = new StringBuilder();
+		filename.append(artifactId);
+		filename.append(HYPHEN);
+		filename.append(version);
+		if (!EMPTY_CLASSIFIER.equals(classifier)) {
+			filename.append(HYPHEN);
+			filename.append(classifier);
+		}
+		filename.append(DOT);
+		filename.append(extension);
+		return filename.toString();
 	}
 
 	@Override
