@@ -69,17 +69,7 @@ public class MavenResource extends AbstractResource {
 	 * String representing an empty classifier.
 	 */
 	final static String EMPTY_CLASSIFIER = "";
-	
-	/**
-	 * String representing the - character.
-	 */
-	final static String HYPHEN = "-";
 
-	/**
-	 * String representing the . character.
-	 */
-	final static String DOT = ".";
-	
 	/**
 	 * Group ID for artifact; generally this includes the name of the
 	 * organization that generated the artifact.
@@ -181,17 +171,9 @@ public class MavenResource extends AbstractResource {
 	
 	@Override
 	public String getFilename() {
-		StringBuilder filename = new StringBuilder();
-		filename.append(artifactId);
-		filename.append(HYPHEN);
-		filename.append(version);
-		if (!EMPTY_CLASSIFIER.equals(classifier)) {
-			filename.append(HYPHEN);
-			filename.append(classifier);
-		}
-		filename.append(DOT);
-		filename.append(extension);
-		return filename.toString();
+		return StringUtils.hasLength(classifier) ?
+				String.format("%s-%s-%s.%s", artifactId, version, classifier, extension) :
+				String.format("%s-%s.%s", artifactId, version, extension);
 	}
 
 	@Override
