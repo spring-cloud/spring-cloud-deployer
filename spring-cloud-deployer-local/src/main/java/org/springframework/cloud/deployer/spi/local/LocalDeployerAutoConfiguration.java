@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.deployer.spi.local;
 
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
@@ -29,7 +28,6 @@ import org.springframework.context.annotation.Configuration;
  * @author Mark Fisher
  */
 @Configuration
-@AutoConfigureBefore(name = "org.springframework.cloud.dataflow.server.config.DataFlowControllerAutoConfiguration")
 public class LocalDeployerAutoConfiguration {
 
 	@Bean
