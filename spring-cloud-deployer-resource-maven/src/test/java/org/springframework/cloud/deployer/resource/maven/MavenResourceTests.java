@@ -23,6 +23,7 @@ import org.junit.Test;
 
 /**
  * @author Venil Noronha
+ * @author Janne Valkealahti
  */
 public class MavenResourceTests {
 
@@ -39,5 +40,61 @@ public class MavenResourceTests {
 		assertEquals("getFilename() doesn't match the expected filename",
 				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
 	}
-	
+
+	@Test
+	public void testExists() {
+		MavenResource resource = new MavenResource.Builder()
+				.setArtifactId("timestamp-task")
+				.setGroupId("org.springframework.cloud.task.module")
+				.setVersion("1.0.0.BUILD-SNAPSHOT")
+				.setExtension("jar")
+				.setClassifier("exec")
+				.build();
+		assertEquals(resource.exists(), true);
+		resource = new MavenResource.Builder()
+				.setArtifactId("notexist")
+				.setGroupId("org.springframework.cloud.task.module")
+				.setVersion("1.0.0.BUILD-SNAPSHOT")
+				.setExtension("jar")
+				.setClassifier("exec")
+				.build();
+		assertEquals(resource.exists(), false);
+	}
+
+	@Test
+	public void testParseCoordinates() {
+		MavenResource resource = MavenResource.parse("org.springframework.cloud.task.module:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT");
+		assertEquals("getFilename() doesn't match the expected filename",
+				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
+		resource = MavenResource.parse("org.springframework.cloud.task.module:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT");
+		assertEquals("getFilename() doesn't match the expected filename",
+				"timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename());
+	}
+
+	@Test
+	public void testMavenResourceFromURI() throws Exception {
+		MavenResource resource = MavenResource.parseUri("http://repo.spring.io/libs-snapshot-local/org.springframework.cloud.task.module:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT");
+		assertEquals("getFilename() doesn't match the expected filename",
+				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
+		MavenResource.parseUri("maven:org.springframework.cloud.task.module:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT");
+		assertEquals("getFilename() doesn't match the expected filename",
+				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
+	}
+
+	@Test
+	public void testGetFileShouldDownloadIfNotCached() throws Exception {
+		MavenResource resource = MavenResource.parseUri("maven:http://repo.spring.io/libs-snapshot-local/org.springframework.cloud.task.module:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT");
+		resource.getFile();
+
+		// no remotes should not fail anymore
+		resource = new MavenResource.Builder()
+				.setArtifactId("timestamp-task")
+				.setGroupId("org.springframework.cloud.task.module")
+				.setVersion("1.0.0.BUILD-SNAPSHOT")
+				.setExtension("jar")
+				.setClassifier("exec")
+				.build();
+		resource.getFile();
+	}
+
 }
