@@ -99,8 +99,6 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		catch (IllegalStateException ok) {
 		}
 
-
-
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
