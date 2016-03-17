@@ -173,6 +173,27 @@ public abstract class AbstractAppDeployerIntegrationTests {
 				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 	}
 
+	/**
+	 * Tests that properties can be passed to a deployed app, including values that typically require special handling.
+	 */
+	@Test
+	public void testParameterPassing() {
+		Map<String, String> properties = new HashMap<>();
+		properties.put("parameterThatMayNeedEscaping", "&'\"|< é\\(");
+		AppDefinition definition = new AppDefinition(randomName(), properties);
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, integrationTestProcessor());
+
+		String deploymentId = appDeployer().deploy(request);
+		Timeout timeout = deploymentTimeout();
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeploy(deploymentId);
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+	}
+
 	protected String randomName() {
 		return UUID.randomUUID().toString();
 	}
