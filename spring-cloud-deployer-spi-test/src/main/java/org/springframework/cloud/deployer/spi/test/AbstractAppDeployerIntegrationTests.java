@@ -18,6 +18,7 @@ package org.springframework.cloud.deployer.spi.test;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deployed;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deploying;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.failed;
@@ -90,6 +91,15 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		try {
+			appDeployer().deploy(request);
+			fail("Should have thrown an IllegalStateException");
+		}
+		catch (IllegalStateException ok) {
+		}
+
+
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);

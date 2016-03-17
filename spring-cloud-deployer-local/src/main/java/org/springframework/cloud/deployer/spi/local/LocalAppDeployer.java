@@ -25,9 +25,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PreDestroy;
@@ -67,6 +70,12 @@ public class LocalAppDeployer implements AppDeployer {
 
 	private static final String GROUP_DEPLOYMENT_ID = "dataflow.group-deployment-id";
 
+	private static final Set<String> ENV_VARS_TO_INHERIT;
+	static {
+		// TMP controls the location of java.io.tmpDir on Windows
+		ENV_VARS_TO_INHERIT = new HashSet<>(Arrays.asList("TMP"));
+	}
+
 	@Autowired
 	private LocalDeployerProperties properties = new LocalDeployerProperties();
 
@@ -94,6 +103,9 @@ public class LocalAppDeployer implements AppDeployer {
 		}
 		String group = request.getEnvironmentProperties().get(GROUP_PROPERTY_KEY);
 		String deploymentId = String.format("%s.%s", group, request.getDefinition().getName());
+		if (running.containsKey(deploymentId)) {
+			throw new IllegalStateException();
+		}
 		List<Instance> processes = new ArrayList<>();
 		running.put(deploymentId, processes);
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
@@ -127,7 +139,7 @@ public class LocalAppDeployer implements AppDeployer {
 					args.put(SERVER_PORT_KEY, String.valueOf(port));
 				}
 				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-jar", jarPath);
-				builder.environment().clear();
+				builder.environment().keySet().retainAll(ENV_VARS_TO_INHERIT);
 				builder.environment().putAll(args);
 				Instance instance = new Instance(deploymentId, i, builder, workDir, port);
 				processes.add(instance);
