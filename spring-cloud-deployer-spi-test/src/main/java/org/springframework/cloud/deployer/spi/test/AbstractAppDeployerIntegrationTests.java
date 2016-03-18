@@ -25,9 +25,14 @@ import static org.springframework.cloud.deployer.spi.app.DeploymentState.failed;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -43,6 +48,9 @@ import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Abstract base class for integration tests of
@@ -102,6 +110,62 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+	}
+
+	@Test
+	public void testSimpleDeployment1() {
+		AppDefinition definition = new AppDefinition(randomName(), null);
+		Resource resource = integrationTestProcessor();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
+
+		Mono<String> deploymentIdMono = appDeployer().deployAsync1(request);
+		String deploymentId = deploymentIdMono.get();
+		Timeout timeout = deploymentTimeout();
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		try {
+			appDeployer().deployAsync1(request).get();
+			fail("Should have thrown an IllegalStateException");
+		}
+		catch (IllegalStateException ok) {
+		}
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeployAsync1(deploymentId).get();
+		assertThat(deploymentId, eventually(hasStatusThat1(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+		assertThat(deploymentId, eventually(hasStatusThat11(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+		assertThat(deploymentId, eventually(hasStatusThat111(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+	}
+
+	@Test
+	public void testSimpleDeployment2() throws InterruptedException, ExecutionException {
+		AppDefinition definition = new AppDefinition(randomName(), null);
+		Resource resource = integrationTestProcessor();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
+
+		CompletableFuture<String> deploymentIdCF = appDeployer().deployAsync2(request);
+		String deploymentId = deploymentIdCF.get();
+		Timeout timeout = deploymentTimeout();
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		try {
+			appDeployer().deployAsync2(request).get();
+			fail("Should have thrown an IllegalStateException");
+		}
+		catch (ExecutionException ok) {
+		}
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeployAsync2(deploymentId).get();
+		assertThat(deploymentId, eventually(hasStatusThat2(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+		assertThat(deploymentId, eventually(hasStatusThat22(
 				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 	}
 
@@ -267,6 +331,143 @@ public abstract class AbstractAppDeployerIntegrationTests {
 			@Override
 			public boolean matches(Object item) {
 				status = appDeployer().status((String) item);
+				return statusMatcher.matches(status);
+			}
+
+			@Override
+			public void describeMismatch(Object item, Description mismatchDescription) {
+				mismatchDescription.appendText("status of ").appendValue(item).appendText(" ");
+				statusMatcher.describeMismatch(status, mismatchDescription);
+			}
+
+
+			@Override
+			public void describeTo(Description description) {
+				statusMatcher.describeTo(description);
+			}
+		};
+	}
+
+	protected Matcher<String> hasStatusThat1(final Matcher<AppStatus> statusMatcher) {
+		return new BaseMatcher<String>() {
+
+			private AppStatus status;
+
+			@Override
+			public boolean matches(Object item) {
+				status = appDeployer().statusAsync1((String) item).get();
+				return statusMatcher.matches(status);
+			}
+
+			@Override
+			public void describeMismatch(Object item, Description mismatchDescription) {
+				mismatchDescription.appendText("status of ").appendValue(item).appendText(" ");
+				statusMatcher.describeMismatch(status, mismatchDescription);
+			}
+
+
+			@Override
+			public void describeTo(Description description) {
+				statusMatcher.describeTo(description);
+			}
+		};
+	}
+
+	protected Matcher<String> hasStatusThat11(final Matcher<AppStatus> statusMatcher) {
+		return new BaseMatcher<String>() {
+
+			private AppStatus status;
+
+			@Override
+			public boolean matches(Object item) {
+				Collection<String> ids = new ArrayList<>();
+				ids.add((String) item);
+				status = appDeployer().statusAsync1(ids).next().get();
+				return statusMatcher.matches(status);
+			}
+
+			@Override
+			public void describeMismatch(Object item, Description mismatchDescription) {
+				mismatchDescription.appendText("status of ").appendValue(item).appendText(" ");
+				statusMatcher.describeMismatch(status, mismatchDescription);
+			}
+
+
+			@Override
+			public void describeTo(Description description) {
+				statusMatcher.describeTo(description);
+			}
+		};
+	}
+
+	protected Matcher<String> hasStatusThat111(final Matcher<AppStatus> statusMatcher) {
+		return new BaseMatcher<String>() {
+
+			private AppStatus status;
+
+			@Override
+			public boolean matches(Object item) {
+				status = appDeployer().statusAsync1(Flux.just((String) item)).next().get();
+				return statusMatcher.matches(status);
+			}
+
+			@Override
+			public void describeMismatch(Object item, Description mismatchDescription) {
+				mismatchDescription.appendText("status of ").appendValue(item).appendText(" ");
+				statusMatcher.describeMismatch(status, mismatchDescription);
+			}
+
+
+			@Override
+			public void describeTo(Description description) {
+				statusMatcher.describeTo(description);
+			}
+		};
+	}
+
+	protected Matcher<String> hasStatusThat2(final Matcher<AppStatus> statusMatcher) {
+		return new BaseMatcher<String>() {
+
+			private AppStatus status;
+
+			@Override
+			public boolean matches(Object item) {
+				try {
+					status = appDeployer().statusAsync2((String) item).get();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+				return statusMatcher.matches(status);
+			}
+
+			@Override
+			public void describeMismatch(Object item, Description mismatchDescription) {
+				mismatchDescription.appendText("status of ").appendValue(item).appendText(" ");
+				statusMatcher.describeMismatch(status, mismatchDescription);
+			}
+
+
+			@Override
+			public void describeTo(Description description) {
+				statusMatcher.describeTo(description);
+			}
+		};
+	}
+
+	protected Matcher<String> hasStatusThat22(final Matcher<AppStatus> statusMatcher) {
+		return new BaseMatcher<String>() {
+
+			private AppStatus status;
+
+			@Override
+			public boolean matches(Object item) {
+				try {
+					Collection<String> ids = new ArrayList<>();
+					ids.add((String) item);
+					status = appDeployer().statusAsync2(ids).findFirst().get();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
 				return statusMatcher.matches(status);
 			}
 

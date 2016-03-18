@@ -25,19 +25,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
@@ -48,6 +54,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * An {@link AppDeployer} implementation that spins off a new JVM process per app instance.
@@ -156,6 +165,29 @@ public class LocalAppDeployer implements AppDeployer {
 	}
 
 	@Override
+	public Mono<String> deployAsync1(final AppDeploymentRequest request) {
+		return Mono.fromCallable(new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				// called when there's demand for returned mono
+				return deploy(request);
+			}
+		});
+	}
+
+	@Override
+	public CompletableFuture<String> deployAsync2(final AppDeploymentRequest request) {
+		return CompletableFuture.supplyAsync(new Supplier<String>() {
+			@Override
+			public String get() {
+				// this is actually called immediately and
+				// get for CF is just getting result.
+				return deploy(request);
+			}
+		});
+	}
+
+	@Override
 	public void undeploy(String id) {
 		List<Instance> processes = running.get(id);
 		if (processes != null) {
@@ -169,6 +201,26 @@ public class LocalAppDeployer implements AppDeployer {
 	}
 
 	@Override
+	public Mono<Void> undeployAsync1(final String id) {
+		return Mono.fromRunnable(new Runnable() {
+			@Override
+			public void run() {
+				undeploy(id);
+			}
+		});
+	}
+
+	@Override
+	public CompletableFuture<Void> undeployAsync2(final String id) {
+		return CompletableFuture.runAsync(new Runnable() {
+			@Override
+			public void run() {
+				undeploy(id);
+			}
+		});
+	}
+
+	@Override
 	public AppStatus status(String id) {
 		List<Instance> instances = running.get(id);
 		AppStatus.Builder builder = AppStatus.of(id);
@@ -178,6 +230,65 @@ public class LocalAppDeployer implements AppDeployer {
 			}
 		}
 		return builder.build();
+	}
+
+	@Override
+	public Mono<AppStatus> statusAsync1(final String id) {
+		return Mono.fromCallable(new Callable<AppStatus>() {
+			@Override
+			public AppStatus call() throws Exception {
+				return status(id);
+			}
+		});
+	}
+
+	@Override
+	public CompletableFuture<AppStatus> statusAsync2(final String id) {
+		return CompletableFuture.supplyAsync(new Supplier<AppStatus>() {
+			@Override
+			public AppStatus get() {
+				return status(id);
+			}
+		});
+	}
+
+	@Override
+	public Flux<AppStatus> statusAsync1(Collection<String> ids) {
+		return Flux.fromIterable(ids).map(new Function<String, AppStatus>() {
+			@Override
+			public AppStatus apply(String t) {
+				return status(t);
+			}
+		});
+	}
+
+	@Override
+	public Flux<AppStatus> statusAsync1(Publisher<String> ids) {
+		return Flux.from(ids).map(new Function<String, AppStatus>() {
+			@Override
+			public AppStatus apply(String t) {
+				return status(t);
+			}
+		});
+	}
+
+	@Override
+	public Stream<AppStatus> statusAsync2(Collection<String> ids) {
+		List<CompletableFuture<AppStatus>> cfs = new ArrayList<>();
+		for (String id : ids) {
+			cfs.add(statusAsync2(id));
+		}
+		return cfs.stream().map(new Function<CompletableFuture<AppStatus>, AppStatus>() {
+
+			@Override
+			public AppStatus apply(CompletableFuture<AppStatus> t) {
+				try {
+					return t.get();
+				} catch (Exception e) {
+					return null;
+				}
+			}
+		});
 	}
 
 	private void shutdownAndWait(Instance instance) {
