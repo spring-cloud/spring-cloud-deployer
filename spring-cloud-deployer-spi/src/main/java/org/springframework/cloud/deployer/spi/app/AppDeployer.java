@@ -16,7 +16,15 @@
 
 package org.springframework.cloud.deployer.spi.app;
 
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
+
+import org.reactivestreams.Publisher;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * SPI defining a runtime environment capable of deploying and managing the
@@ -56,6 +64,10 @@ public interface AppDeployer {
 	 */
 	String deploy(AppDeploymentRequest request);
 
+	// deploy reactor vs jdk8
+	Mono<String> deployAsync1(AppDeploymentRequest request);
+	CompletableFuture<String> deployAsync2(AppDeploymentRequest request);
+
 	/**
 	 * Un-deploy an app using its deployment id. Implementations may perform
 	 * this operation asynchronously; therefore a successful un-deployment may
@@ -67,6 +79,10 @@ public interface AppDeployer {
 	 */
 	void undeploy(String id);
 
+	// undeploy reactor vs jdk8
+	Mono<Void> undeployAsync1(String id);
+	CompletableFuture<Void> undeployAsync2(String id);
+
 	/**
 	 * Return the {@link AppStatus} for an app represented by a deployment id.
 	 *
@@ -74,4 +90,15 @@ public interface AppDeployer {
 	 * @return the app deployment status
 	 */
 	AppStatus status(String id);
+
+	// status reactor vs jdk8
+	Mono<AppStatus> statusAsync1(String id);
+	CompletableFuture<AppStatus> statusAsync2(String id);
+
+	// statuses reactor vs jdk8
+	Flux<AppStatus> statusAsync1(Collection<String> ids);
+	Stream<AppStatus> statusAsync2(Collection<String> ids);
+
+	// reactor statuses as flux out, publisher in
+	Flux<AppStatus> statusAsync1(Publisher<String> ids);
 }
