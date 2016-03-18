@@ -48,7 +48,20 @@ public class MavenProperties {
 	 */
 	private boolean offline;
 
+	/**
+	 * Proxy configuration properties.
+	 */
 	private Proxy proxy;
+
+	/**
+	 * Maximum time to wait for a successful connection.
+	 */
+	private int connectTimeout;
+
+	/**
+	 * Maximum time of inactivity allowed when a request is being processed.
+	 */
+	private int requestTimeout;
 
 	public void setRemoteRepositories(String[] remoteRepositories) {
 		this.remoteRepositories = remoteRepositories;
@@ -72,6 +85,22 @@ public class MavenProperties {
 
 	public void setOffline(Boolean offline) {
 		this.offline = offline;
+	}
+
+	public int getConnectTimeout() {
+		return this.connectTimeout;
+	}
+
+	public void setConnectTimeout(int connectTimeout) {
+		this.connectTimeout = connectTimeout;
+	}
+
+	public int getRequestTimeout() {
+		return this.requestTimeout;
+	}
+
+	public void setRequestTimeout(int requestTimeout) {
+		this.requestTimeout = requestTimeout;
 	}
 
 	public Proxy getProxy() {
