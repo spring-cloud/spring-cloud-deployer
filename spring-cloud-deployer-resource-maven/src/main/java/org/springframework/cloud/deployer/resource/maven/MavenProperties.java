@@ -55,13 +55,15 @@ public class MavenProperties {
 
 	/**
 	 * Maximum time to wait for a successful connection.
+	 * If <code>null</code>, the underlying default will be used.
 	 */
-	private int connectTimeout;
+	private Integer connectTimeout;
 
 	/**
 	 * Maximum time of inactivity allowed when a request is being processed.
+	 * If <code>null</code>, the underlying default will be used.
 	 */
-	private int requestTimeout;
+	private Integer requestTimeout;
 
 	public void setRemoteRepositories(String[] remoteRepositories) {
 		this.remoteRepositories = remoteRepositories;
@@ -87,19 +89,19 @@ public class MavenProperties {
 		this.offline = offline;
 	}
 
-	public int getConnectTimeout() {
+	public Integer getConnectTimeout() {
 		return this.connectTimeout;
 	}
 
-	public void setConnectTimeout(int connectTimeout) {
+	public void setConnectTimeout(Integer connectTimeout) {
 		this.connectTimeout = connectTimeout;
 	}
 
-	public int getRequestTimeout() {
+	public Integer getRequestTimeout() {
 		return this.requestTimeout;
 	}
 
-	public void setRequestTimeout(int requestTimeout) {
+	public void setRequestTimeout(Integer requestTimeout) {
 		this.requestTimeout = requestTimeout;
 	}
 

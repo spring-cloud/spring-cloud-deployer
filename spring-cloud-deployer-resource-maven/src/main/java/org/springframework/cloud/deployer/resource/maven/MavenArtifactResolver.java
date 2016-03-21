@@ -179,10 +179,10 @@ class MavenArtifactResolver {
 		LocalRepository localRepo = new LocalRepository(localRepoPath);
 		session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 		session.setOffline(this.properties.isOffline());
-		if (this.properties.getConnectTimeout() > 0) {
+		if (this.properties.getConnectTimeout() != null) {
 			session.setConfigProperty(ConfigurationProperties.CONNECT_TIMEOUT, this.properties.getConnectTimeout());
 		}
-		if (this.properties.getRequestTimeout() > 0) {
+		if (this.properties.getRequestTimeout() != null) {
 			session.setConfigProperty(ConfigurationProperties.REQUEST_TIMEOUT, this.properties.getRequestTimeout());
 		}
 		if (isProxyEnabled()) {
