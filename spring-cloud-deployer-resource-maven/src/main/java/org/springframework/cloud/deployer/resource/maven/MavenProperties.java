@@ -54,14 +54,14 @@ public class MavenProperties {
 	private Proxy proxy;
 
 	/**
-	 * Maximum time to wait for a successful connection.
-	 * If <code>null</code>, the underlying default will be used.
+	 * The connect timeout. If <code>null</code>, the underlying default will be used.
+	 * @see {@link org.eclipse.aether.ConfigurationProperties#CONNECT_TIMEOUT}
 	 */
 	private Integer connectTimeout;
 
 	/**
-	 * Maximum time of inactivity allowed when a request is being processed.
-	 * If <code>null</code>, the underlying default will be used.
+	 * The request timeout. If <code>null</code>, the underlying default will be used.
+	 * @see {@link org.eclipse.aether.ConfigurationProperties#REQUEST_TIMEOUT}
 	 */
 	private Integer requestTimeout;
 
