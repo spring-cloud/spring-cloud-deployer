@@ -25,42 +25,53 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.Assert;
 
 /**
  * @author Patrick Peralta
  */
-public class UriRegistryPopulator {
+public class UriRegistryPopulator implements ResourceLoaderAware {
 	private static final Logger logger = LoggerFactory.getLogger(UriRegistryPopulator.class);
 
-	private final ResourceLoader resourceLoader;
+	private volatile ResourceLoader resourceLoader;
 
-	private final String resourceUri;
+	private final String[] resourceUri;
 
-	public UriRegistryPopulator(ResourceLoader resourceLoader, String resourceUri) {
-		this.resourceLoader = resourceLoader;
+	
+	public UriRegistryPopulator(String[] resourceUri) {
+		Assert.noNullElements(resourceUri);
 		this.resourceUri = resourceUri;
 	}
 
+	@Override
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		this.resourceLoader = resourceLoader;
+	}
+
 	public void populateRegistry(UriRegistry registry) {
-		Resource resource = this.resourceLoader.getResource(this.resourceUri);
-		Properties properties = new Properties();
-		try(InputStream is = resource.getInputStream()) {
-			properties.load(is);
-			for (String key : properties.stringPropertyNames()) {
-				try {
-					registry.register(key, new URI(properties.getProperty(key)));
-				}
-				catch (URISyntaxException e) {
-					logger.warn(String.format("'%s' for '%s' is not a properly formed URI",
-							properties.getProperty(key), key), e);
+		for (String uri : this.resourceUri) {
+			Resource resource = this.resourceLoader.getResource(uri);
+			Properties properties = new Properties();
+			try(InputStream is = resource.getInputStream()) {
+				properties.load(is);
+				for (String key : properties.stringPropertyNames()) {
+					try {
+						registry.register(key, new URI(properties.getProperty(key)));
+					}
+					catch (URISyntaxException e) {
+						logger.warn(String.format("'%s' for '%s' is not a properly formed URI",
+								properties.getProperty(key), key), e);
+					}
 				}
 			}
+			catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+
 	}
 
 }

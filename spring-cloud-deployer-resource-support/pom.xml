@@ -3,11 +3,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-deployer-uri-registry</artifactId>
+	<artifactId>spring-cloud-deployer-resource-support</artifactId>
 	<packaging>jar</packaging>
 
-	<name>spring-cloud-deployer-uri-registry</name>
-	<description>Spring Cloud Deployer URI Registry</description>
+	<name>spring-cloud-deployer-resource-support</name>
+	<description>Spring Cloud Deployer Resource Support</description>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
@@ -19,6 +19,11 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<!--<version>4.2.2.RELEASE</version>-->
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

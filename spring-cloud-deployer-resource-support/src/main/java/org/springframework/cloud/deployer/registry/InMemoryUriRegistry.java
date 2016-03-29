@@ -17,6 +17,7 @@
 package org.springframework.cloud.deployer.registry;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,7 +26,7 @@ import org.springframework.util.Assert;
 /**
  * @author Patrick Peralta
  */
-public class MapUriRegistry implements UriRegistry {
+public class InMemoryUriRegistry implements UriRegistry {
 
 	private final Map<String, URI> map = new ConcurrentHashMap<>();
 
@@ -40,8 +41,18 @@ public class MapUriRegistry implements UriRegistry {
 	}
 
 	@Override
+	public Map<String, URI> findAll() {
+		return Collections.unmodifiableMap(this.map);
+	}
+
+	@Override
 	public void register(String key, URI uri) {
 		this.map.put(key, uri);
+	}
+
+	@Override
+	public void unregister(String key) {
+		this.map.remove(key);
 	}
 
 }

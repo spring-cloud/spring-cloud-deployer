@@ -34,11 +34,25 @@ public interface UriRegistry {
 	URI find(String key);
 
 	/**
+	 * Return all registered {@code URI}s.
+	 *
+	 * @return map of keys to {@code URI}s.
+	 */
+	Map<String, URI> findAll();
+
+	/**
 	 * Register a {@link URI} with a string key.
 	 *
 	 * @param key the key for the URI
 	 * @param uri the {@code URI} to associate with the key
 	 */
 	void register(String key, URI uri);
+
+	/**
+	 * Remove the registration for a string key.
+	 *
+	 * @param key the key for the {@code URI} to unregister
+	 */
+	void unregister(String key);
 
 }

@@ -31,7 +31,7 @@
 		<module>spring-cloud-deployer-spi-test</module>
 		<module>spring-cloud-deployer-sample-stream</module>
 		<module>spring-cloud-deployer-sample-task</module>
-		<module>spring-cloud-deployer-uri-registry</module>
+		<module>spring-cloud-deployer-resource-support</module>
 	</modules>
 
 	<dependencyManagement>
