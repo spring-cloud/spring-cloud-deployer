@@ -40,7 +40,7 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 
 	private final String[] resourceUri;
 
-	
+
 	public UriRegistryPopulator(String[] resourceUri) {
 		Assert.noNullElements(resourceUri);
 		this.resourceUri = resourceUri;

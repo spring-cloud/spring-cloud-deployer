@@ -41,7 +41,8 @@ public interface UriRegistry {
 	Map<String, URI> findAll();
 
 	/**
-	 * Register a {@link URI} with a string key.
+	 * Register a {@link URI} with a string key. Existing
+	 * registrations will be overwritten.
 	 *
 	 * @param key the key for the URI
 	 * @param uri the {@code URI} to associate with the key
