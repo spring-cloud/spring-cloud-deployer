@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.util.Assert;
 
 /**
+ * In-memory (non persistent) {@link UriRegistry} implementation.
+ *
  * @author Patrick Peralta
  */
 public class InMemoryUriRegistry implements UriRegistry {

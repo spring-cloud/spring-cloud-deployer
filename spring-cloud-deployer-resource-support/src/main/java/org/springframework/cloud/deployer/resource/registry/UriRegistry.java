@@ -20,6 +20,8 @@ import java.net.URI;
 import java.util.Map;
 
 /**
+ * Registry for storing and finding {@link URI}s via a string key.
+ *
  * @author Patrick Peralta
  */
 public interface UriRegistry {
