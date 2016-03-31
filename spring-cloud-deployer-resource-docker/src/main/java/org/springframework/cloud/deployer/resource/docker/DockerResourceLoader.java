@@ -42,7 +42,7 @@ public class DockerResourceLoader  implements ResourceLoader {
 	@Override
 	public Resource getResource(String location) {
 		Assert.hasText(location, "image location is required");
-		String image = location.replaceFirst(DockerResource.URI_SCHEME + ":", "");
+		String image = location.replaceFirst(DockerResource.URI_SCHEME + ":\\/*", "");
 		return new DockerResource(image);
 	}
 

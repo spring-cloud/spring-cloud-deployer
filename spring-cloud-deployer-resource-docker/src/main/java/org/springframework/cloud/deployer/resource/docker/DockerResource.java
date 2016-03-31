@@ -35,8 +35,6 @@ public class DockerResource extends AbstractResource {
 
 	public static String URI_SCHEME = "docker";
 
-	private String scheme = "docker";
-
 	private URI uri;
 
 	/**
@@ -44,6 +42,7 @@ public class DockerResource extends AbstractResource {
 	 * @param imageName the name of the image in a docker registry.
 	 */
 	public DockerResource(String imageName) {
+		Assert.hasText(imageName, "An image name is required");
 		this.uri = URI.create(URI_SCHEME + ":" + imageName);
 	}
 
@@ -52,6 +51,7 @@ public class DockerResource extends AbstractResource {
 	 * @param uri a URI
 	 */
 	public DockerResource(URI uri) {
+		Assert.notNull(uri, "A URI is required");
 		Assert.isTrue("docker".equals(uri.getScheme()), "A 'docker' scheme is required");
 		this.uri = uri;
 	}

@@ -44,6 +44,18 @@ public class DockerResourceLoaderTests {
 	}
 
 	@Test
+	public void verifyImageUriWithSlashes() throws IOException {
+		String location = "docker://springcloud/test-app:v1";
+		DockerResourceLoader loader = new DockerResourceLoader();
+		Resource resource = loader.getResource(location);
+		assertEquals(DockerResource.class, resource.getClass());
+		DockerResource dockerResource = (DockerResource) resource;
+		assertEquals("docker:springcloud/test-app:v1", dockerResource.getURI().toString());
+		assertEquals("springcloud/test-app:v1", dockerResource.getURI().getSchemeSpecificPart());
+		assertEquals("docker", dockerResource.getURI().getScheme().toString());
+	}
+
+	@Test
 	public void verifyImageUriWithoutPrefix() throws IOException {
 		String location = "springcloud/test-app:v1";
 		DockerResourceLoader loader = new DockerResourceLoader();
