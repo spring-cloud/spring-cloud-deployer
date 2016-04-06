@@ -56,6 +56,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
+ * @author Andy Clement
  */
 public class LocalAppDeployer implements AppDeployer {
 
@@ -144,7 +145,17 @@ public class LocalAppDeployer implements AppDeployer {
 				if (useDynamicPort) {
 					args.put(SERVER_PORT_KEY, String.valueOf(port));
 				}
-				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-Dfile.encoding=UTF-8", "-jar", jarPath);
+				String debugPortProperty = request.getEnvironmentProperties().get(DEBUG_PORT_PROPERTY_KEY);
+				List<String> command = new ArrayList<String>();
+				command.add(properties.getJavaCmd());
+				if (StringUtils.hasText(debugPortProperty)) {
+					int debugPort = Integer.parseInt(debugPortProperty);
+					command.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address="+(debugPort+i));
+				}
+				command.add("-Dfile.encoding=UTF-8");
+				command.add("-jar");
+				command.add(jarPath);
+				ProcessBuilder builder = new ProcessBuilder(command);
 				builder.environment().keySet().retainAll(ENV_VARS_TO_INHERIT);
 				builder.environment().putAll(args);
 				Instance instance = new Instance(deploymentId, i, builder, workDir, port);
