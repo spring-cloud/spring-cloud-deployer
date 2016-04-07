@@ -28,6 +28,7 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
  * @author Patrick Peralta
  * @author Marius Bogoevici
  * @author Janne Valkealahti
+ * @author Andy Clement
  */
 public interface AppDeployer {
 
@@ -36,6 +37,12 @@ public interface AppDeployer {
 	 */
 	public static String COUNT_PROPERTY_KEY = "spring.cloud.deployer.count";
 
+	/**
+	 * The environment property for the debug port. Setting this implies
+	 * debugging should be enabled.
+	 */
+	public static String DEBUG_PORT_PROPERTY_KEY = "spring.cloud.deployer.debug-port";
+	
 	/**
 	 * The environment property for the group to which an app belongs.
 	 */
