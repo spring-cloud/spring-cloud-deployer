@@ -23,8 +23,8 @@ import static org.springframework.cloud.deployer.spi.app.DeploymentState.deploye
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -67,7 +67,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 		// we don't have no way to read logs to verify output
 		AppDefinition definition = new AppDefinition(randomName(), null);
 		Resource resource = integrationTestProcessor();
-		Set<String> arguments = new HashSet<String>();
+		List<String> arguments = new ArrayList<String>();
 		arguments.add("--foo.bar=jee");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, null, arguments);
 

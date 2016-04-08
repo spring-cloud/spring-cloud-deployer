@@ -17,8 +17,8 @@
 package org.springframework.cloud.deployer.spi.core;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
@@ -61,9 +61,9 @@ public class AppDeploymentRequest {
 	private final Map<String, String> environmentProperties;
 
 	/**
-	 * Set of command line arguments for the target runtime of the app.
+	 * List of command line arguments for the target runtime of the app.
 	 */
-	private final Set<String> commandlineArguments;
+	private final List<String> commandlineArguments;
 
 	/**
 	 * Construct an {@code AppDeploymentRequest}.
@@ -86,7 +86,7 @@ public class AppDeploymentRequest {
 	 * @param commandlineArguments set of command line arguments; may be {@code null}
 	 */
 	public AppDeploymentRequest(AppDefinition definition, Resource resource,
-			Map<String, String> environmentProperties, Set<String> commandlineArguments) {
+			Map<String, String> environmentProperties, List<String> commandlineArguments) {
 		Assert.notNull(definition, "definition must not be null");
 		Assert.notNull(resource, "resource must not be null");
 		this.definition = definition;
@@ -95,8 +95,8 @@ public class AppDeploymentRequest {
 				? Collections.<String, String>emptyMap()
 				: Collections.unmodifiableMap(environmentProperties);
 		this.commandlineArguments = commandlineArguments == null
-				? Collections.<String>emptySet()
-				: Collections.unmodifiableSet(commandlineArguments);
+				? Collections.<String>emptyList()
+				: Collections.unmodifiableList(commandlineArguments);
 	}
 
 	/**
@@ -133,7 +133,7 @@ public class AppDeploymentRequest {
 	/**
 	 * @see #commandlineArguments
 	 */
-	public Set<String> getCommandlineArguments() {
+	public List<String> getCommandlineArguments() {
 		return commandlineArguments;
 	}
 }
