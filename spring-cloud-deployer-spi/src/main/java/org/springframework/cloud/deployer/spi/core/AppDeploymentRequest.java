@@ -18,6 +18,7 @@ package org.springframework.cloud.deployer.spi.core;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
@@ -35,6 +36,9 @@ import org.springframework.util.Assert;
  *
  * For passing properties or parameters into the app itself, use
  * {@link AppDefinition#getProperties()}.
+ *
+ * For passing command line arguments into the app itself, use
+ * {@link #commandlineArguments}.
  *
  * @author Mark Fisher
  * @author Janne Valkealahti
@@ -57,6 +61,11 @@ public class AppDeploymentRequest {
 	private final Map<String, String> environmentProperties;
 
 	/**
+	 * Set of command line arguments for the target runtime of the app.
+	 */
+	private final Set<String> commandlineArguments;
+
+	/**
 	 * Construct an {@code AppDeploymentRequest}.
 	 *
 	 * @param definition app definition
@@ -65,6 +74,19 @@ public class AppDeploymentRequest {
 	 */
 	public AppDeploymentRequest(AppDefinition definition, Resource resource,
 			Map<String, String> environmentProperties) {
+		this(definition, resource, environmentProperties, null);
+	}
+
+	/**
+	 * Construct an {@code AppDeploymentRequest}.
+	 *
+	 * @param definition app definition
+	 * @param resource resource for the underlying app's artifact
+	 * @param environmentProperties map of environment properties; may be {@code null}
+	 * @param commandlineArguments set of command line arguments; may be {@code null}
+	 */
+	public AppDeploymentRequest(AppDefinition definition, Resource resource,
+			Map<String, String> environmentProperties, Set<String> commandlineArguments) {
 		Assert.notNull(definition, "definition must not be null");
 		Assert.notNull(resource, "resource must not be null");
 		this.definition = definition;
@@ -72,6 +94,9 @@ public class AppDeploymentRequest {
 		this.environmentProperties = environmentProperties == null
 				? Collections.<String, String>emptyMap()
 				: Collections.unmodifiableMap(environmentProperties);
+		this.commandlineArguments = commandlineArguments == null
+				? Collections.<String>emptySet()
+				: Collections.unmodifiableSet(commandlineArguments);
 	}
 
 	/**
@@ -103,5 +128,12 @@ public class AppDeploymentRequest {
 	 */
 	public Map<String, String> getEnvironmentProperties() {
 		return environmentProperties;
+	}
+
+	/**
+	 * @see #commandlineArguments
+	 */
+	public Set<String> getCommandlineArguments() {
+		return commandlineArguments;
 	}
 }
