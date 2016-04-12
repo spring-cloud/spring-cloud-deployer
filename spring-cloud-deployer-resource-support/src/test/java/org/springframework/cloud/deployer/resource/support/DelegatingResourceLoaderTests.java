@@ -16,23 +16,36 @@
 
 package org.springframework.cloud.deployer.resource.support;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Rule;
 import org.junit.Test;
-
+import org.junit.rules.TemporaryFolder;
 import org.springframework.cloud.deployer.resource.StubResourceLoader;
 import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
 /**
+ * Tests for {@link DelegatingResourceLoader}.
+ *
  * @author Patrick Peralta
+ * @author Janne Valkealahti
  */
 public class DelegatingResourceLoaderTests {
+
+	private final static String HTTP_RESOURCE = "http://repo.spring.io/libs-release-local/org/springframework/spring-core/4.2.5.RELEASE/spring-core-4.2.5.RELEASE.pom";
+
+	@Rule
+	public TemporaryFolder folder = new TemporaryFolder();
 
 	@Test
 	public void test() {
@@ -54,6 +67,26 @@ public class DelegatingResourceLoaderTests {
 		assertEquals(three, resourceLoader.getResource("three://three"));
 	}
 
+	@Test
+	public void testDefaultCache() throws IOException {
+		Map<String, ResourceLoader> loaders = new HashMap<>();
+		loaders.put("http", new DefaultResourceLoader());
+		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(loaders);
+		Resource resource = resourceLoader.getResource(HTTP_RESOURCE);
+		File file = resource.getFile();
+		assertEquals(file.exists(), true);
+	}
+
+	@Test
+	public void testManualCache() throws IOException {
+		Map<String, ResourceLoader> loaders = new HashMap<>();
+		loaders.put("http", new DefaultResourceLoader());
+		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(loaders, folder.getRoot());
+		Resource resource = resourceLoader.getResource(HTTP_RESOURCE);
+		File file = resource.getFile();
+		assertEquals(file.exists(), true);
+	}
+
 	static class NullResource extends AbstractResource {
 
 		final String description;
@@ -65,6 +98,11 @@ public class DelegatingResourceLoaderTests {
 		@Override
 		public String getDescription() {
 			return description;
+		}
+
+		@Override
+		public File getFile() throws IOException {
+			return null;
 		}
 
 		@Override
