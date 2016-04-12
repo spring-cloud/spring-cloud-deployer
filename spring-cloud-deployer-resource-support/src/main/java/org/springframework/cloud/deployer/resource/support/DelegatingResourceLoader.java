@@ -41,7 +41,7 @@ import org.springframework.util.FileCopyUtils;
  *
  * This implementation is also caching remote resources which are not directly accessible
  * as {@link File} into either a given cache directory or on default a temporary location
- * prefixed by "dataflow-resource-cache".
+ * prefixed by "deployer-resource-cache".
  *
  * @author Mark Fisher
  * @author Janne Valkealahti
@@ -56,7 +56,7 @@ public class DelegatingResourceLoader implements ResourceLoader {
 
 	private final File cacheDirectory;
 
-	private final static String DEFAULT_CACHE_PREFIX = "dataflow-resource-cache";
+	private final static String DEFAULT_CACHE_PREFIX = "deployer-resource-cache";
 
 	/**
 	 * Instantiates a new delegating resource loader.
