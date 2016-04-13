@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -91,12 +92,14 @@ public class DelegatingResourceLoader implements ResourceLoader {
 			Resource resource = loader.getResource(location);
 			if (existsAsFile(resource)) {
 				return resource;
-			} else {
+			}
+			else {
 				File cachedResource = new File(cacheDirectory, resource.getFilename());
 				if (!cachedResource.exists()) {
 					logger.info("Caching file {} as given location {}", cachedResource, location);
 					FileCopyUtils.copy(resource.getInputStream(), new FileOutputStream(cachedResource));
-				} else {
+				}
+				else {
 					logger.info("Reusing cached file {} as given location {}", cachedResource, location);
 				}
 				return new FileSystemResource(cachedResource);
@@ -104,8 +107,9 @@ public class DelegatingResourceLoader implements ResourceLoader {
 		}
 		catch (URISyntaxException e) {
 			throw new IllegalArgumentException(e);
-		} catch (IOException e) {
-			throw new IllegalArgumentException(e);
+		}
+		catch (IOException e) {
+			throw new IllegalStateException(e);
 		}
 	}
 
@@ -125,11 +129,13 @@ public class DelegatingResourceLoader implements ResourceLoader {
 			if (cacheDirectory == null) {
 				Path tempDirectory = Files.createTempDirectory(DEFAULT_CACHE_PREFIX);
 				return tempDirectory.toFile();
-			} else {
+			}
+			else {
 				cacheDirectory.mkdirs();
 				return cacheDirectory;
 			}
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new IllegalArgumentException("Unable to create cache directory", e);
 		}
 	}
@@ -144,7 +150,8 @@ public class DelegatingResourceLoader implements ResourceLoader {
 		try {
 			resource.getFile();
 			return true;
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 		}
 		return false;
 	}
