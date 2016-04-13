@@ -41,6 +41,12 @@ public class LocalDeployerProperties {
 	private boolean deleteFilesOnExit = true;
 
 	/**
+	 * Array of regular expression patterns for environment variables that
+	 * should be passed to launched applications.
+	 */
+	private String[] envVarsToInherit = { "TMP", "LANG", "LANGUAGE", "LC_.*" };
+
+	/**
 	 * The command to run java.
 	 */
 	private String javaCmd = "java";
@@ -67,5 +73,13 @@ public class LocalDeployerProperties {
 
 	public void setDeleteFilesOnExit(boolean deleteFilesOnExit) {
 		this.deleteFilesOnExit = deleteFilesOnExit;
+	}
+
+	public String[] getEnvVarsToInherit() {
+		return envVarsToInherit;
+	}
+
+	public void setEnvVarsToInherit(String[] envVarsToInherit) {
+		this.envVarsToInherit = envVarsToInherit;
 	}
 }

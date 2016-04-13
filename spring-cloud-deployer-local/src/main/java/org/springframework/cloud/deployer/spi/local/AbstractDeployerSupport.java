@@ -60,7 +60,6 @@ public abstract class AbstractDeployerSupport {
 	protected String[] buildJarExecutionCommand(String jarPath, AppDeploymentRequest request) {
 		ArrayList<String> commands = new ArrayList<String>();
 		commands.add(properties.getJavaCmd());
-		commands.add("-Dfile.encoding=UTF-8");
 		commands.add("-jar");
 		commands.add(jarPath);
 		commands.addAll(request.getCommandlineArguments());
