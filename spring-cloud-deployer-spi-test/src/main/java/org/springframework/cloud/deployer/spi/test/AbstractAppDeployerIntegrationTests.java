@@ -140,6 +140,14 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 
+		// Optionally pause before re-using request
+		try {
+			Thread.sleep(redeploymentPause());
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+
 		log.info("Deploying {} again...", request.getDefinition().getName());
 
 		// Attempt re-deploy of SAME request
@@ -251,6 +259,14 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	 */
 	protected Timeout undeploymentTimeout() {
 		return new Timeout(20, 5000);
+	}
+
+	/**
+	 * Return the time to wait between reusing deployment requests. This could be necessary to give
+	 * some platforms time to clean up after undeployment.
+	 */
+	protected int redeploymentPause() {
+		return 0;
 	}
 
 	/**
