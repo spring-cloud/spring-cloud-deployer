@@ -37,14 +37,12 @@ import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
@@ -57,9 +55,10 @@ import org.springframework.web.client.RestTemplate;
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
+ * @author Janne Valkealahti
  * @author Patrick Peralta
  */
-public class LocalAppDeployer implements AppDeployer {
+public class LocalAppDeployer extends AbstractDeployerSupport implements AppDeployer {
 
 	private Path logPathRoot;
 
@@ -73,15 +72,17 @@ public class LocalAppDeployer implements AppDeployer {
 
 	private static final String GROUP_DEPLOYMENT_ID = "dataflow.group-deployment-id";
 
-	private final LocalDeployerProperties properties;
-
 	private final Map<String, List<Instance>> running = new ConcurrentHashMap<>();
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
+	/**
+	 * Instantiates a new local app deployer.
+	 *
+	 * @param properties the properties
+	 */
 	public LocalAppDeployer(LocalDeployerProperties properties) {
-		Assert.notNull(properties, "LocalDeployerProperties must not be null");
-		this.properties = properties;
+		super(properties);
 		try {
 			this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
 		}
@@ -126,7 +127,7 @@ public class LocalAppDeployer implements AppDeployer {
 			}
 			Path workDir = Files
 					.createDirectory(Paths.get(deploymentGroupDir.toFile().getAbsolutePath(), deploymentId));
-			if (properties.isDeleteFilesOnExit()) {
+			if (getLocalDeployerProperties().isDeleteFilesOnExit()) {
 				workDir.toFile().deleteOnExit();
 			}
 			String countProperty = request.getEnvironmentProperties().get(COUNT_PROPERTY_KEY);
@@ -137,12 +138,12 @@ public class LocalAppDeployer implements AppDeployer {
 				if (useDynamicPort) {
 					args.put(SERVER_PORT_KEY, String.valueOf(port));
 				}
-				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-jar", jarPath);
+				ProcessBuilder builder = new ProcessBuilder(buildJarExecutionCommand(jarPath, request));
 				retainEnvVars(builder.environment().keySet());
 				builder.environment().putAll(args);
 				Instance instance = new Instance(deploymentId, i, builder, workDir, port);
 				processes.add(instance);
-				if (properties.isDeleteFilesOnExit()) {
+				if (getLocalDeployerProperties().isDeleteFilesOnExit()) {
 					instance.stdout.deleteOnExit();
 					instance.stderr.deleteOnExit();
 				}
@@ -163,7 +164,7 @@ public class LocalAppDeployer implements AppDeployer {
 	 * @param vars set of environment variable strings
 	 */
 	private void retainEnvVars(Set<String> vars) {
-		String[] patterns = properties.getEnvVarsToInherit();
+		String[] patterns = getLocalDeployerProperties().getEnvVarsToInherit();
 
 		for (Iterator<String> iterator = vars.iterator(); iterator.hasNext();) {
 			String var = iterator.next();

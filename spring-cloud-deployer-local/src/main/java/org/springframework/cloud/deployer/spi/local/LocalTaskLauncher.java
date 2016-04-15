@@ -32,13 +32,11 @@ import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
 import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -49,8 +47,9 @@ import org.springframework.web.client.RestTemplate;
  * @author Eric Bottard
  * @author Marius Bogoevici
  * @author Mark Fisher
+ * @author Janne Valkealahti
  */
-public class LocalTaskLauncher implements TaskLauncher {
+public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLauncher {
 
 	private Path logPathRoot;
 
@@ -62,22 +61,25 @@ public class LocalTaskLauncher implements TaskLauncher {
 
 	private static final int DEFAULT_SERVER_PORT = 8080;
 
-	private final LocalDeployerProperties properties;
-
 	private final Map<String, Instance> running = new ConcurrentHashMap<>();
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
+	/**
+	 * Instantiates a new local task launcher.
+	 *
+	 * @param properties the properties
+	 */
 	public LocalTaskLauncher(LocalDeployerProperties properties) {
-		Assert.notNull(properties, "LocalDeployerProperties must not be null");
-		this.properties = properties;
+		super(properties);
 	}
 
 	@Override
 	public String launch(AppDeploymentRequest request) {
 		if (this.logPathRoot == null) {
 			try {
-				this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
+				this.logPathRoot = Files.createTempDirectory(getLocalDeployerProperties().getWorkingDirectoriesRoot(),
+						"spring-cloud-dataflow-");
 			}
 			catch (IOException e) {
 				throw new IllegalStateException(e);
@@ -108,7 +110,7 @@ public class LocalTaskLauncher implements TaskLauncher {
 			}
 			Path workDir = Files.createDirectory(Paths.get(dir.toFile().getAbsolutePath(),
 					taskLaunchId));
-			if (properties.isDeleteFilesOnExit()) {
+			if (getLocalDeployerProperties().isDeleteFilesOnExit()) {
 				workDir.toFile().deleteOnExit();
 			}
 			int port = useDynamicPort ? SocketUtils.findAvailableTcpPort(DEFAULT_SERVER_PORT)
@@ -116,12 +118,12 @@ public class LocalTaskLauncher implements TaskLauncher {
 			if (useDynamicPort) {
 				args.put(SERVER_PORT_KEY, String.valueOf(port));
 			}
-			ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-jar", jarPath);
+			ProcessBuilder builder = new ProcessBuilder(buildJarExecutionCommand(jarPath, request));
 			builder.environment().clear();
 			builder.environment().putAll(args);
 			Instance instance = new Instance(builder, workDir, port);
 			running.put(taskLaunchId, instance);
-			if (properties.isDeleteFilesOnExit()) {
+			if (getLocalDeployerProperties().isDeleteFilesOnExit()) {
 				instance.stdout.deleteOnExit();
 				instance.stderr.deleteOnExit();
 			}
