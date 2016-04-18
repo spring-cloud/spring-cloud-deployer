@@ -40,10 +40,10 @@ public abstract class ShaUtils {
 			return new String(encodeHex(MessageDigest.getInstance("SHA-1").digest(data.getBytes("UTF-8"))));
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new IllegalArgumentException(e);
+			throw new IllegalStateException(e);
 		}
 		catch (UnsupportedEncodingException e) {
-			throw new IllegalArgumentException(e);
+			throw new IllegalStateException(e);
 		}
 	}
 

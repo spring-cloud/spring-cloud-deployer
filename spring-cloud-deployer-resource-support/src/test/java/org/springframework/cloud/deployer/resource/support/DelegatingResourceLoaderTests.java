@@ -28,6 +28,7 @@ import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import org.springframework.cloud.deployer.resource.StubResourceLoader;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.DefaultResourceLoader;
