@@ -104,6 +104,7 @@ public class DelegatingResourceLoader implements ResourceLoader {
 					catch (UnsupportedOperationException e) {
 						logger.warn(String.format("Unable to cache file since getInputStream() is "
 								+ "not supported for resource: %s", resource));
+						return resource;
 					}
 				}
 				else {
