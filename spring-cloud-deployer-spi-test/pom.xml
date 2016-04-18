@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-deployer-spi-test</artifactId>
@@ -16,8 +16,20 @@
 
 	<properties>
 		<hamcrest.version>1.3</hamcrest.version>
+		<integration-test-app.version>${project.version}</integration-test-app.version>
 	</properties>
 
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>integration-test-app.properties</include>
+				</includes>
+			</resource>
+		</resources>
+	</build>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -27,6 +39,11 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-deployer-resource-maven</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-deployer-spi-test-app</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

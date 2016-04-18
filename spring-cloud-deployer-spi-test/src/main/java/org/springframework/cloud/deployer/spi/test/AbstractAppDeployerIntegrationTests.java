@@ -25,8 +25,10 @@ import static org.springframework.cloud.deployer.spi.app.DeploymentState.failed;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.hamcrest.BaseMatcher;
@@ -43,6 +45,8 @@ import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -222,7 +226,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	@Test
 	public void testParameterPassing() {
 		Map<String, String> properties = new HashMap<>();
-		properties.put("parameterThatMayNeedEscaping", "&'\"|< é\\(");
+		properties.put("parameterThatMayNeedEscaping", DeployerIntegrationTestProperties.FUNNY_CHARACTERS);
 		AppDefinition definition = new AppDefinition(randomName(), properties);
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, integrationTestProcessor());
 
@@ -275,12 +279,18 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	 * The default implementation returns an uber-jar fetched via Maven. Subclasses may override.
 	 */
 	protected Resource integrationTestProcessor() {
+		Properties properties = new Properties();
+		try {
+			properties.load(new ClassPathResource("integration-test-app.properties").getInputStream());
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Failed to determine which version of integration-test-app to use", e);
+		}
 		return new MavenResource.Builder()
-				.groupId("org.springframework.cloud.stream.module")
-				.artifactId("integration-test-processor")
-				.version("1.0.0.BUILD-SNAPSHOT")
+				.groupId("org.springframework.cloud")
+				.artifactId("spring-cloud-deployer-spi-test-app")
+				.version(properties.getProperty("version"))
 				.extension("jar")
-				.classifier("exec")
 				.build();
 	}
 
