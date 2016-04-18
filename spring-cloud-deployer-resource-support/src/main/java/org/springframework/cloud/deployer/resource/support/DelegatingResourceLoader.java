@@ -94,7 +94,8 @@ public class DelegatingResourceLoader implements ResourceLoader {
 				return resource;
 			}
 			else {
-				File cachedResource = new File(cacheDirectory, resource.getFilename());
+				String cacheName = scheme + "-" + ShaUtils.sha1(location) + "-" + resource.getFilename();
+				File cachedResource = new File(cacheDirectory, cacheName);
 				if (!cachedResource.exists()) {
 					logger.info("Caching file {} as given location {}", cachedResource, location);
 					FileCopyUtils.copy(resource.getInputStream(), new FileOutputStream(cachedResource));
