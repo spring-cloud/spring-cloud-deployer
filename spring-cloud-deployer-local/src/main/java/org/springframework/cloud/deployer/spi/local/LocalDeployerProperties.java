@@ -51,6 +51,13 @@ public class LocalDeployerProperties {
 	 */
 	private String javaCmd = "java";
 
+	/**
+	 * Maximum number of milliseconds to wait for application shutdown
+	 * via the {@code /shutdown} endpoint.
+	 */
+	private int shutdownTimeout = 30000;
+
+
 	public String getJavaCmd() {
 		return javaCmd;
 	}
@@ -82,4 +89,14 @@ public class LocalDeployerProperties {
 	public void setEnvVarsToInherit(String[] envVarsToInherit) {
 		this.envVarsToInherit = envVarsToInherit;
 	}
+
+	public int getShutdownTimeout() {
+		return shutdownTimeout;
+	}
+
+	public LocalDeployerProperties setShutdownTimeout(int shutdownTimeout) {
+		this.shutdownTimeout = shutdownTimeout;
+		return this;
+	}
+
 }
