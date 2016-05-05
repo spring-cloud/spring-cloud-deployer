@@ -40,6 +40,7 @@ import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
@@ -176,13 +177,40 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 		return builder.build();
 	}
 
+	/**
+	 * Shut down the {@link Process} backing the application {@link Instance}.
+	 * If the application exposes a {@code /shutdown} endpoint, that will be
+	 * invoked followed by a wait that will not exceed the number of milliseconds
+	 * indicated by {@link LocalDeployerProperties#shutdownTimeout}. If the
+	 * timeout period is exceeded (or if the {@code /shutdown} endpoint is not exposed),
+	 * the process will be shut down via {@link Process#destroy()}.
+	 *
+	 * @param instance the application instance to shut down
+	 */
 	private void shutdownAndWait(Instance instance) {
 		try {
-			restTemplate.postForObject(instance.url + "/shutdown", null, String.class);
-			instance.process.waitFor();
+			int timeout = getLocalDeployerProperties().getShutdownTimeout();
+			if (timeout > 0) {
+				ResponseEntity<String> response = restTemplate.postForEntity(
+						instance.url + "/shutdown", null, String.class);
+				if (response.getStatusCode().is2xxSuccessful()) {
+					long timeoutTimestamp = System.currentTimeMillis() + timeout;
+					while (isAlive(instance.process) && System.currentTimeMillis() < timeoutTimestamp) {
+						Thread.sleep(1000);
+					}
+				}
+			}
 		}
-		catch (InterruptedException | ResourceAccessException e) {
-			instance.process.destroy();
+		catch (ResourceAccessException e) {
+			// ignore I/O errors
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+		finally {
+			if (isAlive(instance.process)) {
+				instance.process.destroy();
+			}
 		}
 	}
 
