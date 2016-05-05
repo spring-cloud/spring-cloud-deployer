@@ -17,6 +17,7 @@
 package org.springframework.cloud.deployer.spi.local;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.util.Assert;
@@ -60,8 +61,17 @@ public abstract class AbstractDeployerSupport {
 	protected String[] buildJarExecutionCommand(String jarPath, AppDeploymentRequest request) {
 		ArrayList<String> commands = new ArrayList<String>();
 		commands.add(properties.getJavaCmd());
-		commands.add("-jar");
-		commands.add(jarPath);
+
+		Map<String, String> envProps = request.getEnvironmentProperties();
+		if (envProps.containsKey("main") && envProps.containsKey("classpath")) {
+			commands.add("-cp");
+			commands.add(envProps.get("classpath"));
+			commands.add(envProps.get("main"));
+		}
+		else {
+			commands.add("-jar");
+			commands.add(jarPath);
+		}
 		commands.addAll(request.getCommandlineArguments());
 		return commands.toArray(new String[0]);
 	}
