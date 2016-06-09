@@ -88,8 +88,10 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 	public String deploy(AppDeploymentRequest request) {
 		String group = request.getEnvironmentProperties().get(GROUP_PROPERTY_KEY);
 		String deploymentId = String.format("%s.%s", group, request.getDefinition().getName());
-		if (running.containsKey(deploymentId)) {
-			throw new IllegalStateException(String.format("App for '%s' is already running", deploymentId));
+		DeploymentState state = status(deploymentId).getState();
+		if (state != DeploymentState.unknown) {
+			throw new IllegalStateException(String.format("App %s is already deployed with state %s",
+					deploymentId, state));
 		}
 		List<AppInstance> processes = new ArrayList<>();
 		running.put(deploymentId, processes);
@@ -161,7 +163,12 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 				builder.with(instance);
 			}
 		}
-		return builder.build();
+		AppStatus status = builder.build();
+		// Make sure to explicitly undeploy any exited instances that have status undeployed.
+		if (status.getState().equals(DeploymentState.undeployed)) {
+			undeploy(id);
+		}
+		return status;
 	}
 
 	@PreDestroy
