@@ -81,7 +81,9 @@ public class MavenResourceTests {
 		String tempLocalRepo = System.getProperty("java.io.tmpdir") + File.separator + ".m2-test1";
 		new File(tempLocalRepo).deleteOnExit();
 		properties.setLocalRepository(tempLocalRepo);
-		properties.setRemoteRepositories(new String[] {"https://repo.spring.io/libs-snapshot-local"});
+		properties.setRemoteRepositories(new MavenProperties.RemoteRepository[] {
+				new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local")
+		});
 		MavenResource resource = MavenResource.parse(coordinates, properties);
 		assertEquals("getFilename() doesn't match the expected filename",
 				"timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename());
@@ -93,7 +95,7 @@ public class MavenResourceTests {
 		new File(tempLocalRepo).deleteOnExit();
 		MavenProperties properties = new MavenProperties();
 		properties.setLocalRepository(tempLocalRepo);
-		properties.setRemoteRepositories(new String[0]);
+		properties.setRemoteRepositories(new MavenProperties.RemoteRepository[0]);
 		properties.setOffline(true);
 		MavenResource resource = new MavenResource.Builder(properties)
 				.artifactId("timestamp-task")
@@ -110,14 +112,16 @@ public class MavenResourceTests {
 		String tempLocalRepo = System.getProperty("java.io.tmpdir") + File.separator + ".m2-test3";
 		new File(tempLocalRepo).deleteOnExit();
 		properties1.setLocalRepository(tempLocalRepo);
-		properties1.setRemoteRepositories(new String[] {"https://repo.spring.io/libs-snapshot-local"});
+		properties1.setRemoteRepositories(new MavenProperties.RemoteRepository[] {
+				new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local")
+		});
 		MavenResource resource = MavenResource.parse(coordinates, properties1);
 		resource.getFile();
 
 		// no remotes; should not fail anymore
 		MavenProperties properties2 = new MavenProperties();
 		properties2.setLocalRepository(tempLocalRepo);
-		properties2.setRemoteRepositories(new String[0]);
+		properties2.setRemoteRepositories(new MavenProperties.RemoteRepository[0]);
 		properties2.setOffline(true);
 		resource = new MavenResource.Builder(properties2)
 				.artifactId("timestamp-task")
@@ -126,5 +130,5 @@ public class MavenResourceTests {
 				.build();
 		resource.getFile();
 	}
-	
+
 }

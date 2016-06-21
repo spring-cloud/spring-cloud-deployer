@@ -63,6 +63,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Ilayaperumal Gopinathan
+ * @author Donovan Muller
  */
 class MavenArtifactResolver {
 
@@ -98,19 +99,7 @@ class MavenArtifactResolver {
 		if (isProxyEnabled() && proxyHasCredentials()) {
 			final String username = this.properties.getProxy().getAuth().getUsername();
 			final String password = this.properties.getProxy().getAuth().getPassword();
-			this.authentication = new Authentication() {
-				@Override
-				public void fill(AuthenticationContext context, String key, Map<String, String> data) {
-					context.put(AuthenticationContext.USERNAME, username);
-					context.put(AuthenticationContext.PASSWORD, password);
-				}
-
-				@Override
-				public void digest(AuthenticationDigest digest) {
-					digest.update(AuthenticationContext.USERNAME, username,
-							AuthenticationContext.PASSWORD, password);
-				}
-			};
+			this.authentication = newAuthentication(username, password);
 		}
 		else {
 			this.authentication = null;
@@ -122,9 +111,9 @@ class MavenArtifactResolver {
 		}
 		if (!ObjectUtils.isEmpty(this.properties.getRemoteRepositories())) {
 			int i = 1;
-			for (String remoteRepository : this.properties.getRemoteRepositories()) {
+			for (MavenProperties.RemoteRepository remoteRepository : this.properties.getRemoteRepositories()) {
 				RemoteRepository.Builder remoteRepositoryBuilder = new RemoteRepository.Builder(
-						String.format("repository%d", i++), DEFAULT_CONTENT_TYPE, remoteRepository);
+						String.format("repository%d", i++), DEFAULT_CONTENT_TYPE, remoteRepository.getUrl());
 				if (isProxyEnabled()) {
 					MavenProperties.Proxy proxyProperties = this.properties.getProxy();
 					if (this.authentication != null) {
@@ -141,6 +130,11 @@ class MavenArtifactResolver {
 								proxyProperties.getHost(),
 								proxyProperties.getPort()));
 					}
+				}
+				if (remoteRepositoryHasCredentials(remoteRepository)) {
+					final String username = remoteRepository.getAuth().getUsername();
+					final String password = remoteRepository.getAuth().getPassword();
+					remoteRepositoryBuilder.setAuthentication(newAuthentication(username, password));
 				}
 				this.remoteRepositories.add(remoteRepositoryBuilder.build());
 			}
@@ -169,6 +163,42 @@ class MavenArtifactResolver {
 				this.properties.getProxy().getAuth() != null &&
 				this.properties.getProxy().getAuth().getUsername() != null &&
 				this.properties.getProxy().getAuth().getPassword() != null);
+	}
+
+	/**
+	 * Check if the {@link MavenProperties.RemoteRepository} setting has username/password set.
+	 *
+	 * @return boolean true if both the username/password are set
+	 */
+	private boolean remoteRepositoryHasCredentials(MavenProperties.RemoteRepository remoteRepository) {
+		return remoteRepository != null &&
+				remoteRepository.getAuth() != null &&
+				remoteRepository.getAuth().getUsername() != null &&
+				remoteRepository.getAuth().getPassword() != null;
+	}
+
+	/**
+	 * Create an {@link Authentication} given a username/password
+	 *
+	 * @param username
+	 * @param password
+	 * @return a configured {@link Authentication}
+	 */
+	private Authentication newAuthentication(final String username, final String password) {
+		return new Authentication() {
+
+			@Override
+			public void fill(AuthenticationContext context, String key, Map<String, String> data) {
+				context.put(AuthenticationContext.USERNAME, username);
+				context.put(AuthenticationContext.PASSWORD, password);
+			}
+
+			@Override
+			public void digest(AuthenticationDigest digest) {
+				digest.update(AuthenticationContext.USERNAME, username,
+						AuthenticationContext.PASSWORD, password);
+			}
+		};
 	}
 
 	/*
