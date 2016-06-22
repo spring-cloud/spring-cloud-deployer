@@ -24,6 +24,7 @@ import java.io.File;
  * @author Ilayaperumal Gopinathan
  * @author Eric Bottard
  * @author Mark Fisher
+ * @author Donovan Muller
  */
 public class MavenProperties {
 
@@ -41,7 +42,7 @@ public class MavenProperties {
 	/**
 	 * Locations of remote maven repositories from which artifacts will be downloaded, if not available locally.
 	 */
-	private String[] remoteRepositories = new String[]{"https://repo.spring.io/libs-snapshot"};
+	private RemoteRepository[] remoteRepositories = new RemoteRepository[] {new RemoteRepository("https://repo.spring.io/libs-snapshot")};
 
 	/**
 	 * Whether the resolver should operate in offline mode.
@@ -65,12 +66,12 @@ public class MavenProperties {
 	 */
 	private Integer requestTimeout;
 
-	public void setRemoteRepositories(String[] remoteRepositories) {
-		this.remoteRepositories = remoteRepositories;
+	public RemoteRepository[] getRemoteRepositories() {
+		return remoteRepositories;
 	}
 
-	public String[] getRemoteRepositories() {
-		return remoteRepositories;
+	public void setRemoteRepositories(final RemoteRepository[] remoteRepositories) {
+		this.remoteRepositories = remoteRepositories;
 	}
 
 	public void setLocalRepository(String localRepository) {
@@ -176,35 +177,59 @@ public class MavenProperties {
 		public void setAuth(Authentication auth) {
 			this.auth = auth;
 		}
+	}
 
-		public static class Authentication {
+	public static class RemoteRepository {
 
-			/**
-			 * Username for the proxy.
-			 */
-			private String username;
+		/**
+		 * URL of the remote maven repository. E.g. http://my.repo.com
+		 */
+		private String url;
 
-			/**
-			 * Password for the proxy.
-			 */
-			private String password;
+		private Authentication auth;
 
-			public String getUsername() {
-				return this.username;
-			}
-
-			public void setUsername(String username) {
-				this.username = username;
-			}
-
-			public String getPassword() {
-				return this.password;
-			}
-
-			public void setPassword(String password) {
-				this.password = password;
-			}
-
+		public RemoteRepository(final String url) {
+			this.url = url;
 		}
+
+		public String getUrl() {
+			return url;
+		}
+
+		public void setUrl(final String url) {
+			this.url = url;
+		}
+
+		public Authentication getAuth() {
+			return auth;
+		}
+
+		public void setAuth(final Authentication auth) {
+			this.auth = auth;
+		}
+	}
+
+	public static class Authentication {
+
+		private String username;
+
+		private String password;
+
+		public String getUsername() {
+			return this.username;
+		}
+
+		public void setUsername(String username) {
+			this.username = username;
+		}
+
+		public String getPassword() {
+			return this.password;
+		}
+
+		public void setPassword(String password) {
+			this.password = password;
+		}
+
 	}
 }
