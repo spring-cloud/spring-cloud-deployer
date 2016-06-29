@@ -17,8 +17,10 @@
 package org.springframework.cloud.deployer.resource.maven;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Configuration Properties for Maven.
@@ -41,10 +43,13 @@ public class MavenProperties {
 	 */
 	private String localRepository = DEFAULT_LOCAL_REPO;
 
+	private static final String DEFAULT_REMOTE_REPO_KEY = "default" + new Random().nextInt();
+
 	/**
 	 * Locations of remote maven repositories from which artifacts will be downloaded, if not available locally.
 	 */
-	private Map<String, RemoteRepository> remoteRepositories = new HashMap<>();
+	private Map<String, RemoteRepository> remoteRepositories = new HashMap<>(
+			Collections.singletonMap(DEFAULT_REMOTE_REPO_KEY, new RemoteRepository("http://repo1.maven.org/maven2")));
 
 	/**
 	 * Whether the resolver should operate in offline mode.
@@ -69,6 +74,10 @@ public class MavenProperties {
 	private Integer requestTimeout;
 
 	public Map<String, RemoteRepository> getRemoteRepositories() {
+		// Since the remote repositories is a map, we need to remove the default if user provides explicit repo.
+		if (remoteRepositories.size() > 1 && remoteRepositories.containsKey(DEFAULT_REMOTE_REPO_KEY)) {
+			this.remoteRepositories.remove(DEFAULT_REMOTE_REPO_KEY);
+		}
 		return remoteRepositories;
 	}
 

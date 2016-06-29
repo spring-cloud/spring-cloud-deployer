@@ -49,21 +49,21 @@ public class MavenResourceTests {
 
 	@Test
 	public void resourceExists() {
-		MavenResource resource = new MavenResource.Builder()
-				.artifactId("timestamp-task")
-				.groupId("org.springframework.cloud.task.app")
-				.version("1.0.0.BUILD-SNAPSHOT")
-				.build();
+		MavenProperties mavenProperties = new MavenProperties();
+		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
+		remoteRepositoryMap.put("default", new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
+		mavenProperties.setRemoteRepositories(remoteRepositoryMap);
+		MavenResource resource = MavenResource.parse("org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT", mavenProperties);
 		assertEquals(resource.exists(), true);
 	}
 
 	@Test
 	public void resourceDoesNotExist() {
-		MavenResource resource = new MavenResource.Builder()
-				.artifactId("doesnotexist")
-				.groupId("org.springframework.cloud.task.app")
-				.version("1.0.0.BUILD-SNAPSHOT")
-				.build();
+		MavenProperties mavenProperties = new MavenProperties();
+		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
+		remoteRepositoryMap.put("default", new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
+		mavenProperties.setRemoteRepositories(remoteRepositoryMap);
+		MavenResource resource = MavenResource.parse("org.springframework.cloud.task.app:doesnotexist:jar:1.0.0.BUILD-SNAPSHOT", mavenProperties);
 		assertEquals(resource.exists(), false);
 	}
 
