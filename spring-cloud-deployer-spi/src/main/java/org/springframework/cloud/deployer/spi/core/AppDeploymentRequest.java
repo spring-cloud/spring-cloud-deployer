@@ -35,9 +35,9 @@ import org.springframework.util.Assert;
  * colocation like node labeling.
  *
  * For passing properties into the app itself, use {@link AppDefinition#getProperties()}.
- * Those will typically be passed as env vars, unless an alternative approach is better
- * suited to the target platform. Each deployer implementation should clearly document
- * how it handles these properties.
+ * Those could be passed as env vars, or whatever approach is best for the target
+ * platform. Each deployer implementation should clearly document how it handles
+ * these properties.
  *
  * For passing command line arguments into the app itself, use {@link #commandlineArguments}.
  *
