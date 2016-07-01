@@ -34,11 +34,12 @@ import org.springframework.util.Assert;
  * app is executed, such as allowed memory, cpu or simply a way to define
  * colocation like node labeling.
  *
- * For passing properties or parameters into the app itself, use
- * {@link AppDefinition#getProperties()}.
+ * For passing properties into the app itself, use {@link AppDefinition#getProperties()}.
+ * Those will typically be passed as env vars, unless an alternative approach is better
+ * suited to the target platform. Each deployer implementation should clearly document
+ * how it handles these properties.
  *
- * For passing command line arguments into the app itself, use
- * {@link #commandlineArguments}.
+ * For passing command line arguments into the app itself, use {@link #commandlineArguments}.
  *
  * @author Mark Fisher
  * @author Janne Valkealahti

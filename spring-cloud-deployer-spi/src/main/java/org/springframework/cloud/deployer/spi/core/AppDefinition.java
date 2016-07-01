@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * A deployer may not modify properties in this class as those are meant for an
  * actual app as is. The deployer's only responsibility is to pass those
  * properties into a runtime environment in a way that they are available in a
- * running application.
+ * running application. For example, they would typically be passed as env vars.
  *
  * @author Mark Fisher
  * @author Janne Valkealahti
