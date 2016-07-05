@@ -38,17 +38,20 @@ public interface AppDeployer {
 
 	/**
 	 * The deployment property for the count (number of app instances).
+	 * If not provided, a deployer should assume 1 instance.
 	 */
 	static final String COUNT_PROPERTY_KEY = PREFIX + "count";
 
 	/**
 	 * The deployment property for the group to which an app belongs.
+	 * If not provided, a deployer should assume no group.
 	 */
 	static final String GROUP_PROPERTY_KEY = PREFIX + "group";
 
 	/**
 	 * The deployment property that indicates if each app instance should have an index value
-	 * within a sequence from 0 to {@value #COUNT_PROPERTY_KEY} - 1.
+	 * within a sequence from 0 to N-1, where N is the value of the {@value #COUNT_PROPERTY_KEY}
+	 * property. If not provided, a deployer should assume app instance indexing is not necessary.
 	 */
 	static final String INDEXED_PROPERTY_KEY = PREFIX + "indexed";
 
