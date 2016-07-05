@@ -32,14 +32,25 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 public interface AppDeployer {
 
 	/**
+	 * Common prefix used for deployment properties.
+	 */
+	static final String PREFIX = "spring.cloud.deployer.";
+
+	/**
 	 * The deployment property for the count (number of app instances).
 	 */
-	public static String COUNT_PROPERTY_KEY = "spring.cloud.deployer.count";
+	static final String COUNT_PROPERTY_KEY = PREFIX + "count";
 
 	/**
 	 * The deployment property for the group to which an app belongs.
 	 */
-	public static String GROUP_PROPERTY_KEY = "spring.cloud.deployer.group";
+	static final String GROUP_PROPERTY_KEY = PREFIX + "group";
+
+	/**
+	 * The deployment property that indicates if each app instance should have an index value
+	 * within a sequence from 0 to {@value #COUNT_PROPERTY_KEY} - 1.
+	 */
+	static final String INDEXED_PROPERTY_KEY = PREFIX + "indexed";
 
 	/**
 	 * Deploy an app using an {@link AppDeploymentRequest}. The returned id is
