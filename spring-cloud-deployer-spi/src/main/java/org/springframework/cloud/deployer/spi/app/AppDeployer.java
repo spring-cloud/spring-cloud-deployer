@@ -56,6 +56,12 @@ public interface AppDeployer {
 	static final String INDEXED_PROPERTY_KEY = PREFIX + "indexed";
 
 	/**
+	 * Constant property key to be used in the deployer implementation as an environment variable
+	 * to set the app instance index (if needed).
+	 */
+	static final String INSTANCE_INDEX_KEY = "INSTANCE_INDEX";
+
+	/**
 	 * Deploy an app using an {@link AppDeploymentRequest}. The returned id is
 	 * later used with {@link #undeploy(String)} or {@link #status(String)} to
 	 * undeploy an app or check its status, respectively.
