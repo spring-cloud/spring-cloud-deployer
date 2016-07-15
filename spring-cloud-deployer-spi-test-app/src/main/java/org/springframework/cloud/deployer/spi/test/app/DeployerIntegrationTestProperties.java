@@ -30,7 +30,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties
 public class DeployerIntegrationTestProperties {
 
-	public static final String FUNNY_CHARACTERS = "&'\"|< é\\(";
+	public static final String FUNNY_CHARACTERS = "&'\"|< \\(";
 
 	/**
 	 * The delay in milliseconds to stall the initialization of this app.
@@ -64,7 +64,7 @@ public class DeployerIntegrationTestProperties {
 	private String parameterThatMayNeedEscaping;
 
 	@Value("${INSTANCE_INDEX:${CF_INSTANCE_INDEX:0}}")
-	private int instanceIndex = 0;
+	private Integer instanceIndex;
 
 	public int getInitDelay() {
 		return initDelay;
@@ -106,11 +106,11 @@ public class DeployerIntegrationTestProperties {
 		this.parameterThatMayNeedEscaping = parameterThatMayNeedEscaping;
 	}
 
-	public int getInstanceIndex() {
+	public Integer getInstanceIndex() {
 		return instanceIndex;
 	}
 
-	public void setInstanceIndex(int instanceIndex) {
+	public void setInstanceIndex(Integer instanceIndex) {
 		this.instanceIndex = instanceIndex;
 	}
 }

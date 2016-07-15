@@ -16,12 +16,15 @@
 
 package org.springframework.cloud.deployer.spi.test;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deployed;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deploying;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.failed;
+import static org.springframework.cloud.deployer.spi.app.DeploymentState.partial;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
@@ -42,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
+import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
@@ -228,7 +232,11 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		Map<String, String> properties = new HashMap<>();
 		properties.put("parameterThatMayNeedEscaping", DeployerIntegrationTestProperties.FUNNY_CHARACTERS);
 		AppDefinition definition = new AppDefinition(randomName(), properties);
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, integrationTestProcessor());
+		Map<String, String> deploymentProperties = new HashMap<>();
+		// This makes sure that deploymentProperties are not passed to the deployed app itself
+		deploymentProperties.put("killDelay", "0");
+
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, integrationTestProcessor(), deploymentProperties);
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
@@ -244,6 +252,47 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 	}
+
+	/**
+	 * Tests a simple deploy-undeploy cycle.
+	 */
+	@Test
+	public void testMultipleInstancesDeploymentAndPartialState() {
+		Map<String, String> appProperties = new HashMap<>();
+		appProperties.put("matchInstances", "1"); // Only instance n°1 will kill itself
+		appProperties.put("killDelay", "0");
+		AppDefinition definition = new AppDefinition(randomName(), appProperties);
+		Resource resource = integrationTestProcessor();
+
+		Map<String, String> deploymentProperties = new HashMap<>();
+		deploymentProperties.put(AppDeployer.COUNT_PROPERTY_KEY, "3");
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
+
+		log.info("Deploying {}...", request.getDefinition().getName());
+
+		String deploymentId = appDeployer().deploy(request);
+		Timeout timeout = deploymentTimeout();
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(partial))), timeout.maxAttempts, timeout.pause));
+
+		// Assert individual instance state
+		Map<String, AppInstanceStatus> instances = appDeployer().status(deploymentId).getInstances();
+		// Note we can't rely on instances order, neither on their id indicating their ordinal number
+		assertThat(instances.values(), containsInAnyOrder(
+			hasProperty("state", is(deployed)),
+			hasProperty("state", is(deployed)),
+			hasProperty("state", is(failed))
+		));
+
+		log.info("Undeploying {}...", deploymentId);
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeploy(deploymentId);
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+	}
+
+
 
 	protected String randomName() {
 		return UUID.randomUUID().toString();
