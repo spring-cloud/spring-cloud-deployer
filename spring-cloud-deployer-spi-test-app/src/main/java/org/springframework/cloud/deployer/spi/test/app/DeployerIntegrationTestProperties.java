@@ -30,7 +30,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties
 public class DeployerIntegrationTestProperties {
 
-	public static final String FUNNY_CHARACTERS = "&'\"|< \\(";
+	public static final String FUNNY_CHARACTERS = "&'\"|< é\\(";
 
 	/**
 	 * The delay in milliseconds to stall the initialization of this app.
@@ -58,10 +58,17 @@ public class DeployerIntegrationTestProperties {
 
 	/**
 	 * If not null, this property will be tested against {@link #FUNNY_CHARACTERS}.
-	 * This makes sure that a deployer knows how to properly propagate deployment properties, including
+	 * This makes sure that a deployer knows how to properly propagate application properties, including
 	 * those that contain chars that often require some form of escaping.
 	 */
 	private String parameterThatMayNeedEscaping;
+
+	/**
+	 * If not null, this property will be tested against {@link #FUNNY_CHARACTERS}.
+	 * This makes sure that a deployer knows how to properly propagate deployment properties, including
+	 * those that contain chars that often require some form of escaping.
+	 */
+	private String commandLineArgValueThatMayNeedEscaping;
 
 	@Value("${INSTANCE_INDEX:${CF_INSTANCE_INDEX:0}}")
 	private Integer instanceIndex;
@@ -112,5 +119,13 @@ public class DeployerIntegrationTestProperties {
 
 	public void setInstanceIndex(Integer instanceIndex) {
 		this.instanceIndex = instanceIndex;
+	}
+
+	public String getCommandLineArgValueThatMayNeedEscaping() {
+		return commandLineArgValueThatMayNeedEscaping;
+	}
+
+	public void setCommandLineArgValueThatMayNeedEscaping(String commandLineArgValueThatMayNeedEscaping) {
+		this.commandLineArgValueThatMayNeedEscaping = commandLineArgValueThatMayNeedEscaping;
 	}
 }
