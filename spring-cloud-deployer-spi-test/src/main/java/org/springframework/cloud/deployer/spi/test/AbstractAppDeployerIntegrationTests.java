@@ -16,17 +16,22 @@
 
 package org.springframework.cloud.deployer.spi.test;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deployed;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deploying;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.failed;
+import static org.springframework.cloud.deployer.spi.app.DeploymentState.partial;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -42,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
+import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
@@ -221,14 +227,19 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	}
 
 	/**
-	 * Tests that properties can be passed to a deployed app, including values that typically require special handling.
+	 * Tests that properties (key-value mappings) can be passed to a deployed app,
+	 * including values that typically require special handling.
 	 */
 	@Test
-	public void testParameterPassing() {
+	public void testApplicationPropertiesPassing() {
 		Map<String, String> properties = new HashMap<>();
 		properties.put("parameterThatMayNeedEscaping", DeployerIntegrationTestProperties.FUNNY_CHARACTERS);
 		AppDefinition definition = new AppDefinition(randomName(), properties);
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, integrationTestProcessor());
+		Map<String, String> deploymentProperties = new HashMap<>();
+		// This makes sure that deploymentProperties are not passed to the deployed app itself
+		deploymentProperties.put("killDelay", "0");
+
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, integrationTestProcessor(), deploymentProperties);
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
@@ -243,7 +254,122 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+
+		// This second pass makes sure that properties are indeed passed
+
+		properties.put("parameterThatMayNeedEscaping", "notWhatIsExpected");
+		definition = new AppDefinition(randomName(), properties);
+
+		request = new AppDeploymentRequest(definition, integrationTestProcessor(), deploymentProperties);
+
+		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
+
+		deploymentId = appDeployer().deploy(request);
+		timeout = deploymentTimeout();
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.maxAttempts, timeout.pause));
+
+		log.info("Undeploying {}...", deploymentId);
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeploy(deploymentId);
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 	}
+
+	/**
+	 * Tests that command line arguments (ordered strings) can be passed to a deployed app,
+	 * including values that typically require special handling.
+	 */
+	@Test
+	public void testCommandLineArgumentsPassing() {
+		Map<String, String> properties = new HashMap<>();
+		AppDefinition definition = new AppDefinition(randomName(), properties);
+		Map<String, String> deploymentProperties = new HashMap<>();
+
+		List<String> cmdLineArgs = Arrays.asList("--commandLineArgValueThatMayNeedEscaping=d" + DeployerIntegrationTestProperties.FUNNY_CHARACTERS);
+		AppDeploymentRequest request =
+				new AppDeploymentRequest(definition, integrationTestProcessor(), deploymentProperties, cmdLineArgs);
+
+		log.info("Deploying {}...", request.getDefinition().getName());
+
+		String deploymentId = appDeployer().deploy(request);
+		Timeout timeout = deploymentTimeout();
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		log.info("Undeploying {}...", deploymentId);
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeploy(deploymentId);
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+
+		// This second pass makes sure that commandLine args are indeed understood
+		properties = new HashMap<>();
+		definition = new AppDefinition(randomName(), properties);
+		deploymentProperties = new HashMap<>();
+
+		cmdLineArgs = Arrays.asList("--commandLineArgValueThatMayNeedEscaping=" + "notWhatIsExpected");
+		request =
+				new AppDeploymentRequest(definition, integrationTestProcessor(), deploymentProperties, cmdLineArgs);
+
+		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
+
+		deploymentId = appDeployer().deploy(request);
+		timeout = deploymentTimeout();
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.maxAttempts, timeout.pause));
+
+		log.info("Undeploying {}...", deploymentId);
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeploy(deploymentId);
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+	}
+
+
+	/**
+	 * Tests support for instance count support and individual instance status report.
+	 */
+	@Test
+	public void testMultipleInstancesDeploymentAndPartialState() {
+		Map<String, String> appProperties = new HashMap<>();
+		appProperties.put("matchInstances", "1"); // Only instance n°1 will kill itself
+		appProperties.put("killDelay", "0");
+		AppDefinition definition = new AppDefinition(randomName(), appProperties);
+		Resource resource = integrationTestProcessor();
+
+		Map<String, String> deploymentProperties = new HashMap<>();
+		deploymentProperties.put(AppDeployer.COUNT_PROPERTY_KEY, "3");
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
+
+		log.info("Deploying {}...", request.getDefinition().getName());
+
+		String deploymentId = appDeployer().deploy(request);
+		Timeout timeout = deploymentTimeout();
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(partial))), timeout.maxAttempts, timeout.pause));
+
+		// Assert individual instance state
+		Map<String, AppInstanceStatus> instances = appDeployer().status(deploymentId).getInstances();
+		// Note we can't rely on instances order, neither on their id indicating their ordinal number
+		assertThat(instances.values(), containsInAnyOrder(
+			hasProperty("state", is(deployed)),
+			hasProperty("state", is(deployed)),
+			hasProperty("state", is(failed))
+		));
+
+		log.info("Undeploying {}...", deploymentId);
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeploy(deploymentId);
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+	}
+
+
 
 	protected String randomName() {
 		return UUID.randomUUID().toString();

@@ -139,8 +139,9 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 	public void undeploy(String id) {
 		List<AppInstance> processes = running.get(id);
 		if (processes != null) {
-			for (Instance instance : processes) {
+			for (AppInstance instance : processes) {
 				if (isAlive(instance.getProcess())) {
+					logger.info("un-deploying app {} instance {}", id, instance.getInstanceNumber());
 					shutdownAndWait(instance);
 				}
 			}
@@ -239,6 +240,10 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 			catch (IOException e) {
 				return DeploymentState.deploying;
 			}
+		}
+
+		public int getInstanceNumber() {
+			return instanceNumber;
 		}
 
 		public Map<String, String> getAttributes() {

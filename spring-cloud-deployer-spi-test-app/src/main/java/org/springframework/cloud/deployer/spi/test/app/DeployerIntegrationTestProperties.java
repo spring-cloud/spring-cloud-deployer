@@ -58,13 +58,20 @@ public class DeployerIntegrationTestProperties {
 
 	/**
 	 * If not null, this property will be tested against {@link #FUNNY_CHARACTERS}.
-	 * This makes sure that a deployer knows how to properly propagate deployment properties, including
+	 * This makes sure that a deployer knows how to properly propagate application properties, including
 	 * those that contain chars that often require some form of escaping.
 	 */
 	private String parameterThatMayNeedEscaping;
 
+	/**
+	 * If not null, this property will be tested against {@link #FUNNY_CHARACTERS}.
+	 * This makes sure that a deployer knows how to properly propagate deployment properties, including
+	 * those that contain chars that often require some form of escaping.
+	 */
+	private String commandLineArgValueThatMayNeedEscaping;
+
 	@Value("${INSTANCE_INDEX:${CF_INSTANCE_INDEX:0}}")
-	private int instanceIndex = 0;
+	private Integer instanceIndex;
 
 	public int getInitDelay() {
 		return initDelay;
@@ -106,11 +113,19 @@ public class DeployerIntegrationTestProperties {
 		this.parameterThatMayNeedEscaping = parameterThatMayNeedEscaping;
 	}
 
-	public int getInstanceIndex() {
+	public Integer getInstanceIndex() {
 		return instanceIndex;
 	}
 
-	public void setInstanceIndex(int instanceIndex) {
+	public void setInstanceIndex(Integer instanceIndex) {
 		this.instanceIndex = instanceIndex;
+	}
+
+	public String getCommandLineArgValueThatMayNeedEscaping() {
+		return commandLineArgValueThatMayNeedEscaping;
+	}
+
+	public void setCommandLineArgValueThatMayNeedEscaping(String commandLineArgValueThatMayNeedEscaping) {
+		this.commandLineArgValueThatMayNeedEscaping = commandLineArgValueThatMayNeedEscaping;
 	}
 }

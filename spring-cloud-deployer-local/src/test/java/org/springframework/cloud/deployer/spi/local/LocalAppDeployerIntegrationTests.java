@@ -16,31 +16,16 @@
 
 package org.springframework.cloud.deployer.spi.local;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.springframework.cloud.deployer.spi.app.DeploymentState.deployed;
-import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
-import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hamcrest.Matchers;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
-import org.springframework.cloud.deployer.spi.app.AppStatus;
-import org.springframework.cloud.deployer.spi.core.AppDefinition;
-import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.test.AbstractAppDeployerIntegrationTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
 
 /**
  * Integration tests for {@link LocalAppDeployer}.
@@ -59,40 +44,6 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 	@Override
 	protected AppDeployer appDeployer() {
 		return appDeployer;
-	}
-
-	@Test
-	public void testArgumentsPassing() {
-		// this test simple tries to pass arguments as
-		// we don't have no way to read logs to verify output
-		AppDefinition definition = new AppDefinition(randomName(), null);
-		Resource resource = integrationTestProcessor();
-		List<String> arguments = new ArrayList<String>();
-		arguments.add("--foo.bar=jee");
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, null, arguments);
-
-		log.info("Deploying {}...", request.getDefinition().getName());
-
-		String deploymentId = appDeployer().deploy(request);
-		Timeout timeout = deploymentTimeout();
-		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
-
-		log.info("Deploying {} again...", request.getDefinition().getName());
-
-		try {
-			appDeployer().deploy(request);
-			fail("Should have thrown an IllegalStateException");
-		}
-		catch (IllegalStateException ok) {
-		}
-
-		log.info("Undeploying {}...", deploymentId);
-
-		timeout = undeploymentTimeout();
-		appDeployer().undeploy(deploymentId);
-		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 	}
 
 	@Configuration
