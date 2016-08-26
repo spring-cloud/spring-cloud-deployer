@@ -19,6 +19,7 @@ package org.springframework.cloud.deployer.spi.local;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +29,7 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
@@ -73,6 +75,13 @@ public abstract class AbstractLocalDeployerSupport {
 		ArrayList<String> commands = new ArrayList<String>();
 		commands.add(properties.getJavaCmd());
 		Map<String, String> deploymentProperties = request.getDeploymentProperties();
+
+		// Adds Java System Properties (ie -Dmy.prop=val) before main class or -jar
+		if (deploymentProperties.containsKey("systemProperties")) {
+			String[] systemProperties = StringUtils.delimitedListToStringArray(deploymentProperties.get("systemProperties"), ",", " \n\r\t");
+			commands.addAll(Arrays.asList(systemProperties));
+		}
+
 		if (deploymentProperties.containsKey("main") || deploymentProperties.containsKey("classpath")) {
 			Assert.isTrue(deploymentProperties.containsKey("main") && deploymentProperties.containsKey("classpath"),
 					"the 'main' and 'classpath' deployment properties are both required if either is provided");
