@@ -60,7 +60,7 @@ public class TaskStatus {
 		this.id = id;
 		this.state = state;
 		this.attributes = attributes == null ? Collections.<String, String> emptyMap()
-				: Collections.unmodifiableMap(new HashMap<String, String>(attributes));
+				: Collections.unmodifiableMap(new HashMap<>(attributes));
 	}
 
 	/**

@@ -137,7 +137,7 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 		if (instance != null) {
 			return new TaskStatus(id, instance.getState(), instance.getAttributes());
 		}
-		return null;
+		return new TaskStatus(id, LaunchState.unknown, null);
 	}
 
 	@PreDestroy
