@@ -77,9 +77,9 @@ public abstract class AbstractLocalDeployerSupport {
 		Map<String, String> deploymentProperties = request.getDeploymentProperties();
 
 		// Adds Java System Properties (ie -Dmy.prop=val) before main class or -jar
-		if (deploymentProperties.containsKey("systemProperties")) {
-			String[] systemProperties = StringUtils.delimitedListToStringArray(deploymentProperties.get("systemProperties"), ",", " \n\r\t");
-			commands.addAll(Arrays.asList(systemProperties));
+		if (deploymentProperties.containsKey("JAVA_OPTS")) {
+			String[] javaOpts = StringUtils.delimitedListToStringArray(deploymentProperties.get("JAVA_OPTS"), ",", " \n\r\t");
+			commands.addAll(Arrays.asList(javaOpts));
 		}
 
 		if (deploymentProperties.containsKey("main") || deploymentProperties.containsKey("classpath")) {
