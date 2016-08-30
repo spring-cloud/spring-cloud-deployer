@@ -78,7 +78,7 @@ public abstract class AbstractLocalDeployerSupport {
 
 		// Adds Java System Properties (ie -Dmy.prop=val) before main class or -jar
 		if (deploymentProperties.containsKey("JAVA_OPTS")) {
-			String[] javaOpts = StringUtils.delimitedListToStringArray(deploymentProperties.get("JAVA_OPTS"), ",", " \n\r\t");
+			String[] javaOpts = StringUtils.tokenizeToStringArray(deploymentProperties.get("JAVA_OPTS"), ",");
 			commands.addAll(Arrays.asList(javaOpts));
 		}
 
