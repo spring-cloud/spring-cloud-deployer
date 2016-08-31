@@ -22,10 +22,9 @@ import static org.junit.Assert.assertThat;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.deployer.resource.maven.MavenProperties;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
@@ -53,12 +52,10 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 
 	protected abstract TaskLauncher taskLauncher();
 
-	@Autowired(required = false)
-	private MavenProperties mavenProperties;
-
 	@Test
 	public void testNonExistentAppsStatus() {
-		assertThat(taskLauncher().status(randomName()).getState(), is(LaunchState.unknown));
+		assertThat(randomName(), hasStatusThat(
+				Matchers.<TaskStatus>hasProperty("state", is(LaunchState.unknown))));
 	}
 
 	/**
