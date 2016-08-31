@@ -19,9 +19,6 @@ package org.springframework.cloud.deployer.spi.test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.io.IOException;
-import java.util.Properties;
-
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -29,12 +26,9 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties;
-import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 /**
  * Abstract base class for integration tests of
@@ -66,34 +60,6 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 	public void testNonExistentAppsStatus() {
 		assertThat(taskLauncher().status(randomName()).getState(), is(LaunchState.unknown));
 	}
-
-
-
-
-
-	/**
-	 * Return a resource corresponding to the spring-cloud-deployer-spi-test-app app suitable for the target runtime.
-	 *
-	 * The default implementation returns an uber-jar fetched via Maven. Subclasses may override.
-	 */
-	protected Resource integrationTestProcessor() {
-		Properties properties = new Properties();
-		try {
-			properties.load(new ClassPathResource("integration-test-app.properties").getInputStream());
-		}
-		catch (IOException e) {
-			throw new RuntimeException("Failed to determine which version of spring-cloud-deployer-spi-test-app to use", e);
-		}
-		return new MavenResource.Builder(mavenProperties)
-				.groupId("org.springframework.cloud")
-				.artifactId("spring-cloud-deployer-spi-test-app")
-				.classifier("exec")
-				.version(properties.getProperty("version"))
-				.extension("jar")
-				.build();
-	}
-
-
 
 	/**
 	 * A Hamcrest Matcher that queries the deployment status for some task id.

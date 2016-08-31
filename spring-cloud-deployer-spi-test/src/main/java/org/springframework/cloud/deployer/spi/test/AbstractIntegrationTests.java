@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.deployer.spi.test;
 
+import java.io.IOException;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.junit.Rule;
@@ -28,8 +30,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties;
+import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
@@ -78,6 +83,28 @@ public abstract class AbstractIntegrationTests {
 	 */
 	protected int redeploymentPause() {
 		return 0;
+	}
+
+	/**
+	 * Return a resource corresponding to the spring-cloud-deployer-spi-test-app app suitable for the target runtime.
+	 *
+	 * The default implementation returns an uber-jar fetched via Maven. Subclasses may override.
+	 */
+	protected Resource testApplication() {
+		Properties properties = new Properties();
+		try {
+			properties.load(new ClassPathResource("integration-test-app.properties").getInputStream());
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Failed to determine which version of spring-cloud-deployer-spi-test-app to use", e);
+		}
+		return new MavenResource.Builder(mavenProperties)
+				.groupId("org.springframework.cloud")
+				.artifactId("spring-cloud-deployer-spi-test-app")
+				.classifier("exec")
+				.version(properties.getProperty("version"))
+				.extension("jar")
+				.build();
 	}
 
 	@Configuration
