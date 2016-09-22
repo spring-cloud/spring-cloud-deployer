@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PreDestroy;
@@ -81,7 +82,7 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 				throw new IllegalStateException(e);
 			}
 		}
-		String taskLaunchId = request.getDefinition().getName();
+		String taskLaunchId = request.getDefinition().getName() + "-" + UUID.randomUUID().toString();
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
 		args.putAll(request.getDefinition().getProperties());
@@ -122,12 +123,12 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 
 	@Override
 	public void cancel(String id) {
-		Instance instance = running.get(id);
+		TaskInstance instance = running.get(id);
 		if (instance != null) {
+			instance.cancelled = true;
 			if (isAlive(instance.getProcess())) {
 				shutdownAndWait(instance);
 			}
-			running.remove(id);
 		}
 	}
 
@@ -159,6 +160,8 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 
 		private final URL baseUrl;
 
+		private boolean cancelled;
+
 		private TaskInstance(ProcessBuilder builder, Path workDir, int port) throws IOException {
 			builder.directory(workDir.toFile());
 			String workDirPath = workDir.toFile().getAbsolutePath();
@@ -182,6 +185,9 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 		}
 
 		public LaunchState getState() {
+			if (cancelled) {
+				return LaunchState.cancelled;
+			}
 			Integer exit = getProcessExitValue(process);
 			// TODO: consider using exit code mapper concept from batch
 			if (exit != null) {
@@ -194,6 +200,7 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 			}
 			try {
 				HttpURLConnection urlConnection = (HttpURLConnection) baseUrl.openConnection();
+				urlConnection.setConnectTimeout(100);
 				urlConnection.connect();
 				urlConnection.disconnect();
 				return LaunchState.running;

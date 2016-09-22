@@ -17,7 +17,14 @@
 package org.springframework.cloud.deployer.spi.test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
+import static org.springframework.cloud.deployer.spi.task.LaunchState.complete;
+import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -25,9 +32,12 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
+import org.springframework.cloud.deployer.spi.core.AppDefinition;
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
+import org.springframework.core.io.Resource;
 
 /**
  * Abstract base class for integration tests of
@@ -57,6 +67,114 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		assertThat(randomName(), hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", is(LaunchState.unknown))));
 	}
+
+	@Test
+	public void testSimpleLaunch() throws InterruptedException {
+		Map<String, String> appProperties = new HashMap<>();
+		appProperties.put("killDelay", "0");
+		appProperties.put("exitCode", "0");
+		AppDefinition definition = new AppDefinition(randomName(), appProperties);
+		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
+
+		log.info("Launching {}...", request.getDefinition().getName());
+		String launchId = record(taskLauncher().launch(request));
+
+		Timeout timeout = deploymentTimeout();
+		assertThat(launchId, eventually(hasStatusThat(
+				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
+
+	}
+
+	@Test
+	public void testReLaunch() throws InterruptedException {
+		Map<String, String> appProperties = new HashMap<>();
+		appProperties.put("killDelay", "0");
+		appProperties.put("exitCode", "0");
+		AppDefinition definition = new AppDefinition(randomName(), appProperties);
+		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
+
+		log.info("Launching {}...", request.getDefinition().getName());
+		String launchId = record(taskLauncher().launch(request));
+
+		Timeout timeout = deploymentTimeout();
+		assertThat(launchId, eventually(hasStatusThat(
+				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
+
+		log.info("Re-Launching {}...", request.getDefinition().getName());
+		String newLaunchId = record(taskLauncher().launch(request));
+
+		assertThat(newLaunchId, not(is(launchId)));
+
+		timeout = deploymentTimeout();
+		assertThat(newLaunchId, eventually(hasStatusThat(
+				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
+
+	}
+
+	@Test
+	public void testErrorExit() throws InterruptedException {
+		Map<String, String> appProperties = new HashMap<>();
+		appProperties.put("killDelay", "0");
+		appProperties.put("exitCode", "1");
+		AppDefinition definition = new AppDefinition(randomName(), appProperties);
+		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
+
+		log.info("Launching {}...", request.getDefinition().getName());
+		String launchId = record(taskLauncher().launch(request));
+
+		Timeout timeout = deploymentTimeout();
+		assertThat(launchId, eventually(hasStatusThat(
+				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.failed))), timeout.maxAttempts, timeout.pause));
+
+	}
+
+	@Test
+	public void testSimpleCancel() throws InterruptedException {
+		Map<String, String> appProperties = new HashMap<>();
+		appProperties.put("killDelay", "-1");
+		appProperties.put("exitCode", "0");
+		AppDefinition definition = new AppDefinition(randomName(), appProperties);
+		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
+
+		log.info("Launching {}...", request.getDefinition().getName());
+		String launchId = record(taskLauncher().launch(request));
+
+		Timeout timeout = deploymentTimeout();
+		assertThat(launchId, eventually(hasStatusThat(
+				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.running))), timeout.maxAttempts, timeout.pause));
+
+		log.info("Cancelling {}...", request.getDefinition().getName());
+		taskLauncher().cancel(launchId);
+
+		timeout = undeploymentTimeout();
+		assertThat(launchId, eventually(hasStatusThat(
+				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.cancelled))), timeout.maxAttempts, timeout.pause));
+
+	}
+
+	/**
+	 * Tests that command line args can be passed in.
+	 */
+	@Test
+	public void testCommandLineArgs() {
+		Map<String, String> properties = new HashMap<>();
+		properties.put("killDelay", "1000");
+		AppDefinition definition = new AppDefinition(randomName(), properties);
+		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, Collections.<String, String>emptyMap(),
+				Collections.singletonList("--exitCode=0"));
+		log.info("Launching {}...", request.getDefinition().getName());
+		String deploymentId = record(taskLauncher().launch(request));
+
+		Timeout timeout = deploymentTimeout();
+		assertThat(deploymentId, eventually(hasStatusThat(
+				Matchers.<TaskStatus>hasProperty("state", Matchers.is(complete))), timeout.maxAttempts, timeout.pause));
+	}
+
 
 	/**
 	 * A Hamcrest Matcher that queries the deployment status for some task id.

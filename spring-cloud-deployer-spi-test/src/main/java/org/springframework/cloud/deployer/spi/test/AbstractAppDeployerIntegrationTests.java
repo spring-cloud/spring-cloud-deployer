@@ -93,7 +93,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = appDeployer().deploy(request);
+		String deploymentId = record(appDeployer().deploy(request));
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -127,7 +127,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = appDeployer().deploy(request);
+		String deploymentId = record(appDeployer().deploy(request));
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -150,7 +150,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		log.info("Deploying {} again...", request.getDefinition().getName());
 
 		// Attempt re-deploy of SAME request
-		deploymentId = appDeployer().deploy(request);
+		deploymentId = record(appDeployer().deploy(request));
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -178,7 +178,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = appDeployer().deploy(request);
+		String deploymentId = record(appDeployer().deploy(request));
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deploying))), timeout.maxAttempts, timeout.pause));
@@ -202,7 +202,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = appDeployer().deploy(request);
+		String deploymentId = record(appDeployer().deploy(request));
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.maxAttempts, timeout.pause));
@@ -232,7 +232,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = appDeployer().deploy(request);
+		String deploymentId = record(appDeployer().deploy(request));
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -253,7 +253,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
-		deploymentId = appDeployer().deploy(request);
+		deploymentId = record(appDeployer().deploy(request));
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.maxAttempts, timeout.pause));
@@ -282,7 +282,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = appDeployer().deploy(request);
+		String deploymentId = record(appDeployer().deploy(request));
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -305,7 +305,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
-		deploymentId = appDeployer().deploy(request);
+		deploymentId = record(appDeployer().deploy(request));
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.maxAttempts, timeout.pause));
@@ -337,7 +337,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = appDeployer().deploy(request);
+		String deploymentId = record(appDeployer().deploy(request));
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(partial))), timeout.maxAttempts, timeout.pause));
