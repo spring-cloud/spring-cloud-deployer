@@ -14,7 +14,9 @@ public class CommandLineTokenizerTests {
 
 	@Test
 	public void testSimple() {
-		CommandLineTokenizer tokenizer = new CommandLineTokenizer("  a   b cdef  ");
+		CommandLineTokenizer tokenizer = new CommandLineTokenizer("a b cdef");
+		Assert.assertEquals(Arrays.asList("a", "b", "cdef"), tokenizer.getArgs());
+		tokenizer = new CommandLineTokenizer("  a   b cdef  ");
 		Assert.assertEquals(Arrays.asList("a", "b", "cdef"), tokenizer.getArgs());
 	}
 

@@ -67,7 +67,7 @@ public class CommandLineTokenizer {
 		if (pos == buffer.length && endDelimiter != ' ') {
 			throw new IllegalStateException(String.format("Ran out of input in [%s], expected closing [%s]", new String(buffer), endDelimiter));
 		}
-		else if (buffer[pos] == endDelimiter) {
+		else if (endDelimiter != ' ' && buffer[pos] == endDelimiter) {
 			pos++;
 		}
 		args.add(sb.toString());
