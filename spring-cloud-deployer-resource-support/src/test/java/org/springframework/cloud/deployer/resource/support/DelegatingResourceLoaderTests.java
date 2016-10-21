@@ -18,8 +18,11 @@ package org.springframework.cloud.deployer.resource.support;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -32,6 +35,7 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.cloud.deployer.resource.StubResourceLoader;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -40,6 +44,7 @@ import org.springframework.core.io.ResourceLoader;
  *
  * @author Patrick Peralta
  * @author Janne Valkealahti
+ * @author Ilayaperumal Gopinathan
  */
 public class DelegatingResourceLoaderTests {
 
@@ -88,6 +93,69 @@ public class DelegatingResourceLoaderTests {
 		assertEquals(file.exists(), true);
 	}
 
+	@Test
+	public void testFileNameWithSpecialCharacters1() throws IOException {
+		String testContent = "testing foo bar";
+		String fileName = "r1///3abc";
+		CustomResource resource1 = new CustomResource(fileName, testContent);
+		Map<String, ResourceLoader> map = new HashMap<>();
+		map.put("s3", new StubResourceLoader(resource1));
+		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(map);
+		Resource cachedResource1 = resourceLoader.getResource("s3://" + fileName);
+		assertTrue(cachedResource1.getFilename().endsWith("r13abc"));
+		Resource cachedResource2 = resourceLoader.getResource("s3://"+ fileName);
+		assertEquals(cachedResource1.getFile(), cachedResource2.getFile());
+	}
+
+	@Test
+	public void testFileNameWithSpecialCharacters2() throws IOException {
+		String testContent = "testing foo bar";
+		String fileName = "r1///$#@3-abc";
+		CustomResource resource1 = new CustomResource(fileName, testContent);
+		Map<String, ResourceLoader> map = new HashMap<>();
+		map.put("s3", new StubResourceLoader(resource1));
+		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(map);
+		Resource cachedResource1 = resourceLoader.getResource("s3://" + fileName);
+		assertTrue(cachedResource1.getFilename().endsWith("r13-abc"));
+		Resource cachedResource2 = resourceLoader.getResource("s3://"+ fileName);
+		assertEquals(cachedResource1.getFile(), cachedResource2.getFile());
+	}
+
+	@Test
+	public void testFileNameWithSpecialCharacters3() throws IOException {
+		String testContent = "testing foo bar";
+		String fileName = "r1--3_abc$";
+		CustomResource resource1 = new CustomResource(fileName, testContent);
+		Map<String, ResourceLoader> map = new HashMap<>();
+		map.put("s3", new StubResourceLoader(resource1));
+		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(map);
+		Resource cachedResource1 = resourceLoader.getResource("s3://" + fileName);
+		assertTrue(cachedResource1.getFilename().endsWith("r1--3_abc"));
+		Resource cachedResource2 = resourceLoader.getResource("s3://"+ fileName);
+		assertEquals(cachedResource1.getFile(), cachedResource2.getFile());
+	}
+
+	@Test
+	public void testCacheWithSpecialCharactersInFileName() throws IOException {
+		String testContent = "testing foo bar";
+		String fileName = "r1///3abc#123";
+		CustomResource resource1 = new CustomResource(fileName, testContent);
+		Map<String, ResourceLoader> map = new HashMap<>();
+		map.put("s3", new StubResourceLoader(resource1));
+		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(map);
+		FileSystemResource cachedResource1 = (FileSystemResource) resourceLoader.getResource("s3://"+ fileName);
+		assertTrue(cachedResource1.getFilename().endsWith("r13abc123"));
+		StringBuilder builder = new StringBuilder();
+		int ch;
+		FileInputStream fileInputStream = (FileInputStream) cachedResource1.getInputStream();
+		while ((ch = fileInputStream.read()) != -1) {
+			builder.append((char)ch);
+		}
+		assertEquals(testContent, builder.toString());
+		FileSystemResource cachedResource2 = (FileSystemResource) resourceLoader.getResource("s3://"+ fileName);
+		assertEquals(cachedResource1.getFile(), cachedResource2.getFile());
+	}
+
 	static class NullResource extends AbstractResource {
 
 		final String description;
@@ -109,6 +177,38 @@ public class DelegatingResourceLoaderTests {
 		@Override
 		public InputStream getInputStream() throws IOException {
 			return null;
+		}
+	}
+
+	static class CustomResource extends AbstractResource {
+
+		final String name;
+
+		final String content;
+
+		public CustomResource(String name, String content) {
+			this.name = name;
+			this.content = content;
+		}
+
+		@Override
+		public String getDescription() {
+			return name;
+		}
+
+		@Override
+		public File getFile() throws IOException {
+			throw new IOException();
+		}
+
+		@Override
+		public String getFilename() {
+			return name;
+		}
+
+		@Override
+		public InputStream getInputStream() throws IOException {
+			return new ByteArrayInputStream(this.content.getBytes());
 		}
 	}
 
