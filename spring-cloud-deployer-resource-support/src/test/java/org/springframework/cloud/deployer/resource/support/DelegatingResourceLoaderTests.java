@@ -102,7 +102,6 @@ public class DelegatingResourceLoaderTests {
 		map.put("s3", new StubResourceLoader(resource1));
 		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(map);
 		Resource cachedResource1 = resourceLoader.getResource("s3://" + fileName);
-		assertTrue(cachedResource1.getFilename().endsWith("r13abc"));
 		Resource cachedResource2 = resourceLoader.getResource("s3://"+ fileName);
 		assertEquals(cachedResource1.getFile(), cachedResource2.getFile());
 	}
@@ -116,7 +115,6 @@ public class DelegatingResourceLoaderTests {
 		map.put("s3", new StubResourceLoader(resource1));
 		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(map);
 		Resource cachedResource1 = resourceLoader.getResource("s3://" + fileName);
-		assertTrue(cachedResource1.getFilename().endsWith("r13-abc"));
 		Resource cachedResource2 = resourceLoader.getResource("s3://"+ fileName);
 		assertEquals(cachedResource1.getFile(), cachedResource2.getFile());
 	}
@@ -130,7 +128,6 @@ public class DelegatingResourceLoaderTests {
 		map.put("s3", new StubResourceLoader(resource1));
 		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(map);
 		Resource cachedResource1 = resourceLoader.getResource("s3://" + fileName);
-		assertTrue(cachedResource1.getFilename().endsWith("r1--3_abc"));
 		Resource cachedResource2 = resourceLoader.getResource("s3://"+ fileName);
 		assertEquals(cachedResource1.getFile(), cachedResource2.getFile());
 	}
@@ -144,7 +141,6 @@ public class DelegatingResourceLoaderTests {
 		map.put("s3", new StubResourceLoader(resource1));
 		DelegatingResourceLoader resourceLoader = new DelegatingResourceLoader(map);
 		FileSystemResource cachedResource1 = (FileSystemResource) resourceLoader.getResource("s3://"+ fileName);
-		assertTrue(cachedResource1.getFilename().endsWith("r13abc123"));
 		StringBuilder builder = new StringBuilder();
 		int ch;
 		FileInputStream fileInputStream = (FileInputStream) cachedResource1.getInputStream();

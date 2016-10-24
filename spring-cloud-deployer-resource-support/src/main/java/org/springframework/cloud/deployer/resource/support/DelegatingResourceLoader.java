@@ -119,7 +119,7 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 			}
 			else {
 				String fileName = resource.getFilename();
-				fileName = (fileName != null) ? String.format("-%s", fileName.replaceAll("[^\\w\\-]","")) : "";
+				fileName = (fileName != null) ? ShaUtils.sha1(fileName) : "";
 				String cacheName = scheme + "-" + ShaUtils.sha1(location) + fileName;
 				File cachedResource = new File(cacheDirectory, cacheName);
 				if (!cachedResource.exists()) {
