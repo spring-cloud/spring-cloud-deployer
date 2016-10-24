@@ -51,6 +51,7 @@ import org.springframework.util.FileCopyUtils;
  *
  * @author Mark Fisher
  * @author Janne Valkealahti
+ * @author Ilayaperumal Gopinathan
  */
 public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderAware {
 
@@ -117,7 +118,9 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 				return resource;
 			}
 			else {
-				String cacheName = scheme + "-" + ShaUtils.sha1(location) + "-" + resource.getFilename();
+				String fileName = resource.getFilename();
+				fileName = (fileName != null) ? ShaUtils.sha1(fileName) : "";
+				String cacheName = scheme + "-" + ShaUtils.sha1(location) + fileName;
 				File cachedResource = new File(cacheDirectory, cacheName);
 				if (!cachedResource.exists()) {
 					logger.info("Caching file {} as given location {}", cachedResource, location);
