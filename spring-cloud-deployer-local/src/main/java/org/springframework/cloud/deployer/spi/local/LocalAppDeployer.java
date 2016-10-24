@@ -159,10 +159,6 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 			}
 		}
 		AppStatus status = builder.build();
-		// Make sure to explicitly undeploy any exited instances that have status undeployed.
-		if (DeploymentState.undeployed.equals(status.getState())) {
-			undeploy(id);
-		}
 		return status;
 	}
 
@@ -229,12 +225,7 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 			Integer exit = getProcessExitValue(process);
 			// TODO: consider using exit code mapper concept from batch
 			if (exit != null) {
-				if (exit == 0) {
-					return DeploymentState.undeployed;
-				}
-				else {
-					return DeploymentState.failed;
-				}
+				return DeploymentState.failed;
 			}
 			try {
 				HttpURLConnection urlConnection = (HttpURLConnection) baseUrl.openConnection();
