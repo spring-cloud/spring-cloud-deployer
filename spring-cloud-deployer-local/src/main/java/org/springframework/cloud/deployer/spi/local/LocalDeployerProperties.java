@@ -28,8 +28,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-@ConfigurationProperties(prefix = "deployer.local")
+@ConfigurationProperties(prefix = LocalDeployerProperties.LOCAL_PROPERTIES)
 public class LocalDeployerProperties {
+
+	/**
+	 * Top level prefix for local deployer configuration properties.
+	 */
+	public static final String LOCAL_PROPERTIES = "spring.cloud.deployer.local";
 
 	/**
 	 * Directory in which all created processes will run and create log files.
@@ -57,6 +62,11 @@ public class LocalDeployerProperties {
 	 * via the {@code /shutdown} endpoint.
 	 */
 	private int shutdownTimeout = 30;
+
+	/**
+	 * The Java Options to pass to the JVM, e.g -Dtest=foo
+	 */
+	private String javaOpts;
 
 
 	public String getJavaCmd() {
@@ -98,6 +108,14 @@ public class LocalDeployerProperties {
 	public LocalDeployerProperties setShutdownTimeout(int shutdownTimeout) {
 		this.shutdownTimeout = shutdownTimeout;
 		return this;
+	}
+
+	public String getJavaOpts() {
+		return javaOpts;
+	}
+
+	public void setJavaOpts(String javaOpts) {
+		this.javaOpts = javaOpts;
 	}
 
 }
