@@ -16,20 +16,18 @@
 
 package org.springframework.cloud.deployer.spi.local;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,6 +39,8 @@ import org.springframework.web.client.RestTemplate;
  * @author Mark Fisher
  */
 public abstract class AbstractLocalDeployerSupport {
+
+	private static final Logger logger = LoggerFactory.getLogger(LocalAppDeployer.class);
 
 	private final LocalDeployerProperties properties;
 
@@ -75,33 +75,16 @@ public abstract class AbstractLocalDeployerSupport {
 		ArrayList<String> commands = new ArrayList<String>();
 		commands.add(properties.getJavaCmd());
 		Map<String, String> deploymentProperties = request.getDeploymentProperties();
-
-		// Adds Java System Properties (ie -Dmy.prop=val) before main class or -jar
-		if (deploymentProperties.containsKey("JAVA_OPTS")) {
-			String[] javaOpts = StringUtils.tokenizeToStringArray(deploymentProperties.get("JAVA_OPTS"), ",");
-			commands.addAll(Arrays.asList(javaOpts));
-		}
-
-		if (deploymentProperties.containsKey("main") || deploymentProperties.containsKey("classpath")) {
-			Assert.isTrue(deploymentProperties.containsKey("main") && deploymentProperties.containsKey("classpath"),
-					"the 'main' and 'classpath' deployment properties are both required if either is provided");
-			commands.add("-cp");
-			commands.add(deploymentProperties.get("classpath"));
-			commands.add(deploymentProperties.get("main"));
-		}
-		else {
-			commands.add("-jar");
-			Resource resource = request.getResource();
-			try {
-				commands.add(resource.getFile().getAbsolutePath());
-			}
-			catch (IOException e) {
-				throw new IllegalStateException(e);
-			}
-		}
+		ExecutionCommandBuilder commandBuilder = new ExecutionCommandBuilder();
+		// Add Java System Properties (ie -Dmy.prop=val) before main class or -jar
+		commandBuilder.addJavaOptions(commands, deploymentProperties, properties);
+		commandBuilder.addJavaExecutionOptions(commands, request);
 		commands.addAll(request.getCommandlineArguments());
+		logger.debug("Java Commands = " + commands);
 		return commands.toArray(new String[0]);
 	}
+
+
 
 	/**
 	 * Retain the environment variable strings in the provided set indicated by
