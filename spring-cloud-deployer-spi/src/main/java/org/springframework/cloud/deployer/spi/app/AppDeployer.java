@@ -28,6 +28,7 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
  * @author Patrick Peralta
  * @author Marius Bogoevici
  * @author Janne Valkealahti
+ * @author Thomas Risberg
  */
 public interface AppDeployer {
 
@@ -64,6 +65,21 @@ public interface AppDeployer {
 	 * @see #INDEXED_PROPERTY_KEY
 	 */
 	static final String INSTANCE_INDEX_PROPERTY_KEY = "INSTANCE_INDEX";
+
+	/**
+	 * The deployment property for the memory setting for the container that will run the app.
+	 * The memory is specified in megabytes with optional trailing 'm' like '1024m'. How this property
+	 * affects the deployments will vary between implementations.
+	 */
+	static final String MEMORY_PROPERTY_KEY = PREFIX + "memory";
+
+	/**
+	 * The deployment property for the cpu setting for the container that will run the app.
+	 * The cpu is specified as whole multiples or decimal fractions of virtual cores. Some platforms will not
+	 * support setting cpu and will ignore this setting. Other platforms may require whole numbers and might
+	 * round up. Exactly how this property affects the deployments will vary between implementations.
+	 */
+	static final String CPU_PROPERTY_KEY = PREFIX + "cpu";
 
 	/**
 	 * Deploy an app using an {@link AppDeploymentRequest}. The returned id is
