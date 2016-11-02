@@ -145,6 +145,10 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 	public void cleanup(String id) {
 	}
 
+	@Override
+	public void destroy(String appName) {
+	}
+
 	@PreDestroy
 	public void shutdown() throws Exception {
 		for (String taskLaunchId : running.keySet()) {

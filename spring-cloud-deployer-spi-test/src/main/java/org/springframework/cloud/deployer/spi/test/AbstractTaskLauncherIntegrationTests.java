@@ -85,6 +85,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		assertThat(launchId, eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
 
+		taskLauncher().destroy(definition.getName());
 	}
 
 	@Test
@@ -112,6 +113,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		assertThat(newLaunchId, eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
 
+		taskLauncher().destroy(definition.getName());
 	}
 
 	@Test
@@ -130,6 +132,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		assertThat(launchId, eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.failed))), timeout.maxAttempts, timeout.pause));
 
+		taskLauncher().destroy(definition.getName());
 	}
 
 	@Test
@@ -155,6 +158,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		assertThat(launchId, eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.cancelled))), timeout.maxAttempts, timeout.pause));
 
+		taskLauncher().destroy(definition.getName());
 	}
 
 	/**
@@ -174,6 +178,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(complete))), timeout.maxAttempts, timeout.pause));
+		taskLauncher().destroy(definition.getName());
 	}
 
 	@After
