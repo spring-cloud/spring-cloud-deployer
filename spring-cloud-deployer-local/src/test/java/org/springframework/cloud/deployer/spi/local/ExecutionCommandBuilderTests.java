@@ -18,6 +18,7 @@ package org.springframework.cloud.deployer.spi.local;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.ClassPathResource;
@@ -55,13 +56,8 @@ public class ExecutionCommandBuilderTests {
     }
 
     @Test
-    public void testExecutionOptions() {
-
-    }
-
-    @Test
     public void testDirectJavaMemoryOption() {
-        deploymentProperties.put(PREFIX + ".memory", "1024m");
+        deploymentProperties.put(AppDeployer.MEMORY_PROPERTY_KEY, "1024m");
         commandBuilder.addJavaOptions(args, deploymentProperties, localDeployerProperties);
         assertThat(args.size(), is(1));
         assertThat(args.get(0), is("-Xmx1024m"));
@@ -77,7 +73,7 @@ public class ExecutionCommandBuilderTests {
 
     @Test
     public void testOverrideMemoryOptions() {
-        deploymentProperties.put(PREFIX + ".memory", "1024m");
+        deploymentProperties.put(AppDeployer.MEMORY_PROPERTY_KEY, "1024m");
         deploymentProperties.put(PREFIX + ".javaOpts", "-Xmx2048m");
         commandBuilder.addJavaOptions(args, deploymentProperties, localDeployerProperties);
         assertThat(args.size(), is(1));
@@ -86,7 +82,7 @@ public class ExecutionCommandBuilderTests {
 
     @Test
     public void testDirectMemoryOptionsWithOtherOptions() {
-        deploymentProperties.put(PREFIX + ".memory", "1024m");
+        deploymentProperties.put(AppDeployer.MEMORY_PROPERTY_KEY, "1024m");
         deploymentProperties.put(PREFIX + ".javaOpts", "-Dtest=foo");
         commandBuilder.addJavaOptions(args, deploymentProperties, localDeployerProperties);
         assertThat(args.size(), is(2));

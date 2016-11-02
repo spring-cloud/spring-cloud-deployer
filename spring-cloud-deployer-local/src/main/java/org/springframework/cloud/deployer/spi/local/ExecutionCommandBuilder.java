@@ -15,6 +15,7 @@
  */
 package org.springframework.cloud.deployer.spi.local;
 
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
@@ -42,8 +43,8 @@ public class ExecutionCommandBuilder {
     public void addJavaOptions(List<String> commands, Map<String, String> deploymentProperties,
                                LocalDeployerProperties localDeployerProperties) {
         String memory = null;
-        if (containsKey(deploymentProperties, "memory")) {
-            memory = "-Xmx" + getValue(deploymentProperties, "memory");
+        if (deploymentProperties.containsKey(AppDeployer.MEMORY_PROPERTY_KEY)) {
+            memory = "-Xmx" + deploymentProperties.get(AppDeployer.MEMORY_PROPERTY_KEY);
         }
 
         String javaOptsString = getValue(deploymentProperties, "javaOpts");
