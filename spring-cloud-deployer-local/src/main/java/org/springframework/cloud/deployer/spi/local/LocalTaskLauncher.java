@@ -141,6 +141,10 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 		return new TaskStatus(id, LaunchState.unknown, null);
 	}
 
+	@Override
+	public void cleanup(String id) {
+	}
+
 	@PreDestroy
 	public void shutdown() throws Exception {
 		for (String taskLaunchId : running.keySet()) {

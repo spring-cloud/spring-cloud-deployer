@@ -70,4 +70,16 @@ public interface TaskLauncher {
 	 * @return the task status
 	 */
 	TaskStatus status(String id);
+
+	/**
+	 * Attempt to clean up any resources that are associated with a task launch represented by the provided id.
+	 *
+	 * Implementations can choose to ignore this request if the underlying platform does not have any resources
+	 * associated with the task launch. Implementations may perform this operation asynchronously; therefore a
+	 * successful clean up may not be assumed upon return.
+	 *
+	 * @param id the task id, as returned by {@link #launch(AppDeploymentRequest)}
+	 */
+	void cleanup(String id);
+
 }
