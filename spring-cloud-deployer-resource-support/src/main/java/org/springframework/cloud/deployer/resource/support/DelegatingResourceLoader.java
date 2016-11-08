@@ -137,12 +137,10 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 				return new FileSystemResource(cachedResource);
 			}
 		}
-		catch (URISyntaxException e) {
-			throw new IllegalArgumentException(e);
+		catch (Exception e) {
+			throw new ResourceNotFoundException(e.getMessage(), e);
 		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
+
 	}
 
 	@Override
@@ -187,4 +185,5 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 		}
 		return false;
 	}
+
 }
