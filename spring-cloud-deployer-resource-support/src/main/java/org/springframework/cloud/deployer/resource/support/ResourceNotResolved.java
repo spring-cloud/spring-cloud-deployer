@@ -19,14 +19,14 @@ package org.springframework.cloud.deployer.resource.support;
  * Thrown to indicate failure resolving a {@link org.springframework.core.io.Resource}.
  */
 @SuppressWarnings("serial")
-public class ResourceNotFoundException extends RuntimeException {
+public class ResourceNotResolved extends RuntimeException {
 
     /**
-     * Create a new {@link ResourceNotFoundException} with the specified options.
+     * Create a new {@link ResourceNotResolved} with the specified options.
      * @param message the exception message to display to the user
      * @param cause the underlying cause
      */
-    public ResourceNotFoundException(String message, Throwable cause) {
+    public ResourceNotResolved(String message, Throwable cause) {
         super(message, cause);
     }
 }

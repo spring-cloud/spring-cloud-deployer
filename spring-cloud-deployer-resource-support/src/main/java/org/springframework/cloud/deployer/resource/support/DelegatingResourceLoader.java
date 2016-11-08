@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -138,7 +137,7 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 			}
 		}
 		catch (Exception e) {
-			throw new ResourceNotFoundException(e.getMessage(), e);
+			throw new ResourceNotResolved(e.getMessage(), e);
 		}
 
 	}
