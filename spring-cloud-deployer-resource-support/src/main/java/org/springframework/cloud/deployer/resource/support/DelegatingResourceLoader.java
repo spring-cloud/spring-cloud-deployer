@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -137,12 +136,10 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 				return new FileSystemResource(cachedResource);
 			}
 		}
-		catch (URISyntaxException e) {
-			throw new IllegalArgumentException(e);
+		catch (Exception e) {
+			throw new ResourceNotResolved(e.getMessage(), e);
 		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
+
 	}
 
 	@Override
@@ -187,4 +184,5 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 		}
 		return false;
 	}
+
 }
