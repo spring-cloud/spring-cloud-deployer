@@ -68,10 +68,23 @@ public interface AppDeployer {
 
 	/**
 	 * The deployment property for the memory setting for the container that will run the app.
-	 * The memory is specified in megabytes with optional trailing 'm' like '1024m'. How this property
+	 * The memory is specified in bytes with optional trailing unit like '1024MiB' (ignoring case and using power-of-two
+	 * abbreviations even for symbols like 'MB', which should actually mean 1_000_000). How this property
 	 * affects the deployments will vary between implementations.
+	 *
+	 * @see org.springframework.cloud.deployer.spi.util.ByteSize
 	 */
 	static final String MEMORY_PROPERTY_KEY = PREFIX + "memory";
+
+	/**
+	 * The deployment property for the disk setting for the container that will run the app.
+	 * The memory is specified in bytes with optional trailing unit like '1024MiB' (ignoring case and using power-of-two
+	 * abbreviations even for symbols like 'MB', which should actually mean 1_000_000). How this property
+	 * affects the deployments will vary between implementations.
+	 *
+	 * @see org.springframework.cloud.deployer.spi.util.ByteSize
+	 */
+	static final String DISK_PROPERTY_KEY = PREFIX + "disk";
 
 	/**
 	 * The deployment property for the cpu setting for the container that will run the app.
