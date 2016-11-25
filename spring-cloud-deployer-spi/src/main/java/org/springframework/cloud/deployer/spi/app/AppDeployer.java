@@ -32,6 +32,8 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
  */
 public interface AppDeployer {
 
+	static final String APP_DEPLOYER_NAME_SUFFIX = "AppDeployer";
+
 	/**
 	 * Common prefix used for deployment properties.
 	 */
