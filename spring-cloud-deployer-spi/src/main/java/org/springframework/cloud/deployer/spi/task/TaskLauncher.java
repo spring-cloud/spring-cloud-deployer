@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,8 @@ public interface TaskLauncher {
 	TaskStatus status(String id);
 
 	/**
-	 * Attempt to clean up any resources that are associated with a task launch represented by the provided id.
+	 * Attempt to clean up any app execution resources that are associated with a task launch represented by the
+	 * provided task execution id.
 	 *
 	 * Implementations can choose to ignore this request if the underlying platform does not have any resources
 	 * associated with the task launch. Implementations may perform this operation asynchronously; therefore a
@@ -83,11 +84,12 @@ public interface TaskLauncher {
 	void cleanup(String id);
 
 	/**
-	 * Attempt to clean up any resources that are associated with a launched task app represented by the provided appName.
+	 * Attempt to clean up any app resources that are associated with a task app represented by the provided
+	 * appName. Any app execution resources from all task launches for this app should be cleaned up as well.
 	 *
 	 * Implementations can choose to ignore this request if the underlying platform does not have any resources
-	 * associated with the task app. Implementations may perform this operation asynchronously; therefore a
-	 * successful clean up may not be assumed upon return.
+	 * associated with the task app and if there are no task launch resources created for this app. Implementations
+	 * may perform this operation asynchronously; therefore a successful clean up may not be assumed upon return.
 	 *
 	 * @param appName the app name as specified in {@link org.springframework.cloud.deployer.spi.core.AppDefinition#name}
 	 *                from the {@link #launch(AppDeploymentRequest)}
