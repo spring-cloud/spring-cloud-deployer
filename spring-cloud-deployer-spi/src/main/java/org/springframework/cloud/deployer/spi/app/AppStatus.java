@@ -16,11 +16,15 @@
 
 package org.springframework.cloud.deployer.spi.app;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.springframework.util.Assert;
 
 /**
  * Status of an app which is initially constructed from an
@@ -50,13 +54,17 @@ public class AppStatus {
 	 */
 	private final Map<String, AppInstanceStatus> instances = new HashMap<String, AppInstanceStatus>();
 
+	private final DeploymentState generalState;
+
 	/**
 	 * Construct a new {@code AppStatus}.
 	 *
 	 * @param deploymentId id of the app this status is for
+	 * @param generalState a value for general state of the app, or {@literal null} if this should be derived from instances
 	 */
-	protected AppStatus(String deploymentId) {
+	protected AppStatus(String deploymentId, DeploymentState generalState) {
 		this.deploymentId = deploymentId;
+		this.generalState = generalState;
 	}
 
 	/**
@@ -76,6 +84,9 @@ public class AppStatus {
 	 * @return deployment state for the app
 	 */
 	public DeploymentState getState() {
+		if (generalState != null) {
+			return generalState;
+		}
 		Set<DeploymentState> states = new HashSet<>();
 		for (Map.Entry<String, AppInstanceStatus> entry : instances.entrySet()) {
 			states.add(entry.getValue().getState());
@@ -135,7 +146,11 @@ public class AppStatus {
 	 */
 	public static class Builder {
 
-		private final AppStatus status;
+		private final String id;
+
+		private DeploymentState generalState;
+
+		private List<AppInstanceStatus> statuses = new ArrayList<>();
 
 		/**
 		 * Instantiates a new builder.
@@ -143,7 +158,7 @@ public class AppStatus {
 		 * @param id the app deployment id
 		 */
 		private Builder(String id) {
-			this.status = new AppStatus(id);
+			this.id = id;
 		}
 
 		/**
@@ -154,7 +169,20 @@ public class AppStatus {
 		 * @return this {@code Builder}
 		 */
 		public Builder with(AppInstanceStatus instance) {
-			status.addInstance(instance.getId(), instance);
+			Assert.isNull(generalState, "Can't build an AppStatus from app instances if generalState has been set");
+			statuses.add(instance);
+			return this;
+		}
+
+		/**
+		 * Set the state of the app as a direct value. This is to be used when no information about instances could
+		 * be determined (<i>e.g.</i> general error condition).
+		 * @param generalState the deployment state to set
+		 * @return this {@code Builder}
+		 */
+		public Builder generalState(DeploymentState generalState) {
+			Assert.isTrue(statuses.isEmpty(), "Can't buikd an AppStatus from general state if some instances have been added");
+			this.generalState = generalState;
 			return this;
 		}
 
@@ -165,6 +193,10 @@ public class AppStatus {
 		 * @return new instance of {@code AppStatus}
 		 */
 		public AppStatus build() {
+			AppStatus status = new AppStatus(id, generalState);
+			for (AppInstanceStatus instanceStatus : statuses) {
+				status.addInstance(instanceStatus.getId(), instanceStatus);
+			}
 			return status;
 		}
 	}
