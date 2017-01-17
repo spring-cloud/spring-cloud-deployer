@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,26 @@ public class UriRegistryPopulatorTests {
 		propertiesResource.addNewProperty("yet-another", "file:///tmp/yet-another.jar");
 		Map<String, URI> newlyRegisteredWithOverwrites = populator.populateRegistry(true, registry, localUri);
 		assertTrue(newlyRegisteredWithOverwrites.size() == 5);
+	}
+
+	@Test
+	public void populateRegistryInvalidUri() throws Exception {
+		String localUri = "local://local";
+		Properties props = new Properties();
+		props.setProperty("test", "file:///bar-1.2.3.jar");
+		UriRegistryPopulator populator = new UriRegistryPopulator();
+		StubResourceLoader resourceLoader = new StubResourceLoader(new PropertiesResource(props));
+		populator.setResourceLoader(resourceLoader);
+		UriRegistry registry = new InMemoryUriRegistry();
+		populator.populateRegistry(true, registry, localUri);
+		assertTrue(resourceLoader.getRequestedLocations().contains(localUri));
+		assertThat(resourceLoader.getRequestedLocations().size(), is(1));
+		assertThat(registry.findAll().size(), is(1));
+		assertThat(registry.find("test").toString(), is("file:///bar-1.2.3.jar"));
+		populator.populateRegistry(true, registry, localUri);
+		props.setProperty("test", "invalid");
+		populator.populateRegistry(true, registry, localUri);
+		assertThat(registry.find("test").toString(), is("file:///bar-1.2.3.jar"));
 	}
 
 
