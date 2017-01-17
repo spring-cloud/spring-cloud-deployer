@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Utility class for populating a {@link UriRegistry} via a
@@ -74,8 +75,21 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 				for (String key : properties.stringPropertyNames()) {
 					try {
 						URI uri = new URI(properties.getProperty(key));
+						boolean validUri = true;
+						if (uri == null) {
+							logger.warn("Error when registering '%s': URI is required", key);
+							validUri = false;
+						}
+						if (validUri && !StringUtils.hasText(uri.getScheme())) {
+							logger.warn("Error when registering ''%s with URI %s: URI scheme must be specified", key, uri);
+							validUri = false;
+						}
+						if (validUri && !StringUtils.hasText(uri.getSchemeSpecificPart())) {
+							logger.warn("Error when registering '%s' with URI %s: URI scheme-specific part must be specified", key, uri);
+							validUri = false;
+						}
 						if (!overwrite) {
-							try  {
+							try {
 								if (registry.find(key) != null) {
 									// already exists; move on
 									continue;
@@ -85,8 +99,10 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 								// this key does not exist; will add
 							}
 						}
-						registry.register(key, uri);
-						registered.put(key, uri);
+						if (validUri) {
+							registry.register(key, uri);
+							registered.put(key, uri);
+						}
 					}
 					catch (URISyntaxException e) {
 						logger.warn(String.format("'%s' for '%s' is not a properly formed URI",
