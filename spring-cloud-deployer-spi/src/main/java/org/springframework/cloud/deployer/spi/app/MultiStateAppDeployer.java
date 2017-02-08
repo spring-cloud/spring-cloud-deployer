@@ -20,7 +20,14 @@ import java.util.Map;
 /**
  * Extension of the AppDeployer interface that adds an additional
  * method to return the DeploymentState for a collection of deployment ids.
+ *
+ * This method has been introduced for a tactical reason to provide an optimization
+ * of individual operation execution in the AppDeployer interface.  It is planned
+ * that the next major version of Spring Cloud Deployer will provide a new
+ * interface for bulk operations for the full set of AppDeployer methods. As such,
+ * this method is annotated as Depreacted.
  */
+@Deprecated
 public interface MultiStateAppDeployer extends AppDeployer {
 
     /**
