@@ -103,7 +103,9 @@ class MavenArtifactResolver {
 		}
 		File localRepository = new File(this.properties.getLocalRepository());
 		if (!localRepository.exists()) {
-			Assert.isTrue(localRepository.mkdirs(),
+			boolean created = localRepository.mkdirs();
+			// May have been created by another thread after above check. Double check.
+			Assert.isTrue(created || localRepository.exists(),
 					"Unable to create directory for local repository: " + localRepository);
 		}
 		for (Map.Entry<String, MavenProperties.RemoteRepository> entry: this.properties.getRemoteRepositories().entrySet()) {
