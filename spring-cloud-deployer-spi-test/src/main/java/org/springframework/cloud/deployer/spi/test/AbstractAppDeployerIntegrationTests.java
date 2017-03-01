@@ -19,6 +19,7 @@ package org.springframework.cloud.deployer.spi.test;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deployed;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deploying;
@@ -408,6 +409,24 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 	}
 
 	/**
+	 * Tests support for instance count support and individual instance status report.
+	 */
+	@Test
+	public void testEnvironmentInfo() {
+		Map<String, String> info = appDeployer().environmentInfo();
+		assertTrue(info.containsKey("deployer-class-name"));
+		assertTrue(info.containsKey("deployer-version"));
+		assertTrue(info.containsKey("deployer-spi-version"));
+		assertTrue(info.containsKey("platform-type"));
+		assertTrue(info.containsKey("platform-client-version"));
+		assertTrue(info.containsKey("platform-host-version"));
+		assertTrue(info.containsKey("java-version"));
+		assertTrue(info.containsKey("spring-version"));
+		assertTrue(info.containsKey("spring-boot-version"));
+		System.out.println(info);
+	}
+
+	/**
 	 * A Hamcrest Matcher that queries the deployment status for some app id.
 	 *
 	 * @author Eric Bottard
@@ -468,6 +487,11 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		@Override
 		public AppStatus status(String id) {
 			return wrapped.status(id);
+		}
+
+		@Override
+		public Map<String, String> environmentInfo() {
+			return wrapped.environmentInfo();
 		}
 
 	}

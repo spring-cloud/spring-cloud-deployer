@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.deployer.spi.app;
 
+import java.util.Map;
+
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 
 /**
@@ -135,4 +137,13 @@ public interface AppDeployer {
 	 * @return the app deployment status
 	 */
 	AppStatus status(String id);
+
+	/**
+	 * Return the environment info for this deployer. This info should include the
+	 * following: 'deployer-class-name','deployer-version', 'deployer-spi-version', 'platform-type',
+	 * 'platform-client-version', 'platform-host-version', 'java-version', 'spring-version', 'spring-boot-version'.
+	 *
+	 * @return the app deployment environment info
+	 */
+	Map<String, String>  environmentInfo();
 }
