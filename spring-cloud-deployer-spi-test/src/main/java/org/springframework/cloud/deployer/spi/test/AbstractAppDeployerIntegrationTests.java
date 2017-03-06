@@ -423,7 +423,6 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		assertTrue(info.containsKey("java-version"));
 		assertTrue(info.containsKey("spring-version"));
 		assertTrue(info.containsKey("spring-boot-version"));
-		System.out.println(info);
 	}
 
 	/**
