@@ -18,8 +18,8 @@ package org.springframework.cloud.deployer.spi.test;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deployed;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.deploying;
@@ -47,6 +47,7 @@ import org.junit.Test;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
+import org.springframework.cloud.deployer.spi.app.DeployerEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
@@ -413,16 +414,11 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 	 */
 	@Test
 	public void testEnvironmentInfo() {
-		Map<String, String> info = appDeployer().environmentInfo();
-		assertTrue(info.containsKey("deployer-class-name"));
-		assertTrue(info.containsKey("deployer-version"));
-		assertTrue(info.containsKey("deployer-spi-version"));
-		assertTrue(info.containsKey("platform-type"));
-		assertTrue(info.containsKey("platform-client-version"));
-		assertTrue(info.containsKey("platform-host-version"));
-		assertTrue(info.containsKey("java-version"));
-		assertTrue(info.containsKey("spring-version"));
-		assertTrue(info.containsKey("spring-boot-version"));
+		DeployerEnvironmentInfo info = appDeployer().environmentInfo();
+		assertNotNull(info.getDeployerImplementationVersion());
+		assertNotNull(info.getPlatformType());
+		assertNotNull(info.getPlatformClientVersion());
+		assertNotNull(info.getPlatformHostVersion());
 	}
 
 	/**
@@ -489,7 +485,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		}
 
 		@Override
-		public Map<String, String> environmentInfo() {
+		public DeployerEnvironmentInfo environmentInfo() {
 			return wrapped.environmentInfo();
 		}
 

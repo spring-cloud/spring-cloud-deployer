@@ -145,5 +145,5 @@ public interface AppDeployer {
 	 *
 	 * @return the app deployment environment info
 	 */
-	Map<String, String>  environmentInfo();
+	DeployerEnvironmentInfo  environmentInfo();
 }

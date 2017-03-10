@@ -16,12 +16,6 @@
 
 package org.springframework.cloud.deployer.spi.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import org.springframework.cloud.deployer.spi.app.AppDeployer;
-import org.springframework.core.SpringVersion;
 import org.springframework.util.StringUtils;
 
 /**
@@ -30,22 +24,6 @@ import org.springframework.util.StringUtils;
  * @author Thomas Risberg
  */
 public class DeployerVersionUtils {
-
-	public static Map<String, String> getVersionInfoMap() {
-		Map<String, String> info = new HashMap<>();
-		info.put("spring-version", getSpringVersion());
-		info.put("spring-boot-version", getSpringBootVersion());
-		info.put("deployer-spi-version", getDeployerSpiVersion());
-		return info;
-	}
-
-	public static String getDeployerSpiVersion() {
-		return getVersion(AppDeployer.class);
-	}
-
-	public static String getSpringVersion() {
-		return SpringVersion.getVersion();
-	}
 
 	public static String getSpringBootVersion() {
 		Class springApp;
