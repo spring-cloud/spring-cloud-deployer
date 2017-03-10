@@ -19,6 +19,7 @@ package org.springframework.cloud.deployer.resource.maven;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +57,8 @@ import org.springframework.util.StringUtils;
  * @author Venil Noronha
  */
 public class MavenResource extends AbstractResource {
+
+	public static String URI_SCHEME = "maven";
 
 	/**
 	 * The default extension for the artifact.
@@ -225,6 +228,11 @@ public class MavenResource extends AbstractResource {
 		return StringUtils.hasLength(classifier) ?
 				String.format("%s:%s:%s:%s:%s", groupId, artifactId, extension, classifier, version) :
 				String.format("%s:%s:%s:%s", groupId, artifactId, extension, version);
+	}
+
+	@Override
+	public URI getURI() throws IOException {
+		return URI.create(URI_SCHEME + "://" + toString());
 	}
 
 	/**
