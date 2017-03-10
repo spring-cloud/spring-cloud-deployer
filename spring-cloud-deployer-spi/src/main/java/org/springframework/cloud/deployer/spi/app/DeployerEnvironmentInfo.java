@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.deployer.spi.app;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.cloud.deployer.spi.util.DeployerVersionUtils;
 import org.springframework.core.SpringVersion;
 import org.springframework.util.Assert;
@@ -67,8 +70,13 @@ public class DeployerEnvironmentInfo {
 	 */
 	private String springBootVersion;
 
+	/**
+	 * Platform specific properties
+	 */
+	private Map<String, String> platformSpecificInfo = new HashMap<>();
+
 	private DeployerEnvironmentInfo(String deployerImplementationVersion, String platformType,
-			String platformClientVersion, String platformHostVersion) {
+			String platformClientVersion, String platformHostVersion, Map<String, String> platformSpecificInfo) {
 		Assert.notNull(deployerImplementationVersion, "deployerImplementationVersion is required");
 		Assert.notNull(platformType, "platformType is required");
 		Assert.notNull(platformClientVersion, "platformClientVersion is required");
@@ -81,6 +89,7 @@ public class DeployerEnvironmentInfo {
 		this.javaVersion = System.getProperty("java.version");
 		this.springVersion = SpringVersion.getVersion();
 		this.springBootVersion = DeployerVersionUtils.getSpringBootVersion();
+		this.platformSpecificInfo.putAll(platformSpecificInfo);
 	}
 
 	public String getDeployerSpiVersion() {
@@ -115,6 +124,10 @@ public class DeployerEnvironmentInfo {
 		return springBootVersion;
 	}
 
+	public Map<String, String> getPlatformSpecificInfo() {
+		return platformSpecificInfo;
+	}
+
 	public static class Builder {
 
 		private String deployerImplementationVersion;
@@ -124,6 +137,8 @@ public class DeployerEnvironmentInfo {
 		private String platformClientVersion;
 
 		private String platformHostVersion;
+
+		private Map<String, String> platformSpecificInfo = new HashMap<>();
 
 		public Builder() {
 		}
@@ -148,9 +163,14 @@ public class DeployerEnvironmentInfo {
 			return this;
 		}
 
+		public Builder addPlatformSpecificInfo(String key, String value) {
+			this.platformSpecificInfo.put(key, value);
+			return this;
+		}
+
 		public DeployerEnvironmentInfo build() {
 			return new DeployerEnvironmentInfo(deployerImplementationVersion, platformType,
-					platformClientVersion, platformHostVersion);
+					platformClientVersion, platformHostVersion, platformSpecificInfo);
 		}
 	}
 }

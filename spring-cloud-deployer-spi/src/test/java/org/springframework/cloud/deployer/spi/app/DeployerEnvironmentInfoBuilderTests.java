@@ -35,7 +35,9 @@ public class DeployerEnvironmentInfoBuilderTests {
 				.deployerImplementationVersion("1.0.0")
 				.platformClientVersion("1.2.0")
 				.platformHostVersion("1.1.0")
-				.platformType("Test").build();
+				.platformType("Test")
+				.addPlatformSpecificInfo("foo", "bar")
+				.build();
 		assertThat(dei.getDeployerSpiVersion(), is(DeployerVersionUtils.getVersion(AppDeployer.class)));
 		assertThat(dei.getDeployerImplementationVersion(), is("1.0.0"));
 		assertThat(dei.getPlatformType(), is("Test"));
@@ -44,5 +46,6 @@ public class DeployerEnvironmentInfoBuilderTests {
 		assertThat(dei.getJavaVersion(), is(System.getProperty("java.version")));
 		assertThat(dei.getSpringVersion(), is(SpringVersion.getVersion()));
 		assertThat(dei.getSpringBootVersion(), is(DeployerVersionUtils.getSpringBootVersion()));
+		assertThat(dei.getPlatformSpecificInfo().get("foo"), is("bar"));
 	}
 }
