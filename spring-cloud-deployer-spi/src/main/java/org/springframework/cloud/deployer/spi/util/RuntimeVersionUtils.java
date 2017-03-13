@@ -23,7 +23,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Thomas Risberg
  */
-public class DeployerVersionUtils {
+public class RuntimeVersionUtils {
 
 	public static String getSpringBootVersion() {
 		Class springApp;

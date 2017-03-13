@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.deployer.spi.app;
 
-import java.util.Map;
-
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 
 /**
  * SPI defining a runtime environment capable of deploying and managing the
@@ -139,11 +138,9 @@ public interface AppDeployer {
 	AppStatus status(String id);
 
 	/**
-	 * Return the environment info for this deployer. This info should include the
-	 * following: 'deployer-class-name','deployer-version', 'deployer-spi-version', 'platform-type',
-	 * 'platform-client-version', 'platform-host-version', 'java-version', 'spring-version', 'spring-boot-version'.
+	 * Return the environment info for this deployer.
 	 *
-	 * @return the app deployment environment info
+	 * @return the deployer environment info
 	 */
-	DeployerEnvironmentInfo  environmentInfo();
+	RuntimeEnvironmentInfo environmentInfo();
 }
