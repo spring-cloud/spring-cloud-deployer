@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.spi.app;
+package org.springframework.cloud.deployer.spi.core;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.util.DeployerVersionUtils;
 import org.springframework.core.SpringVersion;
 import org.springframework.util.Assert;

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
+import org.springframework.cloud.deployer.spi.core.DeployerEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.util.DeployerVersionUtils;
 import org.springframework.core.SpringVersion;
 

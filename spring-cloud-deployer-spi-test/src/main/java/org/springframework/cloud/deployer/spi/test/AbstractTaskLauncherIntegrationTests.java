@@ -18,6 +18,7 @@ package org.springframework.cloud.deployer.spi.test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.springframework.cloud.deployer.spi.task.LaunchState.complete;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
@@ -38,6 +39,7 @@ import org.junit.Test;
 
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.core.DeployerEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
@@ -229,6 +231,18 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 	}
 
 	/**
+	 * Tests support for DeployerEnvironmentInfo is implemented.
+	 */
+	@Test
+	public void testEnvironmentInfo() {
+		DeployerEnvironmentInfo info = taskLauncher().environmentInfo();
+		assertNotNull(info.getDeployerImplementationVersion());
+		assertNotNull(info.getPlatformType());
+		assertNotNull(info.getPlatformClientVersion());
+		assertNotNull(info.getPlatformHostVersion());
+	}
+
+	/**
 	 * A Hamcrest Matcher that queries the deployment status for some task id.
 	 */
 	protected Matcher<String> hasStatusThat(final Matcher<TaskStatus> statusMatcher) {
@@ -300,6 +314,11 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		public void destroy(String appName) {
 			wrapped.destroy(appName);
 			deployedApps.remove(appName);
+		}
+
+		@Override
+		public DeployerEnvironmentInfo environmentInfo() {
+			return wrapped.environmentInfo();
 		}
 
 

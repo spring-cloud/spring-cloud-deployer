@@ -47,7 +47,7 @@ import org.junit.Test;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
-import org.springframework.cloud.deployer.spi.app.DeployerEnvironmentInfo;
+import org.springframework.cloud.deployer.spi.core.DeployerEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
@@ -410,7 +410,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 	}
 
 	/**
-	 * Tests support for instance count support and individual instance status report.
+	 * Tests support for DeployerEnvironmentInfo is implemented.
 	 */
 	@Test
 	public void testEnvironmentInfo() {

@@ -17,6 +17,7 @@
 package org.springframework.cloud.deployer.spi.task;
 
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.core.DeployerEnvironmentInfo;
 
 /**
  * SPI defining a runtime environment capable of launching and managing the
@@ -95,4 +96,11 @@ public interface TaskLauncher {
 	 *                from the {@link #launch(AppDeploymentRequest)}
 	 */
 	void destroy(String appName);
+
+	/**
+	 * Return the environment info for this launcher/deployer.
+	 *
+	 * @return the deployer environment info
+	 */
+	DeployerEnvironmentInfo environmentInfo();
 }
