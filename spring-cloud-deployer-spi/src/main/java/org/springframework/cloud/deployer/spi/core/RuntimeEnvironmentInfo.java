@@ -19,65 +19,64 @@ package org.springframework.cloud.deployer.spi.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.cloud.deployer.spi.app.AppDeployer;
-import org.springframework.cloud.deployer.spi.util.DeployerVersionUtils;
+import org.springframework.cloud.deployer.spi.util.RuntimeVersionUtils;
 import org.springframework.core.SpringVersion;
 import org.springframework.util.Assert;
 
 /**
- * Class used to communicate the deployer environment info.
+ * Class used to communicate the runtime environment info.
  *
  * @author Thomas Risberg
  */
-public class DeployerEnvironmentInfo {
+public class RuntimeEnvironmentInfo {
 
 	/**
-	 * The SPI version used by this deployer.
+	 * The SPI version used by this implementation.
 	 */
-	private String deployerSpiVersion;
+	private String spiVersion;
 
 	/**
-	 * The name of this deployer (could be simple class name).
+	 * The name of this implementation (could be simple class name).
 	 */
-	private String deployerName;
+	private String implementationName;
 
 	/**
-	 * The implementation version of this deployer.
+	 * The version of this implementation.
 	 */
-	private String deployerImplementationVersion;
+	private String implementationVersion;
 
 	/**
-	 * The deployment platform for this deployer.
+	 * The platform type for this implementation.
 	 */
 	private String platformType;
 
 	/**
-	 * The deployment platform API for this deployer.
+	 * The platform API version for this implementation.
 	 */
 	private String platformApiVersion;
 
 	/**
-	 * The client library version used by this deployer.
+	 * The client library version used by this implementation.
 	 */
 	private String platformClientVersion;
 
 	/**
-	 * The version running on the host of the platform used by this deployer.
+	 * The version running on the host of the platform used by this implementation.
 	 */
 	private String platformHostVersion;
 
 	/**
-	 * The Java version used by this deployer.
+	 * The Java version used by this implementation.
 	 */
 	private String javaVersion;
 
 	/**
-	 * The Spring Framework version used by this deployer.
+	 * The Spring Framework version used by this implementation.
 	 */
 	private String springVersion;
 
 	/**
-	 * The Spring Boot version used by this deployer.
+	 * The Spring Boot version used by this implementation.
 	 */
 	private String springBootVersion;
 
@@ -86,38 +85,39 @@ public class DeployerEnvironmentInfo {
 	 */
 	private Map<String, String> platformSpecificInfo = new HashMap<>();
 
-	private DeployerEnvironmentInfo(String deployerName, String deployerImplementationVersion,
-			String platformType, String platformApiVersion, String platformClientVersion,
-            String platformHostVersion, Map<String, String> platformSpecificInfo) {
-		Assert.notNull(deployerName, "deployerName is required");
-		Assert.notNull(deployerImplementationVersion, "deployerImplementationVersion is required");
+	private RuntimeEnvironmentInfo(Class spiClass, String implementationName, String implementationVersion,
+	                               String platformType, String platformApiVersion, String platformClientVersion,
+	                               String platformHostVersion, Map<String, String> platformSpecificInfo) {
+		Assert.notNull(spiClass, "spiClass is required");
+		Assert.notNull(implementationName, "implementationName is required");
+		Assert.notNull(implementationVersion, "implementationVersion is required");
 		Assert.notNull(platformType, "platformType is required");
 		Assert.notNull(platformApiVersion, "platformApiVersion is required");
 		Assert.notNull(platformClientVersion, "platformClientVersion is required");
 		Assert.notNull(platformHostVersion, "platformHostVersion is required");
-		this.deployerSpiVersion = DeployerVersionUtils.getVersion(AppDeployer.class);
-		this.deployerName = deployerName;
-		this.deployerImplementationVersion = deployerImplementationVersion;
+		this.spiVersion = RuntimeVersionUtils.getVersion(spiClass);
+		this.implementationName = implementationName;
+		this.implementationVersion = implementationVersion;
 		this.platformType = platformType;
 		this.platformApiVersion = platformApiVersion;
 		this.platformClientVersion = platformClientVersion;
 		this.platformHostVersion = platformHostVersion;
 		this.javaVersion = System.getProperty("java.version");
 		this.springVersion = SpringVersion.getVersion();
-		this.springBootVersion = DeployerVersionUtils.getSpringBootVersion();
+		this.springBootVersion = RuntimeVersionUtils.getSpringBootVersion();
 		this.platformSpecificInfo.putAll(platformSpecificInfo);
 	}
 
-	public String getDeployerSpiVersion() {
-		return deployerSpiVersion;
+	public String getSpiVersion() {
+		return spiVersion;
 	}
 
-	public String getDeployerName() {
-		return deployerName;
+	public String getImplementationName() {
+		return implementationName;
 	}
 
-	public String getDeployerImplementationVersion() {
-		return deployerImplementationVersion;
+	public String getImplementationVersion() {
+		return implementationVersion;
 	}
 
 	public String getPlatformType() {
@@ -154,9 +154,11 @@ public class DeployerEnvironmentInfo {
 
 	public static class Builder {
 
-		private String deployerName;
+		private Class spiClass;
 
-		private String deployerImplementationVersion;
+		private String implementationName;
+
+		private String implementationVersion;
 
 		private String platformType;
 
@@ -171,13 +173,18 @@ public class DeployerEnvironmentInfo {
 		public Builder() {
 		}
 
-		public Builder deployerName(String deployerName) {
-			this.deployerName = deployerName;
+		public Builder spiClass(Class spiClass) {
+			this.spiClass = spiClass;
 			return this;
 		}
 
-		public Builder deployerImplementationVersion(String deployerImplementationVersion) {
-			this.deployerImplementationVersion = deployerImplementationVersion;
+		public Builder implementationName(String implementationName) {
+			this.implementationName = implementationName;
+			return this;
+		}
+
+		public Builder implementationVersion(String implementationVersion) {
+			this.implementationVersion = implementationVersion;
 			return this;
 		}
 
@@ -206,8 +213,8 @@ public class DeployerEnvironmentInfo {
 			return this;
 		}
 
-		public DeployerEnvironmentInfo build() {
-			return new DeployerEnvironmentInfo(deployerName, deployerImplementationVersion, platformType,
+		public RuntimeEnvironmentInfo build() {
+			return new RuntimeEnvironmentInfo(spiClass, implementationName, implementationVersion, platformType,
 					platformApiVersion, platformClientVersion, platformHostVersion, platformSpecificInfo);
 		}
 	}

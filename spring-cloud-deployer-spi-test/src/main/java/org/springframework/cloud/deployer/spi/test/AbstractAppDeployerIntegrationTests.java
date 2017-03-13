@@ -47,7 +47,7 @@ import org.junit.Test;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
-import org.springframework.cloud.deployer.spi.core.DeployerEnvironmentInfo;
+import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
@@ -414,8 +414,8 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 	 */
 	@Test
 	public void testEnvironmentInfo() {
-		DeployerEnvironmentInfo info = appDeployer().environmentInfo();
-		assertNotNull(info.getDeployerImplementationVersion());
+		RuntimeEnvironmentInfo info = appDeployer().environmentInfo();
+		assertNotNull(info.getImplementationVersion());
 		assertNotNull(info.getPlatformType());
 		assertNotNull(info.getPlatformClientVersion());
 		assertNotNull(info.getPlatformHostVersion());
@@ -485,7 +485,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		}
 
 		@Override
-		public DeployerEnvironmentInfo environmentInfo() {
+		public RuntimeEnvironmentInfo environmentInfo() {
 			return wrapped.environmentInfo();
 		}
 

@@ -17,7 +17,7 @@
 package org.springframework.cloud.deployer.spi.app;
 
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.core.DeployerEnvironmentInfo;
+import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 
 /**
  * SPI defining a runtime environment capable of deploying and managing the
@@ -142,5 +142,5 @@ public interface AppDeployer {
 	 *
 	 * @return the deployer environment info
 	 */
-	DeployerEnvironmentInfo environmentInfo();
+	RuntimeEnvironmentInfo environmentInfo();
 }
