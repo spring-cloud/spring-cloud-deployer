@@ -38,6 +38,8 @@ import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
  */
 public interface TaskLauncher {
 
+	static final String TASK_LAUNCHER_NAME_SUFFIX = "TaskDeployer";
+
 	/**
 	 * Launch a task for the provided {@link AppDeploymentRequest}. The returned
 	 * id may later be used with {@link #cancel(String)} or
