@@ -36,6 +36,13 @@ public class DeployerVersionUtils {
 	}
 
 	public static String getVersion(final Class<?> source) {
+		if (source == null) {
+			return "null";
+		}
+		Package sourcePackage = source.getPackage();
+		if (sourcePackage == null) {
+			return "unknown";
+		}
 		String version = source.getPackage().getImplementationVersion();
 		if (!StringUtils.hasText(version)) {
 			return "unknown";
