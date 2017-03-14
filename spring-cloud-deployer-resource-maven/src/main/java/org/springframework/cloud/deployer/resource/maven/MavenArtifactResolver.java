@@ -64,6 +64,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Ilayaperumal Gopinathan
  * @author Donovan Muller
+ * @author Gunnar Hillert
  */
 class MavenArtifactResolver {
 
