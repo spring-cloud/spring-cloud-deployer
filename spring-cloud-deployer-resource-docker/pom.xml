@@ -13,7 +13,6 @@
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-deployer-parent</artifactId>
 		<version>1.2.0.BUILD-SNAPSHOT</version>
-		<relativePath/>
 	</parent>
 
 	<dependencies>
