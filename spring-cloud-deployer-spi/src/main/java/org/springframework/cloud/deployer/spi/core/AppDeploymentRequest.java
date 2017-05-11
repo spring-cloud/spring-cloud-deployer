@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.io.Resource;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 
 /**
@@ -43,6 +44,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Janne Valkealahti
+ * @author Oleg Zhurakousky
  */
 public class AppDeploymentRequest {
 
@@ -75,7 +77,7 @@ public class AppDeploymentRequest {
 	 */
 	public AppDeploymentRequest(AppDefinition definition, Resource resource,
 			Map<String, String> deploymentProperties) {
-		this(definition, resource, deploymentProperties, null);
+		this(definition, resource, deploymentProperties, Collections.<String>emptyList());
 	}
 
 	/**
@@ -92,12 +94,8 @@ public class AppDeploymentRequest {
 		Assert.notNull(resource, "resource must not be null");
 		this.definition = definition;
 		this.resource = resource;
-		this.deploymentProperties = deploymentProperties == null
-				? Collections.<String, String>emptyMap()
-				: Collections.unmodifiableMap(deploymentProperties);
-		this.commandlineArguments = commandlineArguments == null
-				? Collections.<String>emptyList()
-				: Collections.unmodifiableList(commandlineArguments);
+		this.deploymentProperties = deploymentProperties;
+		this.commandlineArguments = commandlineArguments;
 	}
 
 	/**
@@ -107,7 +105,7 @@ public class AppDeploymentRequest {
 	 * @param resource resource for the underlying app's artifact
 	 */
 	public AppDeploymentRequest(AppDefinition definition, Resource resource) {
-		this(definition, resource, null);
+		this(definition, resource, Collections.<String, String>emptyMap());
 	}
 
 	/**
@@ -136,5 +134,15 @@ public class AppDeploymentRequest {
 	 */
 	public List<String> getCommandlineArguments() {
 		return commandlineArguments;
+	}
+
+	@Override
+	public String toString(){
+		return new ToStringCreator(this)
+				.append("commandlineArguments", this.commandlineArguments)
+				.append("deploymentProperties", this.deploymentProperties)
+				.append("definition", this.definition)
+				.append("resource", this.resource)
+				.toString();
 	}
 }
