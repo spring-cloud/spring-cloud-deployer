@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class AppDeploymentRequest {
 	 */
 	public AppDeploymentRequest(AppDefinition definition, Resource resource,
 			Map<String, String> deploymentProperties) {
-		this(definition, resource, deploymentProperties, Collections.<String>emptyList());
+		this(definition, resource, deploymentProperties, null);
 	}
 
 	/**
@@ -94,8 +94,12 @@ public class AppDeploymentRequest {
 		Assert.notNull(resource, "resource must not be null");
 		this.definition = definition;
 		this.resource = resource;
-		this.deploymentProperties = deploymentProperties;
-		this.commandlineArguments = commandlineArguments;
+		this.deploymentProperties = deploymentProperties == null
+				? Collections.<String, String>emptyMap()
+				: Collections.unmodifiableMap(deploymentProperties);
+		this.commandlineArguments = commandlineArguments == null
+				? Collections.<String>emptyList()
+				: Collections.unmodifiableList(commandlineArguments);
 	}
 
 	/**
@@ -105,7 +109,7 @@ public class AppDeploymentRequest {
 	 * @param resource resource for the underlying app's artifact
 	 */
 	public AppDeploymentRequest(AppDefinition definition, Resource resource) {
-		this(definition, resource, Collections.<String, String>emptyMap());
+		this(definition, resource, null);
 	}
 
 	/**
