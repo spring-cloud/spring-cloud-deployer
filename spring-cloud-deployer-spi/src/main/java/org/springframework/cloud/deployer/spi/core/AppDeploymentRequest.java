@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,14 +84,15 @@ public class AppDeploymentRequest {
 	 * Construct an {@code AppDeploymentRequest}.
 	 *
 	 * @param definition app definition
-	 * @param resource resource for the underlying app's artifact
+	 * @param resource resource for the underlying app's artifact. It could be null since depending
+	 *                 on the implementation of a specific deployer enough information may be
+	 *                 provided via 'deploymentProperties' and 'commandLineArguments'.
 	 * @param deploymentProperties map of deployment properties; may be {@code null}
 	 * @param commandlineArguments set of command line arguments; may be {@code null}
 	 */
 	public AppDeploymentRequest(AppDefinition definition, Resource resource,
 			Map<String, String> deploymentProperties, List<String> commandlineArguments) {
 		Assert.notNull(definition, "definition must not be null");
-		Assert.notNull(resource, "resource must not be null");
 		this.definition = definition;
 		this.resource = resource;
 		this.deploymentProperties = deploymentProperties == null
