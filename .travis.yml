@@ -1,0 +1,11 @@
+sudo: false
+language: java
+cache:
+  directories:
+    - $HOME/.m2
+jdk:
+  - oraclejdk7
+install: true
+build: ./mvnw package
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
