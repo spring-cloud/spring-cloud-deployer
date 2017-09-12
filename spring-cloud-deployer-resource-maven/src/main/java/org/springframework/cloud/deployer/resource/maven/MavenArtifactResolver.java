@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.io.File;
 import java.text.ChoiceFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +41,7 @@ import org.eclipse.aether.repository.AuthenticationDigest;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.Proxy;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -58,9 +58,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Resolves a {@link MavenResource} using <a href="http://www.eclipse.org/aether/>aether</a> to
- * locate the artifact (uber jar) in a local Maven repository, downloading the latest update from a
- * remote repository if necessary.
+ * Resolves a {@link MavenResource} using <a
+ * href="http://www.eclipse.org/aether/>aether</a> to locate the artifact (uber jar) in a
+ * local Maven repository, downloading the latest update from a remote repository if
+ * necessary.
  *
  * @author David Turanski
  * @author Mark Fisher
@@ -85,7 +86,8 @@ class MavenArtifactResolver {
 	/**
 	 * Create an instance using the provided properties.
 	 *
-	 * @param properties the properties for the maven repositories, proxies, and authentication
+	 * @param properties the properties for the maven repositories, proxies, and
+	 * authentication
 	 */
 	public MavenArtifactResolver(final MavenProperties properties) {
 		Assert.notNull(properties, "MavenProperties must not be null");
@@ -111,10 +113,29 @@ class MavenArtifactResolver {
 			Assert.isTrue(created || localRepository.exists(),
 					"Unable to create directory for local repository: " + localRepository);
 		}
-		for (Map.Entry<String, MavenProperties.RemoteRepository> entry: this.properties.getRemoteRepositories().entrySet()) {
+		for (Map.Entry<String, MavenProperties.RemoteRepository> entry : this.properties.getRemoteRepositories()
+				.entrySet()) {
 			MavenProperties.RemoteRepository remoteRepository = entry.getValue();
 			RemoteRepository.Builder remoteRepositoryBuilder = new RemoteRepository.Builder(
 					entry.getKey(), DEFAULT_CONTENT_TYPE, remoteRepository.getUrl());
+			// Update policies when set.
+			if (remoteRepository.getPolicy() != null) {
+				remoteRepositoryBuilder.setPolicy(new RepositoryPolicy(remoteRepository.getPolicy().isEnabled(),
+						remoteRepository.getPolicy().getUpdatePolicy(),
+						remoteRepository.getPolicy().getChecksumPolicy()));
+			}
+			if (remoteRepository.getReleasePolicy() != null) {
+				remoteRepositoryBuilder
+						.setReleasePolicy(new RepositoryPolicy(remoteRepository.getReleasePolicy().isEnabled(),
+								remoteRepository.getReleasePolicy().getUpdatePolicy(),
+								remoteRepository.getReleasePolicy().getChecksumPolicy()));
+			}
+			if (remoteRepository.getSnapshotPolicy() != null) {
+				remoteRepositoryBuilder
+						.setSnapshotPolicy(new RepositoryPolicy(remoteRepository.getSnapshotPolicy().isEnabled(),
+								remoteRepository.getSnapshotPolicy().getUpdatePolicy(),
+								remoteRepository.getSnapshotPolicy().getChecksumPolicy()));
+			}
 			if (isProxyEnabled()) {
 				MavenProperties.Proxy proxyProperties = this.properties.getProxy();
 				if (this.authentication != null) {
@@ -166,7 +187,8 @@ class MavenArtifactResolver {
 	}
 
 	/**
-	 * Check if the {@link MavenProperties.RemoteRepository} setting has username/password set.
+	 * Check if the {@link MavenProperties.RemoteRepository} setting has username/password
+	 * set.
 	 *
 	 * @return boolean true if both the username/password are set
 	 */
@@ -228,9 +250,9 @@ class MavenArtifactResolver {
 	}
 
 	/*
-	 * Aether's components implement {@link org.eclipse.aether.spi.locator.Service} to ease manual wiring.
-	 * Using the prepopulated {@link DefaultServiceLocator}, we need to register the repository connector
-	 * and transporter factories
+	 * Aether's components implement {@link org.eclipse.aether.spi.locator.Service} to
+	 * ease manual wiring. Using the prepopulated {@link DefaultServiceLocator}, we need
+	 * to register the repository connector and transporter factories
 	 */
 	private RepositorySystem newRepositorySystem() {
 		DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
@@ -247,13 +269,16 @@ class MavenArtifactResolver {
 	}
 
 	/**
-	 * Resolve an artifact and return its location in the local repository. Aether performs the normal
-	 * Maven resolution process ensuring that the latest update is cached to the local repository.
-	 * In addition, if the {@link MavenProperties#resolvePom} flag is <code>true</code>,
-	 * the POM is also resolved and cached.
+	 * Resolve an artifact and return its location in the local repository. Aether
+	 * performs the normal Maven resolution process ensuring that the latest update is
+	 * cached to the local repository. In addition, if the
+	 * {@link MavenProperties#resolvePom} flag is <code>true</code>, the POM is also
+	 * resolved and cached.
 	 * @param resource the {@link MavenResource} representing the artifact
-	 * @return a {@link FileSystemResource} representing the resolved artifact in the local repository
-	 * @throws IllegalStateException if the artifact does not exist or the resolution fails
+	 * @return a {@link FileSystemResource} representing the resolved artifact in the
+	 * local repository
+	 * @throws IllegalStateException if the artifact does not exist or the resolution
+	 * fails
 	 */
 	Resource resolve(MavenResource resource) {
 		Assert.notNull(resource, "MavenResource must not be null");
@@ -278,14 +303,15 @@ class MavenArtifactResolver {
 		catch (ArtifactResolutionException e) {
 
 			ChoiceFormat pluralizer = new ChoiceFormat(
-				new double[] {0d, 1d, ChoiceFormat.nextDouble(1d)},
-				new String[] {"repositories: ", "repository: ", "repositories: "}
-			);
-			MessageFormat messageFormat = new MessageFormat("Failed to resolve MavenResource: {0}. Configured remote {1}: {2}");
+					new double[] { 0d, 1d, ChoiceFormat.nextDouble(1d) },
+					new String[] { "repositories: ", "repository: ", "repositories: " });
+			MessageFormat messageFormat = new MessageFormat(
+					"Failed to resolve MavenResource: {0}. Configured remote {1}: {2}");
 			messageFormat.setFormat(1, pluralizer);
 			String repos = properties.getRemoteRepositories().isEmpty()
-				? "none"
-				: StringUtils.collectionToDelimitedString(properties.getRemoteRepositories().keySet(),",", "[", "]");
+					? "none"
+					: StringUtils.collectionToDelimitedString(properties.getRemoteRepositories().keySet(), ",", "[",
+							"]");
 			throw new IllegalStateException(
 					messageFormat.format(new Object[] { resource, properties.getRemoteRepositories().size(), repos }),
 					e);

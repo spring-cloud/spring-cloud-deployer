@@ -37,12 +37,14 @@ public class MavenProperties {
 			File.separator + ".m2" + File.separator + "repository";
 
 	/**
-	 * File path to a locally available maven repository, where artifacts will be downloaded.
+	 * File path to a locally available maven repository, where artifacts will be
+	 * downloaded.
 	 */
 	private String localRepository = DEFAULT_LOCAL_REPO;
 
 	/**
-	 * Locations of remote maven repositories from which artifacts will be downloaded, if not available locally.
+	 * Locations of remote maven repositories from which artifacts will be downloaded, if
+	 * not available locally.
 	 */
 	private Map<String, RemoteRepository> remoteRepositories = new HashMap<>();
 
@@ -69,8 +71,8 @@ public class MavenProperties {
 	private Integer requestTimeout;
 
 	/**
-	 * In addition to resolving the JAR artifact, if true, resolve the POM artifact.
-	 * This is consistent with the way that Maven resolves artifacts.
+	 * In addition to resolving the JAR artifact, if true, resolve the POM artifact. This
+	 * is consistent with the way that Maven resolves artifacts.
 	 */
 	private boolean resolvePom;
 
@@ -204,6 +206,12 @@ public class MavenProperties {
 
 		private Authentication auth;
 
+		private RepositoryPolicy policy;
+
+		private RepositoryPolicy snapshotPolicy;
+
+		private RepositoryPolicy releasePolicy;
+
 		public RemoteRepository() {
 		}
 
@@ -230,6 +238,64 @@ public class MavenProperties {
 
 		public void setAuth(final Authentication auth) {
 			this.auth = auth;
+		}
+
+		public RepositoryPolicy getPolicy() {
+			return policy;
+		}
+
+		public void setPolicy(RepositoryPolicy policy) {
+			this.policy = policy;
+		}
+
+		public RepositoryPolicy getSnapshotPolicy() {
+			return snapshotPolicy;
+		}
+
+		public void setSnapshotPolicy(RepositoryPolicy snapshotPolicy) {
+			this.snapshotPolicy = snapshotPolicy;
+		}
+
+		public RepositoryPolicy getReleasePolicy() {
+			return releasePolicy;
+		}
+
+		public void setReleasePolicy(RepositoryPolicy releasePolicy) {
+			this.releasePolicy = releasePolicy;
+		}
+
+		public static class RepositoryPolicy {
+
+			private boolean enabled = true;
+
+			private String updatePolicy = "always";
+
+			private String checksumPolicy = "warn";
+
+			public boolean isEnabled() {
+				return enabled;
+			}
+
+			public void setEnabled(boolean enabled) {
+				this.enabled = enabled;
+			}
+
+			public String getUpdatePolicy() {
+				return updatePolicy;
+			}
+
+			public void setUpdatePolicy(String updatePolicy) {
+				this.updatePolicy = updatePolicy;
+			}
+
+			public String getChecksumPolicy() {
+				return checksumPolicy;
+			}
+
+			public void setChecksumPolicy(String checksumPolicy) {
+				this.checksumPolicy = checksumPolicy;
+			}
+
 		}
 	}
 

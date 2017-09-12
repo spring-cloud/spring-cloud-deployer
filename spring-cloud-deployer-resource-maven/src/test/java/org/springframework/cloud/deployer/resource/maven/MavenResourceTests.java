@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,21 @@
 
 package org.springframework.cloud.deployer.resource.maven;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
 import org.junit.Test;
+
+import org.springframework.util.ReflectionUtils;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests for {@link MavenResource}
@@ -55,9 +61,11 @@ public class MavenResourceTests {
 	public void resourceExists() {
 		MavenProperties mavenProperties = new MavenProperties();
 		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
-		remoteRepositoryMap.put("default", new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
+		remoteRepositoryMap.put("default",
+				new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
 		mavenProperties.setRemoteRepositories(remoteRepositoryMap);
-		MavenResource resource = MavenResource.parse("org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT", mavenProperties);
+		MavenResource resource = MavenResource
+				.parse("org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT", mavenProperties);
 		assertEquals(resource.exists(), true);
 	}
 
@@ -65,15 +73,18 @@ public class MavenResourceTests {
 	public void resourceDoesNotExist() {
 		MavenProperties mavenProperties = new MavenProperties();
 		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
-		remoteRepositoryMap.put("default", new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
+		remoteRepositoryMap.put("default",
+				new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
 		mavenProperties.setRemoteRepositories(remoteRepositoryMap);
-		MavenResource resource = MavenResource.parse("org.springframework.cloud.task.app:doesnotexist:jar:1.0.0.BUILD-SNAPSHOT", mavenProperties);
+		MavenResource resource = MavenResource
+				.parse("org.springframework.cloud.task.app:doesnotexist:jar:1.0.0.BUILD-SNAPSHOT", mavenProperties);
 		assertEquals(resource.exists(), false);
 	}
 
 	@Test
 	public void coordinatesParsed() {
-		MavenResource resource = MavenResource.parse("org.springframework.cloud.task.app:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT");
+		MavenResource resource = MavenResource
+				.parse("org.springframework.cloud.task.app:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT");
 		assertEquals("getFilename() doesn't match the expected filename",
 				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
 		resource = MavenResource.parse("org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT");
@@ -89,7 +100,8 @@ public class MavenResourceTests {
 		new File(tempLocalRepo).deleteOnExit();
 		properties.setLocalRepository(tempLocalRepo);
 		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
-		remoteRepositoryMap.put("default", new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
+		remoteRepositoryMap.put("default",
+				new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
 		properties.setRemoteRepositories(remoteRepositoryMap);
 		MavenResource resource = MavenResource.parse(coordinates, properties);
 		assertEquals("getFilename() doesn't match the expected filename",
@@ -119,7 +131,8 @@ public class MavenResourceTests {
 		new File(tempLocalRepo).deleteOnExit();
 		properties1.setLocalRepository(tempLocalRepo);
 		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
-		remoteRepositoryMap.put("default", new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
+		remoteRepositoryMap.put("default",
+				new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
 		properties1.setRemoteRepositories(remoteRepositoryMap);
 		MavenResource resource = MavenResource.parse(coordinates, properties1);
 		resource.getFile();
@@ -134,6 +147,69 @@ public class MavenResourceTests {
 				.version("1.0.0.BUILD-SNAPSHOT")
 				.build();
 		resource.getFile();
+	}
+
+	@Test
+	public void checkRepositoryPolicies() {
+		MavenProperties mavenProperties = new MavenProperties();
+		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
+		MavenProperties.RemoteRepository remoteRepo1 = new MavenProperties.RemoteRepository(
+				"https://repo.spring.io/libs-snapshot-local");
+		MavenProperties.RemoteRepository.RepositoryPolicy snapshotPolicy = new MavenProperties.RemoteRepository.RepositoryPolicy();
+		snapshotPolicy.setEnabled(true);
+		snapshotPolicy.setUpdatePolicy("always");
+		snapshotPolicy.setChecksumPolicy("warn");
+		remoteRepo1.setSnapshotPolicy(snapshotPolicy);
+		MavenProperties.RemoteRepository.RepositoryPolicy releasePolicy = new MavenProperties.RemoteRepository.RepositoryPolicy();
+		releasePolicy.setEnabled(true);
+		releasePolicy.setUpdatePolicy("interval");
+		releasePolicy.setChecksumPolicy("ignore");
+		remoteRepo1.setReleasePolicy(releasePolicy);
+		remoteRepositoryMap.put("repo1", remoteRepo1);
+		MavenProperties.RemoteRepository remoteRepo2 = new MavenProperties.RemoteRepository(
+				"https://repo.spring.io/libs-milestone-local");
+		MavenProperties.RemoteRepository.RepositoryPolicy policy = new MavenProperties.RemoteRepository.RepositoryPolicy();
+		policy.setEnabled(true);
+		policy.setUpdatePolicy("daily");
+		policy.setChecksumPolicy("fail");
+		remoteRepo2.setPolicy(policy);
+		remoteRepositoryMap.put("repo2", remoteRepo2);
+		mavenProperties.setRemoteRepositories(remoteRepositoryMap);
+		MavenArtifactResolver artifactResolver = new MavenArtifactResolver(mavenProperties);
+		Field remoteRepositories = ReflectionUtils.findField(MavenArtifactResolver.class, "remoteRepositories");
+		ReflectionUtils.makeAccessible(remoteRepositories);
+		List<RemoteRepository> remoteRepositoryList = (List<RemoteRepository>) ReflectionUtils
+				.getField(remoteRepositories, artifactResolver);
+		for (RemoteRepository remoteRepository : remoteRepositoryList) {
+			assertEquals(2, remoteRepositoryList.size());
+			assertEquals(true, remoteRepositoryList.get(0).getId().equals("repo1")
+					|| remoteRepositoryList.get(0).getId().equals("repo2"));
+			assertEquals(true, remoteRepositoryList.get(1).getId().equals("repo2")
+					|| remoteRepositoryList.get(1).getId().equals("repo1"));
+			if (remoteRepository.getId().equals("repo1")) {
+				RepositoryPolicy snapshotPolicy1 = remoteRepository.getPolicy(true);
+				assertEquals(true, snapshotPolicy1.isEnabled());
+				assertEquals("always", snapshotPolicy1.getUpdatePolicy());
+				assertEquals("warn", snapshotPolicy1.getChecksumPolicy());
+				RepositoryPolicy releasePolicy1 = remoteRepository.getPolicy(false);
+				assertEquals(true, releasePolicy1.isEnabled());
+				assertEquals("interval", releasePolicy1.getUpdatePolicy());
+				assertEquals("ignore", releasePolicy1.getChecksumPolicy());
+			}
+			else if (remoteRepository.getId().equals("repo2")) {
+				RepositoryPolicy snapshotPolicy2 = remoteRepository.getPolicy(true);
+				assertEquals(true, snapshotPolicy2.isEnabled());
+				assertEquals("daily", snapshotPolicy2.getUpdatePolicy());
+				assertEquals("fail", snapshotPolicy2.getChecksumPolicy());
+				RepositoryPolicy releasePolicy2 = remoteRepository.getPolicy(false);
+				assertEquals(true, releasePolicy2.isEnabled());
+				assertEquals("daily", releasePolicy2.getUpdatePolicy());
+				assertEquals("fail", releasePolicy2.getChecksumPolicy());
+			}
+		}
+		MavenResource resource = MavenResource
+				.parse("org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT", mavenProperties);
+		assertEquals(resource.exists(), true);
 	}
 
 }
