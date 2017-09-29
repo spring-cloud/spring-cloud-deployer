@@ -28,6 +28,7 @@
 		<module>spring-cloud-deployer-spi</module>
 		<module>spring-cloud-deployer-resource-docker</module>
 		<module>spring-cloud-deployer-resource-maven</module>
+		<module>spring-cloud-deployer-resource-command</module>
 		<module>spring-cloud-deployer-spi-test</module>
 		<module>spring-cloud-deployer-resource-support</module>
 		<module>spring-cloud-deployer-spi-test-app</module>
