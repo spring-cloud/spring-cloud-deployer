@@ -16,6 +16,14 @@
 
 package org.springframework.cloud.deployer.spi.test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -33,15 +41,8 @@ import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties;
 import org.springframework.core.io.Resource;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -72,6 +73,7 @@ import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.even
  * @author Eric Bottard
  * @author Mark Fisher
  * @author Greg Turnquist
+ * @author David Turanski
  */
 public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegrationTests {
 
@@ -420,6 +422,72 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		assertNotNull(info.getPlatformHostVersion());
 	}
 
+	@Test
+	public void testScale() {
+		doTestScale(false);
+	}
+
+	@Test
+	public void testScaleWithIndex() {
+		doTestScale(true);
+	}
+
+	private void doTestScale(Boolean indexed) {
+		final int DESIRED_COUNT = 3;
+
+		Map<String, String> deploymentProperties =
+			Collections.singletonMap(AppDeployer.INDEXED_PROPERTY_KEY, indexed.toString());
+
+		AppDefinition definition = new AppDefinition(randomName(), null);
+		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
+
+		log.info("Deploying {} index={}...", request.getDefinition().getName(),indexed);
+
+		String deploymentId = appDeployer().deploy(request);
+
+		Timeout timeout = deploymentTimeout();
+
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		log.info("Scaling {} to {} instances...", request.getDefinition().getName(), DESIRED_COUNT);
+
+		appDeployer().scale(request.getDefinition().getName(), DESIRED_COUNT);
+
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		assertThat(appDeployer().status(deploymentId).getInstances().size(),is(DESIRED_COUNT));
+
+		List<DeploymentState> individualStates = new ArrayList<>();
+		for (AppInstanceStatus status : appDeployer().status(deploymentId).getInstances().values()) {
+			individualStates.add(status.getState());
+		}
+
+		assertThat(individualStates, everyItem(is(deployed)));
+
+
+		log.info("Scaling {} from {} to 1 instance...", request.getDefinition().getName(),DESIRED_COUNT);
+
+		appDeployer().scale(request.getDefinition().getName(), 1);
+
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(partial))), timeout.maxAttempts, timeout.pause));
+
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		assertThat(appDeployer().status(deploymentId).getInstances().size(),is(1));
+
+		log.info("Undeploying {}...", deploymentId);
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeploy(deploymentId);
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+	}
+
 	/**
 	 * A Hamcrest Matcher that queries the deployment status for some app id.
 	 *
@@ -493,8 +561,12 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 			return wrapped.getLog(id);
 		}
 
-	}
+		@Override
+		public void scale(String id, int desiredCount) {
+			wrapped.scale(id, desiredCount);
+		}
 
+	}
 
 }
 

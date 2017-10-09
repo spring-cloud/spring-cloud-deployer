@@ -31,6 +31,7 @@ import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
  * @author Janne Valkealahti
  * @author Thomas Risberg
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  */
 public interface AppDeployer {
 
@@ -153,4 +154,11 @@ public interface AppDeployer {
 	default String getLog(String id) {
 		throw new UnsupportedOperationException("'getLog' is not implemented.");
 	}
+	/**
+	 * Scale an app to the desired count.
+	 *
+	 * @param id the app deployment id, as returned by {@link #deploy}
+	 * @param desiredCount the desired number of instances.
+	 */
+	void scale(String id, int desiredCount);
 }
