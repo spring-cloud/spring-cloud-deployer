@@ -30,6 +30,7 @@ import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.even
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -421,6 +422,75 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		assertNotNull(info.getPlatformHostVersion());
 	}
 
+	@Test
+	public void testScale() {
+		doTestScale(false);
+	}
+
+	@Test
+	public void testScaleWithIndex() {
+		doTestScale(true);
+	}
+
+	private void doTestScale(Boolean indexed) {
+		final int REPLICAS = 3;
+
+		Map<String, String> deploymentProperties =
+			Collections.singletonMap(AppDeployer.INDEXED_PROPERTY_KEY, indexed.toString());
+
+		AppDefinition definition = new AppDefinition(randomName(), null);
+		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
+
+		log.info("Deploying {} index={}...", request.getDefinition().getName(),indexed);
+
+		String deploymentId = appDeployer().deploy(request);
+
+		Timeout timeout = deploymentTimeout();
+
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		log.info("Scaling {} to {} instances...", request.getDefinition().getName(), REPLICAS);
+
+		appDeployer().scale(request.getDefinition().getName(), REPLICAS);
+
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		assertThat(appDeployer().status(deploymentId).getInstances().size(),is(REPLICAS));
+
+		List<DeploymentState> individualStates = new ArrayList<>();
+		for (AppInstanceStatus status : appDeployer().status(deploymentId).getInstances().values()) {
+			individualStates.add(status.getState());
+		}
+
+		assertThat(individualStates, containsInAnyOrder(
+			is(deployed),
+			is(deployed),
+			is(deployed)
+		));
+
+		log.info("Scaling {} from {} to 1 instance...", request.getDefinition().getName(),REPLICAS);
+
+		appDeployer().scale(request.getDefinition().getName(), 1);
+
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(partial))), timeout.maxAttempts, timeout.pause));
+
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
+
+		assertThat(appDeployer().status(deploymentId).getInstances().size(),is(1));
+
+		log.info("Undeploying {}...", deploymentId);
+
+		timeout = undeploymentTimeout();
+		appDeployer().undeploy(deploymentId);
+		assertThat(deploymentId, eventually(hasStatusThat(
+			Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+	}
+
 	/**
 	 * A Hamcrest Matcher that queries the deployment status for some app id.
 	 *
@@ -487,6 +557,11 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		@Override
 		public RuntimeEnvironmentInfo environmentInfo() {
 			return wrapped.environmentInfo();
+		}
+
+		@Override
+		public void scale(String id, int replicas) {
+			wrapped.scale(id, replicas);
 		}
 
 	}

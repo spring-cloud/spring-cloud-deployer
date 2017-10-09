@@ -30,6 +30,7 @@ import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
  * @author Marius Bogoevici
  * @author Janne Valkealahti
  * @author Thomas Risberg
+ * @author David Turanski
  */
 public interface AppDeployer {
 
@@ -143,4 +144,12 @@ public interface AppDeployer {
 	 * @return the runtime environment info
 	 */
 	RuntimeEnvironmentInfo environmentInfo();
+
+	/**
+	 * Scale an app to the number of replicas.
+	 *
+	 * @param id the app deployment id, as returned by {@link #deploy}
+	 * @param replicas the desired number of replicas
+	 */
+	void scale(String id, int replicas);
 }
