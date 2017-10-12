@@ -146,10 +146,10 @@ public interface AppDeployer {
 	RuntimeEnvironmentInfo environmentInfo();
 
 	/**
-	 * Scale an app to the number of replicas.
+	 * Scale an app to the desired count.
 	 *
 	 * @param id the app deployment id, as returned by {@link #deploy}
-	 * @param replicas the desired number of replicas
+	 * @param desiredCount the desired number of instances.
 	 */
-	void scale(String id, int replicas);
+	void scale(String id, int desiredCount);
 }
