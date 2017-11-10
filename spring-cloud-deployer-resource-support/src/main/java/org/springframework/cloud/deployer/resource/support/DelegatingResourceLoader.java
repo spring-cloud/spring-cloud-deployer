@@ -110,31 +110,14 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 			Assert.notNull(scheme, "a scheme (prefix) is required");
 			ResourceLoader loader = this.loaders.get(scheme);
 			if (loader == null) {
-				loader = this.defaultResourceLoader;
-			}
-			Resource resource = loader.getResource(location);
-			if (existsAsFile(resource)) {
-				return resource;
-			}
-			else {
-				String cacheName = scheme + "-" + ShaUtils.sha1(location);
-				File cachedResource = new File(cacheDirectory, cacheName);
-				if (!cachedResource.exists()) {
-					logger.info("Caching resource '{}' as file {}", location, cachedResource);
-					try {
-						FileCopyUtils.copy(resource.getInputStream(), new FileOutputStream(cachedResource));
-					}
-					catch (UnsupportedOperationException e) {
-						logger.warn(String.format("Unable to cache file since getInputStream() is "
-								+ "not supported for resource: %s", resource));
-						return resource;
-					}
+				if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https")) {
+					loader = new HttpResourceLoader();
 				}
 				else {
-					logger.info("Reusing cached file {} as given location '{}'", cachedResource, location);
+					loader = this.defaultResourceLoader;
 				}
-				return new FileSystemResource(cachedResource);
 			}
+			return loader.getResource(location);
 		}
 		catch (Exception e) {
 			throw new ResourceNotResolvedException(e.getMessage(), e);
