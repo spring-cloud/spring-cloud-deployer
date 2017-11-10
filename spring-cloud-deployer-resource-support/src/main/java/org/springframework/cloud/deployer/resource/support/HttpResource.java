@@ -37,22 +37,24 @@ import org.springframework.util.FileCopyUtils;
  */
 public class HttpResource extends UrlResource {
 
-	private final String location;
-
 	public HttpResource(String location) throws MalformedURLException {
 		super(location);
-		this.location = location;
 	}
 
 	@Override
 	public String getDescription() {
-		return "Http Resource [" + location + "]";
+		try {
+			return "Http Resource [" + this.getURL().getPath() + "]";
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public File getFile() throws IOException {
-		String fileName = ShaUtils.sha1(location);
-		File tempFile = new File(Files.createTempDirectory("").toFile(), fileName);
+		String fileName = ShaUtils.sha1(this.getURL().getPath());
+		File tempFile = new File(Files.createTempDirectory("spring-cloud-deployer").toFile(), fileName);
 		FileCopyUtils.copy(this.getInputStream(), new FileOutputStream(tempFile));
 		tempFile.deleteOnExit();
 		return tempFile;

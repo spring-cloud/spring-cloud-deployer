@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.cloud.deployer.resource.support;
 
-import java.net.MalformedURLException;
+import java.io.File;
 
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
+import org.junit.Test;
+
+import org.springframework.util.Assert;
 
 /**
- * Resource loader for HTTP/HTTPS schemes that doesn't cache resources.
- *
  * @author Ilayaperumal Gopinathan
  */
-public class HttpResourceLoader extends DefaultResourceLoader {
+public class HttpResourceTests {
 
-	@Override
-	public Resource getResource(String location) {
-		try {
-			return new HttpResource(location);
-		}
-		catch (MalformedURLException e) {
-			throw new IllegalStateException(e);
-		}
+	@Test
+	public void testHttpResourceGetFile() throws Exception {
+		String location = "https://github.com/spring-cloud/spring-cloud-deployer/blob/master/pom.xml";
+		HttpResource httpResource = new HttpResource(location);
+		File file1 = httpResource.getFile();
+		File file2 = httpResource.getFile();
+		Assert.isTrue(!file1.getPath().equals(file2.getPath()), "Files should be different");
 	}
 }
