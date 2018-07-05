@@ -19,10 +19,13 @@ package org.springframework.cloud.deployer.resource.maven;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.junit.Test;
@@ -152,15 +155,17 @@ public class MavenResourceTests {
 	@Test
 	public void checkRepositoryPolicies() {
 		MavenProperties mavenProperties = new MavenProperties();
+		mavenProperties.setChecksumPolicy("always");
+		mavenProperties.setUpdatePolicy("fail");
 		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
 		MavenProperties.RemoteRepository remoteRepo1 = new MavenProperties.RemoteRepository(
 				"https://repo.spring.io/libs-snapshot-local");
-		MavenProperties.RemoteRepository.RepositoryPolicy snapshotPolicy = new MavenProperties.RemoteRepository.RepositoryPolicy();
+		MavenProperties.RepositoryPolicy snapshotPolicy = new MavenProperties.RepositoryPolicy();
 		snapshotPolicy.setEnabled(true);
 		snapshotPolicy.setUpdatePolicy("always");
 		snapshotPolicy.setChecksumPolicy("warn");
 		remoteRepo1.setSnapshotPolicy(snapshotPolicy);
-		MavenProperties.RemoteRepository.RepositoryPolicy releasePolicy = new MavenProperties.RemoteRepository.RepositoryPolicy();
+		MavenProperties.RepositoryPolicy releasePolicy = new MavenProperties.RepositoryPolicy();
 		releasePolicy.setEnabled(true);
 		releasePolicy.setUpdatePolicy("interval");
 		releasePolicy.setChecksumPolicy("ignore");
@@ -168,7 +173,7 @@ public class MavenResourceTests {
 		remoteRepositoryMap.put("repo1", remoteRepo1);
 		MavenProperties.RemoteRepository remoteRepo2 = new MavenProperties.RemoteRepository(
 				"https://repo.spring.io/libs-milestone-local");
-		MavenProperties.RemoteRepository.RepositoryPolicy policy = new MavenProperties.RemoteRepository.RepositoryPolicy();
+		MavenProperties.RepositoryPolicy policy = new MavenProperties.RepositoryPolicy();
 		policy.setEnabled(true);
 		policy.setUpdatePolicy("daily");
 		policy.setChecksumPolicy("fail");
@@ -180,6 +185,15 @@ public class MavenResourceTests {
 		ReflectionUtils.makeAccessible(remoteRepositories);
 		List<RemoteRepository> remoteRepositoryList = (List<RemoteRepository>) ReflectionUtils
 				.getField(remoteRepositories, artifactResolver);
+		Field repositorySystem = ReflectionUtils.findField(MavenArtifactResolver.class, "repositorySystem");
+		ReflectionUtils.makeAccessible(repositorySystem);
+		RepositorySystem repositorySystem1 = (RepositorySystem) ReflectionUtils.getField(repositorySystem, artifactResolver);
+		Method repositorySystemSessionMethod = ReflectionUtils.findMethod(MavenArtifactResolver.class, "newRepositorySystemSession", RepositorySystem.class, String.class);
+		ReflectionUtils.makeAccessible(repositorySystemSessionMethod);
+		RepositorySystemSession repositorySystemSession = (RepositorySystemSession)
+				ReflectionUtils.invokeMethod(repositorySystemSessionMethod, artifactResolver, repositorySystem1, "file://local");
+		assertEquals("always", repositorySystemSession.getChecksumPolicy());
+		assertEquals("fail", repositorySystemSession.getUpdatePolicy());
 		for (RemoteRepository remoteRepository : remoteRepositoryList) {
 			assertEquals(2, remoteRepositoryList.size());
 			assertEquals(true, remoteRepositoryList.get(0).getId().equals("repo1")

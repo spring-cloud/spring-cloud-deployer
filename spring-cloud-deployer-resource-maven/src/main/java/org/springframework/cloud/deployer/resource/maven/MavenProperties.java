@@ -74,6 +74,26 @@ public class MavenProperties {
 	 */
 	private boolean resolvePom;
 
+	public String updatePolicy;
+
+	public String checksumPolicy;
+
+	public String getUpdatePolicy() {
+		return updatePolicy;
+	}
+
+	public void setUpdatePolicy(String updatePolicy) {
+		this.updatePolicy = updatePolicy;
+	}
+
+	public String getChecksumPolicy() {
+		return checksumPolicy;
+	}
+
+	public void setChecksumPolicy(String checksumPolicy) {
+		this.checksumPolicy = checksumPolicy;
+	}
+
 	public Map<String, RemoteRepository> getRemoteRepositories() {
 		return remoteRepositories;
 	}
@@ -261,40 +281,40 @@ public class MavenProperties {
 		public void setReleasePolicy(RepositoryPolicy releasePolicy) {
 			this.releasePolicy = releasePolicy;
 		}
+	}
 
-		public static class RepositoryPolicy {
+	public static class RepositoryPolicy {
 
-			private boolean enabled = true;
+		private boolean enabled = true;
 
-			private String updatePolicy = "always";
+		private String updatePolicy = "always";
 
-			private String checksumPolicy = "warn";
+		private String checksumPolicy = "warn";
 
-			public boolean isEnabled() {
-				return enabled;
-			}
-
-			public void setEnabled(boolean enabled) {
-				this.enabled = enabled;
-			}
-
-			public String getUpdatePolicy() {
-				return updatePolicy;
-			}
-
-			public void setUpdatePolicy(String updatePolicy) {
-				this.updatePolicy = updatePolicy;
-			}
-
-			public String getChecksumPolicy() {
-				return checksumPolicy;
-			}
-
-			public void setChecksumPolicy(String checksumPolicy) {
-				this.checksumPolicy = checksumPolicy;
-			}
-
+		public boolean isEnabled() {
+			return enabled;
 		}
+
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
+		}
+
+		public String getUpdatePolicy() {
+			return updatePolicy;
+		}
+
+		public void setUpdatePolicy(String updatePolicy) {
+			this.updatePolicy = updatePolicy;
+		}
+
+		public String getChecksumPolicy() {
+			return checksumPolicy;
+		}
+
+		public void setChecksumPolicy(String checksumPolicy) {
+			this.checksumPolicy = checksumPolicy;
+		}
+
 	}
 
 	public static class Authentication {
