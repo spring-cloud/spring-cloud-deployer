@@ -50,6 +50,16 @@
 			<version>${maven.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.github.platform-team</groupId>
+			<artifactId>aws-maven</artifactId>
+			<version>6.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.aether</groupId>
+			<artifactId>aether-transport-wagon</artifactId>
+			<version>${aether.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>

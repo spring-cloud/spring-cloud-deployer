@@ -24,9 +24,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.github.platform.team.plugin.AmazonS3Wagon;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.apache.maven.wagon.Wagon;
 import org.eclipse.aether.ConfigurationProperties;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -49,6 +51,8 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.eclipse.aether.transport.wagon.WagonProvider;
+import org.eclipse.aether.transport.wagon.WagonTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 
@@ -258,6 +262,25 @@ class MavenArtifactResolver {
 		locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
 		locator.addService(TransporterFactory.class, FileTransporterFactory.class);
 		locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+		locator.addService(TransporterFactory.class, WagonTransporterFactory.class);
+		locator.setServices(WagonProvider.class, new WagonProvider() {
+
+			@Override
+			public Wagon lookup(String roleHint) {
+
+				if ("s3".equals(roleHint)) {
+					return new AmazonS3Wagon();
+				}
+
+				return null;
+			}
+
+			@Override
+			public void release(Wagon wagon) {
+
+			}
+		});
+
 		locator.setErrorHandler(new DefaultServiceLocator.ErrorHandler() {
 			@Override
 			public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception) {
