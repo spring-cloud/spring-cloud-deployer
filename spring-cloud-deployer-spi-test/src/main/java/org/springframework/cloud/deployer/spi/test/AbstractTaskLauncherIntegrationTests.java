@@ -320,7 +320,14 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		public RuntimeEnvironmentInfo environmentInfo() {
 			return wrapped.environmentInfo();
 		}
-
+		@Override
+		public int getMaximumConcurrentTasks() {
+			return wrapped.getMaximumConcurrentTasks();
+		}
+		@Override
+		public int getRunningTaskExecutionCount() {
+			return wrapped.getRunningTaskExecutionCount();
+		}
 
 	}
 
