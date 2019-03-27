@@ -110,11 +110,15 @@ public interface TaskLauncher {
 	 *
 	 * @return the maximum concurrent task executions allowed.
 	 */
-	int getMaximumConcurrentTasks();
+	default int getMaximumConcurrentTasks() {
+		throw new UnsupportedOperationException("'getMaximumConcurrentTasks' is not implemented.");
+	};
 
 	/**
 	 *
 	 * @return the count of currently running task executions if known.
 	 */
-	int getRunningTaskExecutionCount();
+	default int getRunningTaskExecutionCount() {
+		throw new UnsupportedOperationException("'getRunningTaskExecutionCount' is not implemented.");
+	}
 }
