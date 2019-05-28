@@ -230,6 +230,9 @@ class MavenArtifactResolver {
 		session.setOffline(this.properties.isOffline());
 		session.setUpdatePolicy(this.properties.getUpdatePolicy());
 		session.setChecksumPolicy(this.properties.getChecksumPolicy());
+		if (this.properties.isEnableRepositoryListener()) {
+			session.setRepositoryListener(new ConsoleRepositoryListener());
+		}
 		if (this.properties.getConnectTimeout() != null) {
 			session.setConfigProperty(ConfigurationProperties.CONNECT_TIMEOUT, this.properties.getConnectTimeout());
 		}

@@ -19,6 +19,7 @@ package org.springframework.cloud.deployer.resource.maven;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Configuration Properties for Maven.
@@ -44,7 +45,7 @@ public class MavenProperties {
 	/**
 	 * Locations of remote maven repositories from which artifacts will be downloaded, if not available locally.
 	 */
-	private Map<String, RemoteRepository> remoteRepositories = new HashMap<>();
+	private Map<String, RemoteRepository> remoteRepositories = new TreeMap<>();
 
 	/**
 	 * Whether the resolver should operate in offline mode.
@@ -74,6 +75,19 @@ public class MavenProperties {
 	 */
 	private boolean resolvePom;
 
+	/**
+	 * Add the ConsoleRepositoryListener to the session for debugging of artifact resolution.
+	 */
+	private boolean enableRepositoryListener = false;
+
+	public boolean isEnableRepositoryListener() {
+		return enableRepositoryListener;
+	}
+
+	public void setEnableRepositoryListener(boolean enableRepositoryListener) {
+		this.enableRepositoryListener = enableRepositoryListener;
+	}
+
 	public String updatePolicy;
 
 	public String checksumPolicy;
@@ -99,7 +113,7 @@ public class MavenProperties {
 	}
 
 	public void setRemoteRepositories(final Map<String, RemoteRepository> remoteRepositories) {
-		this.remoteRepositories = remoteRepositories;
+		this.remoteRepositories = new TreeMap<>(remoteRepositories);
 	}
 
 	public void setLocalRepository(String localRepository) {
