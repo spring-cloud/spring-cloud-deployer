@@ -328,6 +328,11 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 			return wrapped.getRunningTaskExecutionCount();
 		}
 
+		@Override
+		public String getLog(String id) {
+			return wrapped.getLog(id);
+		}
+
 	}
 
 

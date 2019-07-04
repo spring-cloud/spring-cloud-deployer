@@ -488,6 +488,11 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 			return wrapped.environmentInfo();
 		}
 
+		@Override
+		public String getLog(String id) {
+			return wrapped.getLog(id);
+		}
+
 	}
 
 

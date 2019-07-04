@@ -36,6 +36,7 @@ import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
  * @author Mark Fisher
  * @author Janne Valkealahti
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public interface TaskLauncher {
 
@@ -121,4 +122,12 @@ public interface TaskLauncher {
 	default int getRunningTaskExecutionCount() {
 		throw new UnsupportedOperationException("'getRunningTaskExecutionCount' is not implemented.");
 	}
+
+	/**
+	 * Return the log of the application identified by the task ID.
+	 * The ID can be specific to the platform where the task is launched.
+	 *
+	 * @return the task application log
+	 */
+	String getLog(String id);
 }
