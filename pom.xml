@@ -31,6 +31,7 @@
 		<module>spring-cloud-deployer-spi-test</module>
 		<module>spring-cloud-deployer-resource-support</module>
 		<module>spring-cloud-deployer-spi-test-app</module>
+		<module>spring-cloud-deployer-scheduler-spi-test-app</module>
 		<module>spring-cloud-deployer-autoconfigure</module>
 		<module>spring-cloud-deployer-dependencies</module>
 	</modules>
