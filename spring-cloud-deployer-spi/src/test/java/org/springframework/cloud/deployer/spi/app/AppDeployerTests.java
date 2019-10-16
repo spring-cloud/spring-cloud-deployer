@@ -50,6 +50,11 @@ public class AppDeployerTests {
 			public RuntimeEnvironmentInfo environmentInfo() {
 				return new RuntimeEnvironmentInfo.Builder().build();
 			}
+
+			@Override
+			public void scale(String id, int desiredCount) {
+
+			}
 		};
 		try {
 			customAppDeployer.getLog("test");
