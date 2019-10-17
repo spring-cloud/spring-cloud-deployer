@@ -24,13 +24,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
@@ -423,11 +426,13 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 	}
 
 	@Test
+	@Ignore("Disabled pending the implementation of this feature.")
 	public void testScale() {
 		doTestScale(false);
 	}
 
 	@Test
+	@Ignore("Disabled pending the implementation of this feature.")
 	public void testScaleWithIndex() {
 		doTestScale(true);
 	}

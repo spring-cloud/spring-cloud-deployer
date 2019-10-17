@@ -154,11 +154,14 @@ public interface AppDeployer {
 	default String getLog(String id) {
 		throw new UnsupportedOperationException("'getLog' is not implemented.");
 	}
+
 	/**
 	 * Scale an app to the desired count.
 	 *
 	 * @param id the app deployment id, as returned by {@link #deploy}
 	 * @param desiredCount the desired number of instances.
 	 */
-	void scale(String id, int desiredCount);
+	 default void scale(String id, int desiredCount) {
+		throw new UnsupportedOperationException("'scale' is not implemented.");
+	}
 }
