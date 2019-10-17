@@ -52,7 +52,7 @@ public class AppDeployerTests {
 			}
 
 			@Override
-			public void scale(String id, int desiredCount) {
+			public void scale(AppScaleRequest appScaleRequest) {
 
 			}
 		};

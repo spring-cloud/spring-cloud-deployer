@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.junit.Test;
 
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
+import org.springframework.cloud.deployer.spi.app.AppScaleRequest;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
@@ -458,7 +459,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Scaling {} to {} instances...", request.getDefinition().getName(), DESIRED_COUNT);
 
-		appDeployer().scale(request.getDefinition().getName(), DESIRED_COUNT);
+		appDeployer().scale(new AppScaleRequest(request.getDefinition().getName(), DESIRED_COUNT));
 
 		assertThat(deploymentId, eventually(hasStatusThat(
 			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -475,7 +476,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Scaling {} from {} to 1 instance...", request.getDefinition().getName(),DESIRED_COUNT);
 
-		appDeployer().scale(request.getDefinition().getName(), 1);
+		appDeployer().scale(new AppScaleRequest(request.getDefinition().getName(), 1));
 
 		assertThat(deploymentId, eventually(hasStatusThat(
 			Matchers.<AppStatus>hasProperty("state", is(partial))), timeout.maxAttempts, timeout.pause));
@@ -567,8 +568,8 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		}
 
 		@Override
-		public void scale(String id, int desiredCount) {
-			wrapped.scale(id, desiredCount);
+		public void scale(AppScaleRequest appScaleRequest) {
+			wrapped.scale(appScaleRequest);
 		}
 
 	}

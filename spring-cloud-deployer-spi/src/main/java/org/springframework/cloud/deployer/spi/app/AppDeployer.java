@@ -156,12 +156,11 @@ public interface AppDeployer {
 	}
 
 	/**
-	 * Scale an app to the desired count.
+	 * Scale an app according to given values.
 	 *
-	 * @param id the app deployment id, as returned by {@link #deploy}
-	 * @param desiredCount the desired number of instances.
+	 * @param appScaleRequest an {@link AppScaleRequest}.
 	 */
-	 default void scale(String id, int desiredCount) {
+	 default void scale(AppScaleRequest appScaleRequest) {
 		throw new UnsupportedOperationException("'scale' is not implemented.");
 	}
 }
