@@ -18,6 +18,7 @@ package org.springframework.cloud.deployer.spi.app;
 
 import java.util.Map;
 import java.util.Optional;
+
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
 public class AppScaleRequest {
     private final int count;
     private final String deploymentId;
-    private final Optional<Map<String,Object>> properties;
+    private final Optional<Map<String,String>> properties;
 
     /**
      *
@@ -48,7 +49,7 @@ public class AppScaleRequest {
      * @param count the desired instance count.
      * @param properties optional properties that may be applied during the scale operation.
      */
-    public AppScaleRequest(String deploymentId, int count, @Nullable  Map<String, Object> properties) {
+    public AppScaleRequest(String deploymentId, int count, @Nullable  Map<String, String> properties) {
         Assert.hasText(deploymentId,"'deploymentId', must not be empty or null");
         Assert.state(count >= 0, "'count' must be >= 0");
         this.deploymentId = deploymentId;
@@ -76,7 +77,7 @@ public class AppScaleRequest {
      *
      * @return the {@link Optional} properties.
      */
-    public Optional<Map<String, Object>> getProperties() {
+    public Optional<Map<String, String>> getProperties() {
         return properties;
     }
 }
