@@ -12,8 +12,8 @@
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
-		<artifactId>spring-cloud-build</artifactId>
-		<version>2.2.0.RELEASE</version>
+		<artifactId>spring-cloud-dataflow-build</artifactId>
+		<version>2.4.0.BUILD-SNAPSHOT</version>
 		<relativePath />
 	</parent>
 
