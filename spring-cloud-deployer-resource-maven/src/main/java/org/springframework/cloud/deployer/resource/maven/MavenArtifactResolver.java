@@ -83,7 +83,7 @@ class MavenArtifactResolver {
 
 	private final List<RemoteRepository> remoteRepositories = new LinkedList<>();
 
-	private final Authentication authentication;
+	private final Authentication proxyAuthentication;
 
 	/**
 	 * Create an instance using the provided properties.
@@ -102,10 +102,10 @@ class MavenArtifactResolver {
 		if (isProxyEnabled() && proxyHasCredentials()) {
 			final String username = this.properties.getProxy().getAuth().getUsername();
 			final String password = this.properties.getProxy().getAuth().getPassword();
-			this.authentication = newAuthentication(username, password);
+			this.proxyAuthentication = newAuthentication(username, password);
 		}
 		else {
-			this.authentication = null;
+			this.proxyAuthentication = null;
 		}
 		File localRepository = new File(this.properties.getLocalRepository());
 		if (!localRepository.exists()) {
@@ -137,28 +137,39 @@ class MavenArtifactResolver {
 								remoteRepository.getSnapshotPolicy().getUpdatePolicy(),
 								remoteRepository.getSnapshotPolicy().getChecksumPolicy()));
 			}
-			if (isProxyEnabled()) {
-				MavenProperties.Proxy proxyProperties = this.properties.getProxy();
-				if (this.authentication != null) {
-					remoteRepositoryBuilder.setProxy(new Proxy(
-							proxyProperties.getProtocol(),
-							proxyProperties.getHost(),
-							proxyProperties.getPort(),
-							this.authentication));
-				}
-				else {
-					// if proxy does not require authentication
-					remoteRepositoryBuilder.setProxy(new Proxy(
-							proxyProperties.getProtocol(),
-							proxyProperties.getHost(),
-							proxyProperties.getPort()));
-				}
-			}
 			if (remoteRepositoryHasCredentials(remoteRepository)) {
 				final String username = remoteRepository.getAuth().getUsername();
 				final String password = remoteRepository.getAuth().getPassword();
 				remoteRepositoryBuilder.setAuthentication(newAuthentication(username, password));
 			}
+
+			RemoteRepository repo = remoteRepositoryBuilder.build();
+			Proxy proxy = null;
+			if (isProxyEnabled()) {
+				MavenProperties.Proxy proxyProperties = this.properties.getProxy();
+				if (this.proxyAuthentication != null) {
+					proxy = new Proxy(
+							proxyProperties.getProtocol(),
+							proxyProperties.getHost(),
+							proxyProperties.getPort(),
+							this.proxyAuthentication);
+				}
+				else {
+					// if proxy does not require authentication
+					proxy = new Proxy(
+							proxyProperties.getProtocol(),
+							proxyProperties.getHost(),
+							proxyProperties.getPort());
+				}
+
+				DefaultProxySelector proxySelector = new DefaultProxySelector();
+				proxySelector.add(proxy, this.properties.getProxy().getNonProxyHosts());
+
+				proxy = proxySelector.getProxy(repo);
+			}
+
+			remoteRepositoryBuilder = new RemoteRepository.Builder(repo);
+			remoteRepositoryBuilder.setProxy(proxy);
 			this.remoteRepositories.add(remoteRepositoryBuilder.build());
 		}
 		this.repositorySystem = newRepositorySystem();
@@ -247,7 +258,7 @@ class MavenArtifactResolver {
 			Proxy proxy = new Proxy(this.properties.getProxy().getProtocol(),
 					this.properties.getProxy().getHost(),
 					this.properties.getProxy().getPort(),
-					this.authentication);
+					this.proxyAuthentication);
 			proxySelector.add(proxy, this.properties.getProxy().getNonProxyHosts());
 			session.setProxySelector(proxySelector);
 		}
