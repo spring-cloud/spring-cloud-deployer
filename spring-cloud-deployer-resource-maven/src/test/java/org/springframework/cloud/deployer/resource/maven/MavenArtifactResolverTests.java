@@ -16,7 +16,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-/**
+ /**
  * @author Eric Chen
  */
 class MavenArtifactResolverTests {
@@ -37,7 +37,7 @@ class MavenArtifactResolverTests {
             fail();
         } catch (Exception e) {
             UnknownHostException ex = (UnknownHostException)e.getCause().getCause().getCause();
-            Assert.assertEquals(ex.getMessage(), "http://proxy.example.com: nodename nor servname provided, or not known");
+            Assert.assertTrue(ex.getMessage().startsWith( "http://proxy.example.com"));
         }
         //resolver.resolve(mvnresource);
     }
