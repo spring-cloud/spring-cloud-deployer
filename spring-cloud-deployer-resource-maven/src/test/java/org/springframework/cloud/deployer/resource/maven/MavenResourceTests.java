@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.junit.Test;
+
+import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.File;
@@ -149,6 +151,21 @@ public class MavenResourceTests {
 				.version("1.0.0.BUILD-SNAPSHOT")
 				.build();
 		resource.getFile();
+	}
+
+	@Test
+	public void testGetVersions() throws Exception {
+		String coordinates = "org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT";
+		MavenProperties properties = new MavenProperties();
+		String tempLocalRepo = System.getProperty("java.io.tmpdir") + File.separator + ".m2-test3";
+		new File(tempLocalRepo).deleteOnExit();
+		properties.setLocalRepository(tempLocalRepo);
+		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
+		remoteRepositoryMap.put("default",
+				new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot-local"));
+		properties.setRemoteRepositories(remoteRepositoryMap);
+		MavenResource resource = MavenResource.parse(coordinates, properties);
+		Assert.isTrue(!resource.getVersions("org.springframework.cloud.task.app:timestamp-task:jar:[0,)").isEmpty(), "Versions shouldn't be empty");
 	}
 
 	@Test

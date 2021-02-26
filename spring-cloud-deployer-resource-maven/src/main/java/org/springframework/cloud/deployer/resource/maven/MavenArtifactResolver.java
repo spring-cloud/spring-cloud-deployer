@@ -35,6 +35,9 @@ import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.VersionRangeRequest;
+import org.eclipse.aether.resolution.VersionRangeResolutionException;
+import org.eclipse.aether.resolution.VersionRangeResult;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
@@ -44,6 +47,7 @@ import org.eclipse.aether.transport.wagon.WagonProvider;
 import org.eclipse.aether.transport.wagon.WagonTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
+import org.eclipse.aether.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -234,6 +238,10 @@ class MavenArtifactResolver {
 		};
 	}
 
+
+	DefaultRepositorySystemSession newRepositorySystemSession() {
+		return this.newRepositorySystemSession(this.repositorySystem, this.properties.getLocalRepository());
+	}
 	/*
 	 * Create a session to manage remote and local synchronization.
 	 */
@@ -294,6 +302,24 @@ class MavenArtifactResolver {
 			}
 		});
 		return locator.getService(RepositorySystem.class);
+	}
+
+	List<String> getVersions(String coordinates) {
+		Artifact artifact = new DefaultArtifact(coordinates);
+		VersionRangeRequest rangeRequest = new VersionRangeRequest();
+		rangeRequest.setArtifact(artifact);
+		rangeRequest.setRepositories(this.remoteRepositories);
+		try {
+			VersionRangeResult versionResult = this.repositorySystem.resolveVersionRange(newRepositorySystemSession(), rangeRequest);
+			List<String> versions = new ArrayList<>();
+			for (Version version: versionResult.getVersions()) {
+				versions.add(version.toString());
+			}
+			return versions;
+		}
+		catch (VersionRangeResolutionException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	/**
