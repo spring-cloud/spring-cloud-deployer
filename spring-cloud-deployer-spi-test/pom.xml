@@ -60,6 +60,10 @@
 			<artifactId>hamcrest-all</artifactId>
 			<version>${hamcrest.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+		</dependency>
 	</dependencies>
 
 </project>
