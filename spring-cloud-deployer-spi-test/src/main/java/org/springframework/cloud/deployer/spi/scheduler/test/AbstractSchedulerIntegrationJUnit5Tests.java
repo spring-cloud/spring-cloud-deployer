@@ -195,10 +195,10 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 		final String INVALID_EXPRESSION = "BAD";
 		String definitionName = randomName();
 		String scheduleName = scheduleName() + definitionName;
-		Map<String, String> properties = new HashMap<>(getSchedulerProperties());
+		Map<String, String> properties = new HashMap<>(getDeploymentProperties());
 		properties.put(SchedulerPropertyKeys.CRON_EXPRESSION, INVALID_EXPRESSION);
 		AppDefinition definition = new AppDefinition(definitionName, properties);
-		ScheduleRequest request = new ScheduleRequest(definition, properties, getDeploymentProperties(), getCommandLineArgs(), scheduleName, testApplication());
+		ScheduleRequest request = new ScheduleRequest(definition, properties, getCommandLineArgs(), scheduleName, testApplication());
         assertThatThrownBy(() -> {
             taskScheduler().schedule(request);
         }).isInstanceOf(CreateScheduleException.class);
@@ -271,7 +271,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 
 	private ScheduleRequest createScheduleRequest(String scheduleName, String definitionName) {
 		AppDefinition definition = new AppDefinition(definitionName, getAppProperties());
-		return new ScheduleRequest(definition, getSchedulerProperties(), getDeploymentProperties(), getCommandLineArgs(), scheduleName, testApplication());
+		return new ScheduleRequest(definition, getDeploymentProperties(), getCommandLineArgs(), scheduleName, testApplication());
 	}
 
 	private void verifySchedule(ScheduleInfo scheduleInfo) {

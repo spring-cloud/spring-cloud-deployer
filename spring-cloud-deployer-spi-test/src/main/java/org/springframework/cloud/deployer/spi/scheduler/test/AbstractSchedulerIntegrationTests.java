@@ -134,6 +134,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 	 * To be implemented by subclasses, which should return the schedulerProperties that
 	 * will be used for the tests.
 	 */
+	@Deprecated
 	protected abstract Map<String, String> getSchedulerProperties();
 
 	/**
@@ -196,10 +197,10 @@ public abstract class AbstractSchedulerIntegrationTests {
 		final String INVALID_EXPRESSION = "BAD";
 		String definitionName = randomName();
 		String scheduleName = scheduleName() + definitionName;
-		Map<String, String> properties = new HashMap<>(getSchedulerProperties());
+		Map<String, String> properties = new HashMap<>(getDeploymentProperties());
 		properties.put(SchedulerPropertyKeys.CRON_EXPRESSION, INVALID_EXPRESSION);
 		AppDefinition definition = new AppDefinition(definitionName, properties);
-		ScheduleRequest request = new ScheduleRequest(definition, properties, getDeploymentProperties(), getCommandLineArgs(), scheduleName, testApplication());
+		ScheduleRequest request = new ScheduleRequest(definition, properties, getCommandLineArgs(), scheduleName, testApplication());
 		this.expectedException.expect(CreateScheduleException.class);
 
 		taskScheduler().schedule(request);
@@ -270,7 +271,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 
 	private ScheduleRequest createScheduleRequest(String scheduleName, String definitionName) {
 		AppDefinition definition = new AppDefinition(definitionName, getAppProperties());
-		return new ScheduleRequest(definition, getSchedulerProperties(), getDeploymentProperties(), getCommandLineArgs(), scheduleName, testApplication());
+		return new ScheduleRequest(definition, getDeploymentProperties(), getCommandLineArgs(), scheduleName, testApplication());
 	}
 
 	private void verifySchedule(ScheduleInfo scheduleInfo) {
