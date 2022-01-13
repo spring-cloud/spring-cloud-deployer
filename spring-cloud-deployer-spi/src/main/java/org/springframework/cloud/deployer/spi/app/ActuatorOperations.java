@@ -27,7 +27,7 @@ public interface ActuatorOperations {
 	 * Get a resource from an actuator path.
 	 * @param deploymentId the deployment ID of the deployed app.
 	 * @param guid unique id for the app instance.
-	 * @param endpoint the endpoint path relative to the base actuator URL for the instance.
+	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
 	 * @param responseType the expected response type.
 	 * @return the contents as the given type.
 	 */
@@ -37,7 +37,7 @@ public interface ActuatorOperations {
 	 * Get a resource from an actuator path.
 	 * @param deploymentId the deployment ID of the deployed app.
 	 * @param guid unique id for the app instance.
-	 * @param endpoint the endpoint path relative to the base actuator URL for the instance.
+	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
 	 * @return the contents as a {@code String}.
 	 */
 	default String getFromActuator(String deploymentId, String guid, String endpoint){
@@ -47,7 +47,7 @@ public interface ActuatorOperations {
 	 * Post to resource on actuator path.
 	 * @param deploymentId the deployment ID of the deployed app.
 	 * @param guid unique id for the app instance.
-	 * @param endpoint the endpoint path relative to the base actuator URL for the instance.
+	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
 	 * @param body the request body.
 	 * @param responseType the expected response type.
 	 * @return the result (response body).

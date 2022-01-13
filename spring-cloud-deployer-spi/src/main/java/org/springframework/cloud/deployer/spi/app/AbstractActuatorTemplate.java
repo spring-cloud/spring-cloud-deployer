@@ -68,6 +68,7 @@ public abstract class AbstractActuatorTemplate implements ActuatorOperations {
 	public <T, R> R postToActuator(String deploymentId, String guid, String endpoint, T body,
 			Class<R> responseType) {
 		String actuatorUrl = getActuatorUrl(deploymentId, guid);
+
 		ResponseEntity<R> responseEntity = httpPost(UriComponentsBuilder
 				.fromHttpUrl(actuatorUrl).path(normalizePath(endpoint)).toUriString(), body, responseType);
 		if (responseEntity.getStatusCode().isError()) {
@@ -99,8 +100,8 @@ public abstract class AbstractActuatorTemplate implements ActuatorOperations {
 	}
 
 	private final <T, R> ResponseEntity<R> httpPost(String url, T requestBody, Class<R> responseType) {
-		HttpEntity<T> requestEntity = new HttpEntity(requestBody, requestHeaders());
-		return restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType);
+		return restTemplate.exchange(url, HttpMethod.POST,
+				new HttpEntity(requestBody, requestHeaders()), responseType);
 	}
 
 	protected final String getActuatorUrl(String deploymentId, String guid) {
@@ -117,7 +118,19 @@ public abstract class AbstractActuatorTemplate implements ActuatorOperations {
 	}
 
 	private final Optional<AppInstanceStatus> getDeployedInstance(String deploymentId, String guid) {
-		return appDeployer.status(deploymentId).getInstances().values().stream()
+		AppStatus appStatus = appDeployer.status(deploymentId);
+		long count = appStatus.getInstances().values().stream().filter(
+				appInstance -> appInstance.getAttributes().get("guid").equals(guid)).count();
+
+		if (count == 0) {
+			return Optional.empty();
+		}
+		else if (count > 1) {
+			throw new IllegalStateException(String.format(
+					"guid %s is not unique for instances of deploymentId %s", guid, deploymentId));
+		}
+
+		return appStatus.getInstances().values().stream()
 				.filter(appInstance -> appInstance.getState() == DeploymentState.deployed &&
 						appInstance.getAttributes().get("guid").equals(guid))
 				.findFirst();
