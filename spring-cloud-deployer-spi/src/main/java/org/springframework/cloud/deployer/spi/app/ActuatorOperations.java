@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.deployer.spi.app;
 
+import java.util.Optional;
+
+import org.springframework.http.HttpHeaders;
+
 /**
  * Deployers may implement this extension to invoke actuator endpoints of deployed app instances.
  *
@@ -29,19 +33,31 @@ public interface ActuatorOperations {
 	 * @param guid unique id for the app instance.
 	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
 	 * @param responseType the expected response type.
+	 * @param requestHeaders optional request headers.
 	 * @return the contents as the given type.
 	 */
-	<T> T getFromActuator(String deploymentId, String guid, String endpoint, Class<T> responseType);
+	<T> T getFromActuator(String deploymentId, String guid, String endpoint, Class<T> responseType,
+			Optional<HttpHeaders> requestHeaders);
+
+	default <T> T getFromActuator (String deploymentId, String guid, String endpoint, Class<T> responseType) {
+		return getFromActuator(deploymentId, guid, endpoint, responseType, Optional.empty());
+	}
 
 	/**
 	 * Get a resource from an actuator path.
 	 * @param deploymentId the deployment ID of the deployed app.
 	 * @param guid unique id for the app instance.
 	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 * @param requestHeaders optional request headers.
 	 * @return the contents as a {@code String}.
 	 */
+	default String getFromActuator(String deploymentId, String guid, String endpoint,
+			Optional<HttpHeaders> requestHeaders){
+		return getFromActuator(deploymentId, guid, endpoint, String.class, requestHeaders);
+	}
+
 	default String getFromActuator(String deploymentId, String guid, String endpoint){
-		return getFromActuator(deploymentId, guid, endpoint, String.class);
+		return getFromActuator(deploymentId, guid, endpoint, String.class, Optional.empty());
 	}
 	/**
 	 * Post to resource on actuator path.
@@ -50,7 +66,13 @@ public interface ActuatorOperations {
 	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
 	 * @param body the request body.
 	 * @param responseType the expected response type.
+	 * @param requestHeaders optional request headers.
 	 * @return the result (response body).
 	 */
-	<T,R> R postToActuator(String deploymentId, String guid, String endpoint, T body, Class<R> responseType);
+	<T,R> R postToActuator(String deploymentId, String guid, String endpoint, T body, Class<R> responseType,
+			Optional<HttpHeaders> requestHeaders);
+
+	default <T,R> R postToActuator(String deploymentId, String guid, String endpoint, T body, Class<R> responseType) {
+		return postToActuator(deploymentId, guid, endpoint, body, responseType, Optional.empty());
+	}
 }
