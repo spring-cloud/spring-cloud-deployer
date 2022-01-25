@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.deployer.spi.app;
 
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,19 +45,35 @@ public abstract class AbstractActuatorTemplate implements ActuatorOperations {
 
 	protected final AppDeployer appDeployer;
 
-	private Consumer<HttpHeaders> httpHeadersConsumer = headers -> {};
+	private final AppAdmin appAdmin;
 
-	protected AbstractActuatorTemplate(RestTemplate restTemplate, AppDeployer appDeployer) {
+	private final Optional<String> defaultAuthenticationHeaderValue;
+
+	protected AbstractActuatorTemplate(RestTemplate restTemplate, AppDeployer appDeployer, AppAdmin appAdmin) {
+		Assert.notNull(restTemplate, "'restTemplate' is required.");
+		Assert.notNull(appDeployer, "'appDeployer' is required.");
+		Assert.notNull(appAdmin, "'appAdmin' is required.");
 		this.restTemplate = restTemplate;
 		this.appDeployer = appDeployer;
+		this.appAdmin = appAdmin;
+		this.defaultAuthenticationHeaderValue = prepareDefaultAthentication(appAdmin);
 	}
 
+
 	@Override
-	public <T> T getFromActuator(String deploymentId, String guid, String endpoint, Class<T> responseType) {
-		String actuatorUrl = getActuatorUrl(deploymentId, guid);
+	public <T> T getFromActuator(String deploymentId, String guid, String endpoint, Class<T> responseType,
+			Optional<HttpHeaders> optionalRequestHeaders) {
+
+		AppInstanceStatus appInstanceStatus = getDeployedInstance(deploymentId, guid)
+				.orElseThrow(() -> new IllegalStateException(
+						String.format("App with deploymentId %s and guid %s not deployed", deploymentId, guid)));
+
+		String actuatorUrl = getActuatorUrl(appInstanceStatus);
+
+		HttpHeaders requestHeaders = requestHeaders(httpHeadersForInstance(appInstanceStatus), optionalRequestHeaders);
 
 		ResponseEntity<T> responseEntity = httpGet(UriComponentsBuilder
-				.fromHttpUrl(actuatorUrl).path(normalizePath(endpoint)).toUriString(), responseType);
+				.fromHttpUrl(actuatorUrl).path(normalizePath(endpoint)).toUriString(), responseType, requestHeaders);
 		if (responseEntity.getStatusCode().isError()) {
 			logger.error(responseEntity.getStatusCode().toString());
 		}
@@ -66,55 +82,80 @@ public abstract class AbstractActuatorTemplate implements ActuatorOperations {
 
 	@Override
 	public <T, R> R postToActuator(String deploymentId, String guid, String endpoint, T body,
-			Class<R> responseType) {
-		String actuatorUrl = getActuatorUrl(deploymentId, guid);
+			Class<R> responseType, Optional<HttpHeaders> optionalRequestHeaders) {
+		AppInstanceStatus appInstanceStatus = getDeployedInstance(deploymentId, guid)
+				.orElseThrow(() -> new IllegalStateException(
+						String.format("App with deploymentId %s and guid %s not deployed", deploymentId, guid)));
+
+		String actuatorUrl = getActuatorUrl(appInstanceStatus);
+
+		HttpHeaders requestHeaders = requestHeaders(httpHeadersForInstance(appInstanceStatus), optionalRequestHeaders);
 
 		ResponseEntity<R> responseEntity = httpPost(UriComponentsBuilder
-				.fromHttpUrl(actuatorUrl).path(normalizePath(endpoint)).toUriString(), body, responseType);
+				.fromHttpUrl(actuatorUrl).path(normalizePath(endpoint)).toUriString(), body, responseType,
+				requestHeaders);
 		if (responseEntity.getStatusCode().isError()) {
 			logger.error(responseEntity.getStatusCode().toString());
 		}
 		return responseEntity.getBody();
 	}
 
-	protected final HttpHeaders requestHeaders() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		this.httpHeadersConsumer.accept(headers);
-		return headers;
+	protected final String getActuatorUrl(AppInstanceStatus appInstanceStatus) {
+		try {
+			return actuatorUrlForInstance(appInstanceStatus);
+		} catch (Exception e) {
+			throw new IllegalArgumentException(String.format(
+					"Unable to determine actuator url for app with guid %s",
+					appInstanceStatus.getAttributes().get("guid")));
+		}
 	}
 
-	protected final void setHttpHeadersConsumer(Consumer<HttpHeaders> httpHeadersConsumer) {
-		Assert.notNull(httpHeadersConsumer, "'httpHeadersConsumer cannot be null");
-		this.httpHeadersConsumer = httpHeadersConsumer;
+	protected abstract String actuatorUrlForInstance(AppInstanceStatus appInstanceStatus);
+
+	/**
+	 * Hook to allow subclasses to add special headers derived {@link AppInstanceStatus} metadata if necessary.
+	 *
+	 * @param appInstanceStatus the AppInstanceStatus for the target instance.
+	 * @return HttpHeaders
+	 */
+	protected Optional<HttpHeaders> httpHeadersForInstance(AppInstanceStatus appInstanceStatus) {
+		return Optional.empty();
+	}
+
+
+	private final HttpHeaders requestHeaders(Optional<HttpHeaders> optionalAppInstanceHeaders,
+			Optional<HttpHeaders> optionalRequestHeaders) {
+		HttpHeaders requestHeaders = optionalAppInstanceHeaders
+				.orElse(new HttpHeaders());
+		optionalRequestHeaders.ifPresent(requestHeaders::addAll);
+
+		//Any pass-thru auth overrides the default.
+		if (!requestHeaders.containsKey(HttpHeaders.AUTHORIZATION)) {
+			addDefaultAuthorization(requestHeaders);
+		}
+
+		requestHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+		requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+		return requestHeaders;
+	}
+
+	private void addDefaultAuthorization(HttpHeaders requestHeaders) {
+		this.defaultAuthenticationHeaderValue.ifPresent(auth -> requestHeaders.setBasicAuth(auth));
 	}
 
 	private final String normalizePath(String path) {
 		return path.startsWith("/") ? path : "/" + path;
 	}
 
-	private final <T> ResponseEntity<T> httpGet(String url, Class<T> responseType) {
-		return restTemplate.exchange(url, HttpMethod.GET,
-				new HttpEntity(requestHeaders()), responseType);
+	private final <T> ResponseEntity<T> httpGet(String url, Class<T> responseType, HttpHeaders
+			requestHeaders) {
+		return restTemplate.exchange(url, HttpMethod.GET, new HttpEntity(requestHeaders), responseType);
 	}
 
-	private final <T, R> ResponseEntity<R> httpPost(String url, T requestBody, Class<R> responseType) {
+	private final <T, R> ResponseEntity<R> httpPost(String url, T requestBody, Class<R> responseType,
+			HttpHeaders requestHeaders) {
 		return restTemplate.exchange(url, HttpMethod.POST,
-				new HttpEntity(requestBody, requestHeaders()), responseType);
-	}
-
-	protected final String getActuatorUrl(String deploymentId, String guid) {
-		AppInstanceStatus appInstanceStatus = getDeployedInstance(deploymentId, guid)
-				.orElseThrow(() -> new IllegalStateException(
-						String.format("App with deploymentId %s and guid %s not deployed", deploymentId, guid)));
-
-		try {
-			return actuatorUrlForInstance(appInstanceStatus);
-		} catch (Exception e) {
-			throw new IllegalArgumentException(String.format(
-					"Unable to determine actuator url for app with guid %s", guid));
-		}
+				new HttpEntity(requestBody, requestHeaders), responseType);
 	}
 
 	private final Optional<AppInstanceStatus> getDeployedInstance(String deploymentId, String guid) {
@@ -136,6 +177,16 @@ public abstract class AbstractActuatorTemplate implements ActuatorOperations {
 				.findFirst();
 	}
 
-	protected abstract String actuatorUrlForInstance(AppInstanceStatus appInstanceStatus);
+	private Optional<String> prepareDefaultAthentication(AppAdmin appAdmin) {
+		Optional<String> encodeBasicAuth;
+		encodeBasicAuth = appAdmin.hasCredentials() ?
+			Optional.of(HttpHeaders.encodeBasicAuth(appAdmin.getUser(), appAdmin.getPassword(),
+					Charset.defaultCharset())) : Optional.empty();
+
+		if (!encodeBasicAuth.isPresent()) {
+			logger.warn("No app admin credentials have been configured for " + this.getClass().getName());
+		}
+		return encodeBasicAuth;
+	}
 
 }
