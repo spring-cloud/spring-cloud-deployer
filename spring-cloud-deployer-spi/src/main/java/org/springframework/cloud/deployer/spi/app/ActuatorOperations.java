@@ -39,6 +39,14 @@ public interface ActuatorOperations {
 	<T> T getFromActuator(String deploymentId, String guid, String endpoint, Class<T> responseType,
 			Optional<HttpHeaders> requestHeaders);
 
+	/**
+	 * Get a resource from an actuator path.
+	 * @param deploymentId the deployment ID of the deployed app.
+	 * @param guid unique id for the app instance.
+	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 * @param responseType the expected response type.
+	 * @return the contents as the given type.
+	 */
 	default <T> T getFromActuator (String deploymentId, String guid, String endpoint, Class<T> responseType) {
 		return getFromActuator(deploymentId, guid, endpoint, responseType, Optional.empty());
 	}
@@ -56,9 +64,17 @@ public interface ActuatorOperations {
 		return getFromActuator(deploymentId, guid, endpoint, String.class, requestHeaders);
 	}
 
+	/**
+	 * Get a resource from an actuator path.
+	 * @param deploymentId the deployment ID of the deployed app.
+	 * @param guid unique id for the app instance.
+	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 * @return the contents as a {@code String}.
+	 */
 	default String getFromActuator(String deploymentId, String guid, String endpoint){
 		return getFromActuator(deploymentId, guid, endpoint, String.class, Optional.empty());
 	}
+
 	/**
 	 * Post to resource on actuator path.
 	 * @param deploymentId the deployment ID of the deployed app.
@@ -72,6 +88,15 @@ public interface ActuatorOperations {
 	<T,R> R postToActuator(String deploymentId, String guid, String endpoint, T body, Class<R> responseType,
 			Optional<HttpHeaders> requestHeaders);
 
+	/**
+	 * Post to resource on actuator path.
+	 * @param deploymentId the deployment ID of the deployed app.
+	 * @param guid unique id for the app instance.
+	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 * @param body the request body.
+	 * @param responseType the expected response type.
+	 * @return the result (response body).
+	 */
 	default <T,R> R postToActuator(String deploymentId, String guid, String endpoint, T body, Class<R> responseType) {
 		return postToActuator(deploymentId, guid, endpoint, body, responseType, Optional.empty());
 	}
