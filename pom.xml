@@ -24,6 +24,8 @@
 		<maven-resolver.version>1.4.1</maven-resolver.version>
 		<maven-wagon.version>3.3.4</maven-wagon.version>
 		<commons-io.version>2.7</commons-io.version>
+		<micrometer.version>1.10.0-SNAPSHOT</micrometer.version>
+		<micrometer-tracing.version>1.0.0-SNAPSHOT</micrometer-tracing.version>
 	</properties>
 
 	<modules>
