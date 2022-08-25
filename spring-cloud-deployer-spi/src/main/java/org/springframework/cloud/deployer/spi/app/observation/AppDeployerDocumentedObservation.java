@@ -17,123 +17,191 @@
 package org.springframework.cloud.deployer.spi.app.observation;
 
 import io.micrometer.common.docs.KeyName;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.docs.DocumentedObservation;
 
 enum AppDeployerDocumentedObservation implements DocumentedObservation {
 
 	/**
-	 * Span created upon deploying of an application.
+	 * Observation created upon deploying of an application.
 	 */
 	DEPLOYER_DEPLOY_OBSERVATION {
+		@Override
+		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
+			return DefaultAppDeployerObservationConvention.class;
+		}
+
 		@Override
 		public String getName() {
 			return "spring.cloud.deployer.deploy";
 		}
 
 		@Override
+		public String getContextualName() {
+			return "deploy";
+		}
+
+		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
 			return Tags.values();
+		}
+
+		@Override
+		public Event[] getEvents() {
+			return Events.values();
 		}
 	},
 
 	/**
-	 * Span created upon undeploying of an application.
+	 * Observation created upon undeploying of an application.
 	 */
 	DEPLOYER_UNDEPLOY_OBSERVATION {
+		@Override
+		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
+			return DefaultAppDeployerObservationConvention.class;
+		}
+
 		@Override
 		public String getName() {
 			return "spring.cloud.deployer.undeploy";
 		}
 
 		@Override
+		public String getContextualName() {
+			return "undeploy";
+		}
+
+		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
 			return Tags.values();
 		}
-//
-//		@Override
-//		public EventValue[] getEvents() {
-//			return Events.values();
-//		}
+
+		@Override
+		public Event[] getEvents() {
+			return Events.values();
+		}
 	},
 
 	/**
-	 * Span created upon asking for a status of a deployed application.
+	 * Observation created upon asking for a status of a deployed application.
 	 */
 	DEPLOYER_STATUS_OBSERVATION {
+		@Override
+		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
+			return DefaultAppDeployerObservationConvention.class;
+		}
+
 		@Override
 		public String getName() {
 			return "spring.cloud.deployer.status";
 		}
 
 		@Override
+		public String getContextualName() {
+			return "status";
+		}
+
+		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
 			return Tags.values();
 		}
-//
-//		@Override
-//		public EventValue[] getEvents() {
-//			return Events.values();
-//		}
+
+		@Override
+		public Event[] getEvents() {
+			return Events.values();
+		}
 	},
 
 	/**
-	 * Span created upon asking for statuses of deployed applications.
+	 * Observation created upon asking for statuses of deployed applications.
 	 */
 	DEPLOYER_STATUSES_OBSERVATION {
+		@Override
+		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
+			return DefaultAppDeployerObservationConvention.class;
+		}
+
 		@Override
 		public String getName() {
 			return "spring.cloud.deployer.statuses";
 		}
 
 		@Override
+		public String getContextualName() {
+			return "statuses";
+		}
+		
+		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
 			return Tags.values();
 		}
 
-//		@Override
-//		public EventValue[] getEvents() {
-//			return Events.values();
-//		}
+
+		@Override
+		public Event[] getEvents() {
+			return Events.values();
+		}
 	},
 
 	/**
-	 * Span created upon asking for logs of deployed applications.
+	 * Observation created upon asking for logs of deployed applications.
 	 */
 	DEPLOYER_GET_LOG_OBSERVATION {
+		@Override
+		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
+			return DefaultAppDeployerObservationConvention.class;
+		}
+
 		@Override
 		public String getName() {
 			return "spring.cloud.deployer.getLog";
 		}
 
 		@Override
+		public String getContextualName() {
+			return "getLog";
+		}
+
+		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
 			return Tags.values();
 		}
 
-//		@Override
-//		public EventValue[] getEvents() {
-//			return Events.values();
-//		}
+		@Override
+		public Event[] getEvents() {
+			return Events.values();
+		}
 	},
 
 	/**
-	 * Span created upon asking for logs of deployed applications.
+	 * Observation created upon asking for logs of deployed applications.
 	 */
-	DEPLOYER_SCALE_SPAN {
+	DEPLOYER_SCALE_OBSERVATION {
+		@Override
+		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
+			return DefaultAppDeployerObservationConvention.class;
+		}
+
 		@Override
 		public String getName() {
 			return "spring.cloud.deployer.scale";
 		}
 
 		@Override
+		public String getContextualName() {
+			return "scale";
+		}
+
+		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
 			return KeyName.merge(Tags.values(), ScaleTags.values());
 		}
-//
-//		@Override
-//		public EventValue[] getEvents() {
-//			return Events.values();
-//		}
+
+		@Override
+		public Event[] getEvents() {
+			return Events.values();
+		}
 	};
 
 	enum Tags implements KeyName {
@@ -254,16 +322,15 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 
 	}
 
-	// TODO: It can't be from here but from micrometer-observation
-	enum Events implements EventValue {
+	enum Events implements Event {
 
 		/**
 		 * When deployer started deploying the application.
 		 */
 		DEPLOYER_START {
 			@Override
-			public String getValue() {
-				return "spring.cloud.deployer.start";
+			public String getName() {
+				return "start";
 			}
 		},
 
@@ -272,15 +339,15 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 		 */
 		DEPLOYER_STATUS_CHANGE {
 			@Override
-			public String getValue() {
+			public String getName() {
+				return "status-change";
+			}
+
+			@Override
+			public String getContextualName() {
 				return "%s";
 			}
 		}
 
 	}
-
-	interface EventValue {
-		String getValue();
-	}
-
 }

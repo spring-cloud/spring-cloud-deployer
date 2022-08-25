@@ -18,12 +18,17 @@ package org.springframework.cloud.deployer.spi.app.observation;
 
 import io.micrometer.observation.transport.SenderContext;
 
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppScaleRequest;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.lang.Nullable;
 
-// TODO: We don't need to inject tracing headers
+/**
+ * A {@link SenderContext} for {@link AppDeployer}.
+ *
+ * @author Marcin Grzejszczak
+ */
 public class AppDeployerContext extends SenderContext<Object> {
 
 	private final RuntimeEnvironmentInfo runtimeEnvironmentInfo;
@@ -35,7 +40,8 @@ public class AppDeployerContext extends SenderContext<Object> {
 	private String appId;
 
 	public AppDeployerContext(RuntimeEnvironmentInfo runtimeEnvironmentInfo) {
-		super((carrier, key, value) -> { });
+		super((carrier, key, value) -> {
+		});
 		this.runtimeEnvironmentInfo = runtimeEnvironmentInfo;
 		setRemoteServiceName(runtimeEnvironmentInfo.getPlatformType());
 	}

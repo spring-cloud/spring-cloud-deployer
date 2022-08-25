@@ -70,8 +70,7 @@ public class ObservedAppDeployer implements AppDeployer {
 		context.setRequest(request);
 		Observation observation = AppDeployerDocumentedObservation.DEPLOYER_DEPLOY_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
 		return observation.scoped(() -> {
-			// TODO: This should come from documented observation
-			observation.event(new Observation.Event(AppDeployerDocumentedObservation.Events.DEPLOYER_START.getValue()));
+			observation.event(AppDeployerDocumentedObservation.Events.DEPLOYER_START);
 			String id = this.delegate.deploy(request);
 			context.setAppId(id);
 			registerListener(observation, id);
@@ -100,8 +99,7 @@ public class ObservedAppDeployer implements AppDeployer {
 		context.setAppId(id);
 		Observation observation = AppDeployerDocumentedObservation.DEPLOYER_UNDEPLOY_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
 		observation.scoped(() -> {
-			// TODO: This should come from documented observation
-			observation.event(new Observation.Event(AppDeployerDocumentedObservation.Events.DEPLOYER_START.getValue()));
+			observation.event(AppDeployerDocumentedObservation.Events.DEPLOYER_START);
 			this.delegate.undeploy(id);
 			registerListener(observation, id);
 			return id;
@@ -153,7 +151,7 @@ public class ObservedAppDeployer implements AppDeployer {
 	public void scale(AppScaleRequest appScaleRequest) {
 		AppDeployerContext context = new AppDeployerContext(environmentInfo());
 		context.setAppScaleRequest(appScaleRequest);
-		Observation observation = AppDeployerDocumentedObservation.DEPLOYER_GET_LOG_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
+		Observation observation = AppDeployerDocumentedObservation.DEPLOYER_SCALE_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
 		observation.observe(() -> this.delegate.scale(appScaleRequest));
 	}
 
@@ -195,8 +193,7 @@ public class ObservedAppDeployer implements AppDeployer {
 			if (log.isDebugEnabled()) {
 				log.debug("Will annotate its state with [" + name + "]");
 			}
-			// TODO: This should come from documented observation
-			this.observation.event(new Observation.Event(String.format(AppDeployerDocumentedObservation.Events.DEPLOYER_STATUS_CHANGE.getValue(), name)));
+			this.observation.event(AppDeployerDocumentedObservation.Events.DEPLOYER_STATUS_CHANGE.format(name));
 		}
 
 		private boolean statusChanged() {

@@ -39,7 +39,7 @@ public class DefaultAppDeployerObservationConvention implements AppDeployerObser
 					AppDeployerDocumentedObservation.ScaleTags.DEPLOYER_SCALE_COUNT.withValue(String.valueOf(context.getAppScaleRequest().getCount())));
 		}
 		if (context.getRuntimeEnvironmentInfo() != null) {
-			keyValues = platformSpecificKeyValues(context.getRuntimeEnvironmentInfo(), context.getRequest());
+			keyValues = keyValues.and(platformSpecificKeyValues(context.getRuntimeEnvironmentInfo(), context.getRequest()));
 		}
 		return keyValues;
 	}
@@ -90,4 +90,5 @@ public class DefaultAppDeployerObservationConvention implements AppDeployerObser
 		}
 		return keyValues;
 	}
+
 }

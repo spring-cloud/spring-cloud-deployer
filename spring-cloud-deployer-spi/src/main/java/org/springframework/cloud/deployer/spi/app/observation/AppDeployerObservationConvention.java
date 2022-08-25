@@ -18,10 +18,6 @@ package org.springframework.cloud.deployer.spi.app.observation;
 
 import io.micrometer.observation.Observation;
 
-import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
-import org.springframework.lang.Nullable;
-
 public interface AppDeployerObservationConvention extends Observation.ObservationConvention<AppDeployerContext> {
 
 	@Override
