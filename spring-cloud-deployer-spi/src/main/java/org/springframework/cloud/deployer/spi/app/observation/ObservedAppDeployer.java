@@ -37,7 +37,6 @@ import org.springframework.lang.Nullable;
  * Observed representation of an {@link AppDeployer}.
  *
  * @author Marcin Grzejszczak
- * @since ?.?.?
  */
 public class ObservedAppDeployer implements AppDeployer {
 
