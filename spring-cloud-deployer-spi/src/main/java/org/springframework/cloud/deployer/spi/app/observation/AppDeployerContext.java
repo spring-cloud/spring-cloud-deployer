@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ public class AppDeployerContext extends SenderContext<Object> {
 
 	private final RuntimeEnvironmentInfo runtimeEnvironmentInfo;
 
-	private AppDeploymentRequest request;
+	private AppDeploymentRequest deploymentRequest;
 
-	private AppScaleRequest appScaleRequest;
+	private AppScaleRequest scaleRequest;
 
 	private String appId;
 
@@ -47,8 +47,8 @@ public class AppDeployerContext extends SenderContext<Object> {
 	}
 
 	@Nullable
-	public AppDeploymentRequest getRequest() {
-		return request;
+	public AppDeploymentRequest getDeploymentRequest() {
+		return deploymentRequest;
 	}
 
 	@Nullable
@@ -56,17 +56,17 @@ public class AppDeployerContext extends SenderContext<Object> {
 		return runtimeEnvironmentInfo;
 	}
 
-	public void setRequest(AppDeploymentRequest request) {
-		this.request = request;
+	public void setDeploymentRequest(AppDeploymentRequest deploymentRequest) {
+		this.deploymentRequest = deploymentRequest;
 	}
 
 	@Nullable
-	public AppScaleRequest getAppScaleRequest() {
-		return appScaleRequest;
+	public AppScaleRequest getScaleRequest() {
+		return scaleRequest;
 	}
 
-	public void setAppScaleRequest(AppScaleRequest appScaleRequest) {
-		this.appScaleRequest = appScaleRequest;
+	public void setScaleRequest(AppScaleRequest scaleRequest) {
+		this.scaleRequest = scaleRequest;
 	}
 
 	@Nullable

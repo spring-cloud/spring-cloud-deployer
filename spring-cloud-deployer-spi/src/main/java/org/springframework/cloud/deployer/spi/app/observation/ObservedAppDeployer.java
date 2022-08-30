@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import java.time.Duration;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -31,6 +29,7 @@ import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.lang.Nullable;
 
 /**
@@ -40,7 +39,7 @@ import org.springframework.lang.Nullable;
  */
 public class ObservedAppDeployer implements AppDeployer {
 
-	private static final Log log = LogFactory.getLog(ObservedAppDeployer.class);
+	private static final LogAccessor log = new LogAccessor(ObservedAppDeployer.class);
 
 	private static final DefaultAppDeployerObservationConvention DEFAULT_CONVENTION = new DefaultAppDeployerObservationConvention();
 	private final AppDeployer delegate;
@@ -50,24 +49,39 @@ public class ObservedAppDeployer implements AppDeployer {
 	@Nullable
 	private final AppDeployerObservationConvention customConvention;
 
-	private final Long pollDelay;
+	private final Duration pollDelay;
 
-	public ObservedAppDeployer(ObservationRegistry observationRegistry, @Nullable AppDeployerObservationConvention customConvention, AppDeployer delegate, Long pollDelay) {
+	/**
+	 * Creates a new instance of {@link ObservedAppDeployer}.
+	 *
+	 * @param observationRegistry observation registry
+	 * @param customConvention custom convention
+	 * @param delegate application deployer delegate
+	 * @param pollDelay duration for polling for the status of the application being deployed
+	 */
+	public ObservedAppDeployer(ObservationRegistry observationRegistry, @Nullable AppDeployerObservationConvention customConvention, AppDeployer delegate, Duration pollDelay) {
 		this.observationRegistry = observationRegistry;
 		this.delegate = delegate;
 		this.customConvention = customConvention;
 		this.pollDelay = pollDelay;
 	}
 
-	public ObservedAppDeployer(ObservationRegistry observationRegistry, AppDeployer delegate, Long pollDelay) {
+	/**
+	 * Creates a new instance of {@link ObservedAppDeployer} with a default {@link AppDeployerObservationConvention} implementation.
+	 *
+	 * @param observationRegistry observation registry
+	 * @param delegate application deployer delegate
+	 * @param pollDelay duration for polling for the status of the application being deployed
+	 */
+	public ObservedAppDeployer(ObservationRegistry observationRegistry, AppDeployer delegate, Duration pollDelay) {
 		this(observationRegistry, null, delegate, pollDelay);
 	}
 
 	@Override
 	public String deploy(AppDeploymentRequest request) {
 		AppDeployerContext context = new AppDeployerContext(environmentInfo());
-		context.setRequest(request);
-		Observation observation = AppDeployerDocumentedObservation.DEPLOYER_DEPLOY_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
+		context.setDeploymentRequest(request);
+		Observation observation = AppDeployerDocumentedObservation.DEPLOY_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
 		return observation.scoped(() -> {
 			observation.event(AppDeployerDocumentedObservation.Events.DEPLOYER_START);
 			String id = this.delegate.deploy(request);
@@ -82,12 +96,11 @@ public class ObservedAppDeployer implements AppDeployer {
 		// @formatter:off
 			this.delegate.statusReactive(id)
 					.map(previousAndCurrentStatus::updateCurrent)
-					.repeatWhen(repeat -> repeat.flatMap(i -> Mono.delay(Duration.ofMillis(this.pollDelay))))
+					.repeatWhen(repeat -> repeat.flatMap(i -> Mono.delay(this.pollDelay)))
 					.takeUntil(PreviousAndCurrentStatus::isFinished)
 					.last()
 					.doOnNext(PreviousAndCurrentStatus::eventOnObservation)
 					.doOnError(observation::error)
-					// we will close the span in the reactive part
 					.doFinally(signalType -> observation.stop()).subscribe();
 			// @formatter:on
 	}
@@ -96,7 +109,7 @@ public class ObservedAppDeployer implements AppDeployer {
 	public void undeploy(String id) {
 		AppDeployerContext context = new AppDeployerContext(environmentInfo());
 		context.setAppId(id);
-		Observation observation = AppDeployerDocumentedObservation.DEPLOYER_UNDEPLOY_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
+		Observation observation = AppDeployerDocumentedObservation.UNDEPLOY_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
 		observation.scoped(() -> {
 			observation.event(AppDeployerDocumentedObservation.Events.DEPLOYER_START);
 			this.delegate.undeploy(id);
@@ -109,28 +122,24 @@ public class ObservedAppDeployer implements AppDeployer {
 	public AppStatus status(String id) {
 		AppDeployerContext context = new AppDeployerContext(environmentInfo());
 		context.setAppId(id);
-		Observation observation = AppDeployerDocumentedObservation.DEPLOYER_STATUS_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
+		Observation observation = AppDeployerDocumentedObservation.STATUS_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
 		return observation.observe(() -> this.delegate.status(id));
 	}
 
 	@Override
 	public Mono<AppStatus> statusReactive(String id) {
-		return this.delegate.statusReactive(id);
-		// TODO: Fix me
-//		return ReactorSleuth.tracedMono(tracer(), currentTraceContext(),
-//				SleuthDeployerSpan.DEPLOYER_STATUS_SPAN.getName(), () -> this.delegate.statusReactive(id),
-//				(o, span) -> span.tag(SleuthDeployerSpan.Tags.APP_ID.getKey(), id),
-//				span -> clientSpan(SleuthDeployerSpan.DEPLOYER_STATUS_SPAN, span).start());
+		AppDeployerContext context = new AppDeployerContext(environmentInfo());
+		context.setAppId(id);
+		return Mono.defer(() -> Mono.just(AppDeployerDocumentedObservation.STATUS_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry)))
+				.flatMap(observation -> this.delegate.statusReactive(id).doOnNext(appStatus -> observation.stop()));
 	}
 
 	@Override
 	public Flux<AppStatus> statusesReactive(String... ids) {
-		return this.delegate.statusesReactive(ids);
-		// TODO: Fix me
-//		return ReactorSleuth.tracedFlux(tracer(), currentTraceContext(),
-//				SleuthDeployerSpan.DEPLOYER_STATUSES_SPAN.getName(), () -> this.delegate.statusesReactive(ids),
-//				(o, span) -> span.tag(SleuthDeployerSpan.Tags.APP_ID.getKey(), Arrays.toString(ids)),
-//				span -> clientSpan(SleuthDeployerSpan.DEPLOYER_STATUSES_SPAN, span).start());
+		AppDeployerContext context = new AppDeployerContext(environmentInfo());
+		context.setAppId(String.join(",", ids));
+		return Flux.defer(() -> Flux.just(AppDeployerDocumentedObservation.STATUS_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry)))
+				.flatMap(observation -> this.delegate.statusesReactive(ids).doOnNext(appStatus -> observation.stop()));
 	}
 
 	@Override
@@ -142,15 +151,15 @@ public class ObservedAppDeployer implements AppDeployer {
 	public String getLog(String id) {
 		AppDeployerContext context = new AppDeployerContext(environmentInfo());
 		context.setAppId(id);
-		Observation observation = AppDeployerDocumentedObservation.DEPLOYER_GET_LOG_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
+		Observation observation = AppDeployerDocumentedObservation.GET_LOG_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
 		return observation.observe(() -> this.delegate.getLog(id));
 	}
 
 	@Override
 	public void scale(AppScaleRequest appScaleRequest) {
 		AppDeployerContext context = new AppDeployerContext(environmentInfo());
-		context.setAppScaleRequest(appScaleRequest);
-		Observation observation = AppDeployerDocumentedObservation.DEPLOYER_SCALE_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
+		context.setScaleRequest(appScaleRequest);
+		Observation observation = AppDeployerDocumentedObservation.SCALE_OBSERVATION.start(this.customConvention, DEFAULT_CONVENTION, context, this.observationRegistry);
 		observation.observe(() -> this.delegate.scale(appScaleRequest));
 	}
 
@@ -211,11 +220,7 @@ public class ObservedAppDeployer implements AppDeployer {
 		}
 
 		private boolean isFinished() {
-			boolean finished = this.current.getState() == DeploymentState.deployed
-					|| this.current.getState() == DeploymentState.undeployed
-					|| this.current.getState() == DeploymentState.failed
-					|| this.current.getState() == DeploymentState.error
-					|| this.current.getState() == DeploymentState.unknown;
+			boolean finished = !(this.current.getState() == DeploymentState.deploying || this.current.getState() == DeploymentState.partial);
 			if (log.isTraceEnabled()) {
 				log.trace("Status is finished [" + finished + "]");
 			}

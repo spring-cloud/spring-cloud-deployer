@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 	/**
 	 * Observation created upon deploying of an application.
 	 */
-	DEPLOYER_DEPLOY_OBSERVATION {
+	DEPLOY_OBSERVATION {
 		@Override
 		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
 			return DefaultAppDeployerObservationConvention.class;
@@ -44,7 +44,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 
 		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
-			return Tags.values();
+			return PlatformKeyName.values();
 		}
 
 		@Override
@@ -56,7 +56,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 	/**
 	 * Observation created upon undeploying of an application.
 	 */
-	DEPLOYER_UNDEPLOY_OBSERVATION {
+	UNDEPLOY_OBSERVATION {
 		@Override
 		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
 			return DefaultAppDeployerObservationConvention.class;
@@ -74,7 +74,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 
 		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
-			return Tags.values();
+			return PlatformKeyName.values();
 		}
 
 		@Override
@@ -86,7 +86,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 	/**
 	 * Observation created upon asking for a status of a deployed application.
 	 */
-	DEPLOYER_STATUS_OBSERVATION {
+	STATUS_OBSERVATION {
 		@Override
 		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
 			return DefaultAppDeployerObservationConvention.class;
@@ -104,7 +104,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 
 		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
-			return Tags.values();
+			return PlatformKeyName.values();
 		}
 
 		@Override
@@ -116,7 +116,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 	/**
 	 * Observation created upon asking for statuses of deployed applications.
 	 */
-	DEPLOYER_STATUSES_OBSERVATION {
+	STATUSES_OBSERVATION {
 		@Override
 		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
 			return DefaultAppDeployerObservationConvention.class;
@@ -134,7 +134,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 		
 		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
-			return Tags.values();
+			return PlatformKeyName.values();
 		}
 
 
@@ -147,7 +147,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 	/**
 	 * Observation created upon asking for logs of deployed applications.
 	 */
-	DEPLOYER_GET_LOG_OBSERVATION {
+	GET_LOG_OBSERVATION {
 		@Override
 		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
 			return DefaultAppDeployerObservationConvention.class;
@@ -165,7 +165,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 
 		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
-			return Tags.values();
+			return PlatformKeyName.values();
 		}
 
 		@Override
@@ -177,7 +177,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 	/**
 	 * Observation created upon asking for logs of deployed applications.
 	 */
-	DEPLOYER_SCALE_OBSERVATION {
+	SCALE_OBSERVATION {
 		@Override
 		public Class<? extends Observation.ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
 			return DefaultAppDeployerObservationConvention.class;
@@ -195,7 +195,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 
 		@Override
 		public KeyName[] getLowCardinalityKeyNames() {
-			return KeyName.merge(Tags.values(), ScaleTags.values());
+			return KeyName.merge(PlatformKeyName.values(), ScaleKeyName.values());
 		}
 
 		@Override
@@ -204,7 +204,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 		}
 	};
 
-	enum Tags implements KeyName {
+	enum PlatformKeyName implements KeyName {
 
 		/**
 		 * Name of the platform to which apps are being deployed.
@@ -298,7 +298,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 
 	}
 
-	enum ScaleTags implements KeyName {
+	enum ScaleKeyName implements KeyName {
 
 		/**
 		 * Scale command deployment id.
@@ -325,7 +325,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 	enum Events implements Event {
 
 		/**
-		 * When deployer started deploying the application.
+		 * When a deployer start action takes place (e.g. deployment, scale).
 		 */
 		DEPLOYER_START {
 			@Override
@@ -335,7 +335,7 @@ enum AppDeployerDocumentedObservation implements DocumentedObservation {
 		},
 
 		/**
-		 * When deployer changes the state of the application.
+		 * When a deployer status changes action takes place.
 		 */
 		DEPLOYER_STATUS_CHANGE {
 			@Override

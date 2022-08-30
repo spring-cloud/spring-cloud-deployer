@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.deployer.spi.app.observation;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -36,7 +37,7 @@ import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.core.io.PathResource;
 
 /**
- * Tests for {@link AppDeployer}
+ * Tests for {@link ObservedAppDeployer}.
  */
 public class ObservedAppDeployerTests extends SampleTestRunner {
 
@@ -47,11 +48,18 @@ public class ObservedAppDeployerTests extends SampleTestRunner {
 	@Override
 	public SampleTestRunnerConsumer yourCode() {
 		return (bb, meterRegistry) -> {
-			AppDeployer appDeployer = new ObservedAppDeployer(getObservationRegistry(), appDeployer(), 100L);
+			AppDeployer appDeployer = new ObservedAppDeployer(getObservationRegistry(), appDeployer(), Duration.ofMillis(100L));
 
 			String id = appDeployer.deploy(deploymentRequest());
 			appDeployer.status(id);
+			appDeployer.statusReactive(id).block();
+			appDeployer.statusesReactive(id).blockFirst();
 			appDeployer.scale(new AppScaleRequest(id, 2));
+			try {
+				appDeployer.scale(new AppScaleRequest("WILL THROW AN EXCEPTION", 10));
+			} catch (Exception ex) {
+
+			}
 			appDeployer.undeploy(id);
 
 			SpansAssert.assertThat(bb.getFinishedSpans())
@@ -68,11 +76,18 @@ public class ObservedAppDeployerTests extends SampleTestRunner {
 							.hasTag("spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz")
 							.hasTag("spring.cloud.deployer.scale.count", "2")
 							.hasKindEqualTo(Span.Kind.PRODUCER))
+					.hasASpanWithName("scale", spanAssert -> spanAssert.hasRemoteServiceNameEqualTo("Test")
+							.hasTag("spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz")
+							.hasTag("spring.cloud.deployer.scale.count", "10")
+							.hasKindEqualTo(Span.Kind.PRODUCER)
+							.assertThatThrowable().hasMessageContaining("BOOM!"))
 					.hasASpanWithName("undeploy", spanAssert -> spanAssert.hasRemoteServiceNameEqualTo("Test")
 							.hasTag("spring.cloud.deployer.app.id", "Deployment request received")
 							.hasTag("spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz")
 							.hasKindEqualTo(Span.Kind.PRODUCER))
-					.hasSize(4);
+					// status, reactive status, reactive statuses
+					.hasNumberOfSpansWithNameEqualTo("status", 3)
+					.hasSize(7);
 
 			MeterRegistryAssert.assertThat(getMeterRegistry())
 					.hasTimerWithNameAndTags("spring.cloud.deployer.deploy", Tags.of("error", "none", "spring.cloud.deployer.app.id", "Deployment request received", "spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz"))
@@ -84,6 +99,7 @@ public class ObservedAppDeployerTests extends SampleTestRunner {
 					.hasTimerWithNameAndTags("spring.cloud.deployer.status", Tags.of("error", "none", "spring.cloud.deployer.app.id", "Deployment request received", "spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz"))
 					.hasTimerWithNameAndTags("spring.cloud.deployer.undeploy", Tags.of("error", "none", "spring.cloud.deployer.app.id", "Deployment request received", "spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz"))
 					.hasTimerWithNameAndTags("spring.cloud.deployer.scale", Tags.of("error", "none", "spring.cloud.deployer.scale.count", "2", "spring.cloud.deployer.scale.deploymentId", "Deployment request received", "spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz"))
+					.hasTimerWithNameAndTags("spring.cloud.deployer.scale", Tags.of("error", "IllegalStateException", "spring.cloud.deployer.scale.count", "10", "spring.cloud.deployer.scale.deploymentId", "WILL THROW AN EXCEPTION", "spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz"))
 					.hasMeterWithNameAndTags("spring.cloud.deployer.undeploy.status-change", Tags.of("spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz"))
 					.hasMeterWithNameAndTags("spring.cloud.deployer.status.active", Tags.of("spring.cloud.deployer.app.id", "Deployment request received", "spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz"))
 					.hasMeterWithNameAndTags("spring.cloud.deployer.deploy.active", Tags.of("spring.cloud.deployer.platform.k8s.url", "https://foo.bar/baz"));
@@ -137,7 +153,9 @@ public class ObservedAppDeployerTests extends SampleTestRunner {
 
 			@Override
 			public void scale(AppScaleRequest appScaleRequest) {
-
+				if (appScaleRequest.getCount() > 2) {
+					throw new IllegalStateException("BOOM!");
+				}
 			}
 		};
 	}
