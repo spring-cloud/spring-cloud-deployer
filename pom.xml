@@ -22,7 +22,7 @@
 		<java.version>1.8</java.version>
 		<maven.version>3.6.2</maven.version>
 		<maven-resolver.version>1.4.1</maven-resolver.version>
-		<maven-wagon.version>3.3.4</maven-wagon.version>
+		<maven-wagon.version>3.5.2</maven-wagon.version>
 		<commons-io.version>2.7</commons-io.version>
 	</properties>
 
