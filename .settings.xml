@@ -33,7 +33,7 @@
 			<name>Maven Central</name>
 			<url>https://repo.maven.apache.org/maven2</url>
 			<snapshots>
-				<enabled>true</enabled>
+				<enabled>false</enabled>
 			</snapshots>
 		</repository>
 	  </repositories>
@@ -59,7 +59,7 @@
 			<name>Maven Central</name>
 			<url>https://repo.maven.apache.org/maven2</url>
 			<snapshots>
-				<enabled>true</enabled>
+				<enabled>false</enabled>
 			</snapshots>
 		</pluginRepository>
 	  </pluginRepositories>
