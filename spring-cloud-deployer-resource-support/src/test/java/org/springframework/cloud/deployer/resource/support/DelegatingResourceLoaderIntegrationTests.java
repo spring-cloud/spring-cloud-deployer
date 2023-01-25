@@ -33,7 +33,7 @@ public class DelegatingResourceLoaderIntegrationTests {
 	@Test
 	public void test() throws Exception {
 		DelegatingResourceLoader delegatingResourceLoader = new DelegatingResourceLoader();
-		Resource resource = delegatingResourceLoader.getResource("https://repo.spring.io/libs-release/org/springframework/cloud/stream/app/file-sink-rabbit/1.2.0.RELEASE/file-sink-rabbit-1.2.0.RELEASE.jar");
+		Resource resource = delegatingResourceLoader.getResource("https://repo1.maven.org/maven2/org/springframework/cloud/stream/app/file-sink-rabbit/1.2.0.RELEASE/file-sink-rabbit-1.2.0.RELEASE.jar");
 		File file1 = resource.getFile();
 		File file2 = resource.getFile();
 		assertThat(file1, is(equalTo(file2)));

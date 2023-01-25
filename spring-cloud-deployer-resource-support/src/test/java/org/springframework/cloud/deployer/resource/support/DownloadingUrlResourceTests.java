@@ -30,7 +30,7 @@ public class DownloadingUrlResourceTests {
 
 	@Test
 	public void test() throws Exception {
-		DownloadingUrlResource httpResource = new DownloadingUrlResource("https://repo.spring.io/libs-release/org/springframework/cloud/stream/app/file-sink-rabbit/1.2.0.RELEASE/file-sink-rabbit-1.2.0.RELEASE.jar");
+		DownloadingUrlResource httpResource = new DownloadingUrlResource("https://repo1.maven.org/maven2/org/springframework/cloud/stream/app/file-sink-rabbit/1.2.0.RELEASE/file-sink-rabbit-1.2.0.RELEASE.jar");
 		File file1 = httpResource.getFile();
 		File file2 = httpResource.getFile();
 		assertThat(file1, is(equalTo(file2)));
