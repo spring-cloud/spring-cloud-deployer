@@ -30,10 +30,10 @@ public class DownloadingUrlResourceTests {
 
 	@Test
 	public void test() throws Exception {
-		DownloadingUrlResource httpResource = new DownloadingUrlResource("https://repo.spring.io/libs-release/org/springframework/cloud/stream/app/file-sink-rabbit/1.2.0.RELEASE/file-sink-rabbit-1.2.0.RELEASE.jar");
+		DownloadingUrlResource httpResource = new DownloadingUrlResource("https://repo1.maven.org/maven2/org/springframework/cloud/stream/app/file-sink-rabbit/1.2.0.RELEASE/file-sink-rabbit-1.2.0.RELEASE.jar");
 		File file1 = httpResource.getFile();
 		File file2 = httpResource.getFile();
 		assertThat(file1, is(equalTo(file2)));
-		assertThat(file1.getName(), is(equalTo("48d8fe21c4b38a2b5c274675fecf815e35d38ac3-filesinkrabbit120RELEASEjar")));
+		assertThat(file1.getName(), is(equalTo("454758ef194e483aba54fdb3ab759eea6ca92c3a-filesinkrabbit120RELEASEjar")));
 	}
 }
