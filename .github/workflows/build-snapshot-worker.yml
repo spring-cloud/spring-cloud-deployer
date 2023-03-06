@@ -42,7 +42,6 @@ jobs:
           --server-id-deploy=repo.spring.io \
           --repo-resolve-releases=libs-milestone \
           --repo-resolve-snapshots=libs-snapshot \
-          --repo-resolve-snapshots=libs-release \
           --repo-deploy-releases=libs-release-local \
           --repo-deploy-snapshots=libs-snapshot-local
         echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-main >> $GITHUB_ENV
