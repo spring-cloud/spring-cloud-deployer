@@ -1,0 +1,31 @@
+== Spring Cloud Local Deployer
+
+Spring Cloud Local Deployer is an implementation of the Spring Cloud Deployer SPI for use
+to deploy applications on the same machine.  This occurs by this application spawning a
+new JVM process for the deployed application.
+
+NOTE:  It's important to note that this deployer spawns new JVMs that are not monitored
+or maintained by this deployer.  No attempts at high availability, fault tolerance, or
+resiliency are provided by the deployer.  Since the deployer SPI expects an underlying
+platform to provide that level of resiliency, any use of this deployer in a production
+environment should be accompanied with additional monitoring at the app level (the apps
+this deployer deploys).  This deployer will not be updated to take on those requirements.
+Therefore the user is encouraged to explore the CloudFoundry and Kubernetes variants as
+ways to meet them.
+
+=== Building
+
+Build and skip all tests:
+```
+./mvnw clean package -DskipTests
+```
+
+Or build project and run tests:
+```
+./mvnw clean package
+```
+
+Run the integration tests in Docker mode:
+```
+./mvnw clean install -Dspring-cloud-deployer-spi-test-use-docker=true -Dspring.cloud.deployer.local.hostname=localhost
+```
