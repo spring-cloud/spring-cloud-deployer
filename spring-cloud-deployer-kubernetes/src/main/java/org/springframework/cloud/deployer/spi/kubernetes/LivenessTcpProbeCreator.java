@@ -22,51 +22,60 @@ import org.springframework.util.StringUtils;
  * Creates a TCP liveness probe
  *
  * @author Chris Schaefer
+ * @author Corneil du Plessis
  * @since 2.5
  */
 class LivenessTcpProbeCreator extends TcpProbeCreator {
-	LivenessTcpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties, ContainerConfiguration containerConfiguration) {
-		super(kubernetesDeployerProperties, containerConfiguration);
-	}
+    LivenessTcpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties, ContainerConfiguration containerConfiguration) {
+        super(kubernetesDeployerProperties, containerConfiguration);
+    }
 
-	@Override
-	int getInitialDelay() {
-		String probeDelayValue = getDeploymentPropertyValue(LIVENESS_DEPLOYER_PROPERTY_PREFIX + "TcpProbeDelay");
+    @Override
+    int getInitialDelay() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbeDelay",
+                getKubernetesDeployerProperties().getLivenessTcpProbeDelay());
+    }
 
-		if (StringUtils.hasText(probeDelayValue)) {
-			return Integer.valueOf(probeDelayValue);
-		}
+    @Override
+    int getPeriod() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbePeriod",
+                getKubernetesDeployerProperties().getLivenessTcpProbePeriod());
+    }
 
-		return getKubernetesDeployerProperties().getLivenessTcpProbeDelay();
-	}
+    @Override
+    protected int getTimeout() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbeTimeout",
+                getKubernetesDeployerProperties().getLivenessTcpProbeTimeout());
+    }
 
-	@Override
-	int getPeriod() {
-		String probePeriodValue = getDeploymentPropertyValue(LIVENESS_DEPLOYER_PROPERTY_PREFIX + "TcpProbePeriod");
+    @Override
+    Integer getPort() {
+        String probePortValue = getProbeProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbePort");
 
-		if (StringUtils.hasText(probePeriodValue)) {
-			return Integer.valueOf(probePeriodValue);
-		}
+        if (StringUtils.hasText(probePortValue)) {
+            if (!probePortValue.chars().allMatch(Character::isDigit)) {
+                throw new IllegalArgumentException("LivenessTcpProbePort must contain all digits");
+            }
 
-		return getKubernetesDeployerProperties().getLivenessTcpProbePeriod();
-	}
+            return Integer.parseInt(probePortValue);
+        }
 
-	@Override
-	Integer getPort() {
-		String probePortValue = getDeploymentPropertyValue(LIVENESS_DEPLOYER_PROPERTY_PREFIX + "TcpProbePort");
+        if (getKubernetesDeployerProperties().getLivenessTcpProbePort() != null) {
+            return getKubernetesDeployerProperties().getLivenessTcpProbePort();
+        }
 
-		if (StringUtils.hasText(probePortValue)) {
-			if (!probePortValue.chars().allMatch(Character :: isDigit)) {
-				throw new IllegalArgumentException("LivenessTcpProbePort must contain all digits");
-			}
+        throw new IllegalArgumentException("The livenessTcpProbePort property must be set.");
+    }
 
-			return Integer.parseInt(probePortValue);
-		}
+    @Override
+    int getFailure() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbeFailure",
+                getKubernetesDeployerProperties().getLivenessTcpProbeFailure());
+    }
 
-		if (getKubernetesDeployerProperties().getLivenessTcpProbePort() != null) {
-			return getKubernetesDeployerProperties().getLivenessTcpProbePort();
-		}
-
-		throw new IllegalArgumentException("The livenessTcpProbePort property must be set.");
-	}
+    @Override
+    int getSuccess() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbeSuccess",
+                getKubernetesDeployerProperties().getLivenessTcpProbeSuccess());
+    }
 }

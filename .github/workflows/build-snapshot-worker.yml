@@ -40,11 +40,11 @@ jobs:
         jfrog rt mvnc \
           --server-id-resolve=repo.spring.io \
           --server-id-deploy=repo.spring.io \
-          --repo-resolve-releases=libs-release \
+          --repo-resolve-releases=libs-milestone \
           --repo-resolve-snapshots=libs-snapshot \
-          --repo-deploy-releases=release \
-          --repo-deploy-snapshots=snapshot
-        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-27x >> $GITHUB_ENV
+          --repo-deploy-releases=libs-release-local \
+          --repo-deploy-snapshots=libs-snapshot-local
+        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-main >> $GITHUB_ENV
         echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
 
     # zoo extract and ensure
@@ -56,10 +56,10 @@ jobs:
     # build and publish to configured target
     - name: Build and Publish
       run: |
-        jfrog rt mvn -U -B clean install
+        jfrog rt mvn -U -B clean install -T 0.5C
         jfrog rt build-publish
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout) >> $GITHUB_ENV
-        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-27x >> $GITHUB_ENV
+        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-main >> $GITHUB_ENV
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildnumber=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
 
     # zoo success

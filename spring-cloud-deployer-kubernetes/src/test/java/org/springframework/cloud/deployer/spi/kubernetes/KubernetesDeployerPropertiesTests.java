@@ -53,7 +53,7 @@ public class KubernetesDeployerPropertiesTests {
 	public void testRestartPolicyDefault() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		assertNotNull("Restart policy should not be null", kubernetesDeployerProperties.getRestartPolicy());
-		assertEquals("Invalid default restart policy", RestartPolicy.Never,
+		assertEquals("Invalid default restart policy", RestartPolicy.Always,
 				kubernetesDeployerProperties.getRestartPolicy());
 	}
 

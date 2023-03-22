@@ -24,24 +24,27 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
  * Base class for command based probe creators
  *
  * @author Chris Schaefer
+ * @author Corneil du Plessis
  * @since 2.5
  */
 abstract class CommandProbeCreator extends ProbeCreator {
-	CommandProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties,
-						ContainerConfiguration containerConfiguration) {
-		super(kubernetesDeployerProperties, containerConfiguration);
-	}
+    CommandProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties,
+                        ContainerConfiguration containerConfiguration) {
+        super(kubernetesDeployerProperties, containerConfiguration);
+    }
 
-	abstract String[] getCommand();
+    abstract String[] getCommand();
 
-	protected Probe create() {
-		ExecActionBuilder execActionBuilder = new ExecActionBuilder()
-				.withCommand(getCommand());
+    protected Probe create() {
+        ExecActionBuilder execActionBuilder = new ExecActionBuilder()
+                .withCommand(getCommand());
 
-		return new ProbeBuilder()
-				.withExec(execActionBuilder.build())
-				.withInitialDelaySeconds(getInitialDelay())
-				.withPeriodSeconds(getPeriod())
-				.build();
-	}
+        return new ProbeBuilder()
+                .withExec(execActionBuilder.build())
+                .withInitialDelaySeconds(getInitialDelay())
+                .withPeriodSeconds(getPeriod())
+                .withSuccessThreshold(getSuccess())
+                .withFailureThreshold(getFailure())
+                .build();
+    }
 }

@@ -26,9 +26,9 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.StatusCause;
-import io.fabric8.kubernetes.api.model.batch.CronJob;
-import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
-import io.fabric8.kubernetes.api.model.batch.CronJobList;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 
@@ -53,6 +53,10 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 
 	private static final String SCHEDULE_EXPRESSION_FIELD_NAME = "spec.schedule";
 
+	static final String KUBERNETES_DEPLOYER_CRON_CONCURRENCY_POLICY = KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".cron.concurrencyPolicy";
+
+	static final String KUBERNETES_DEPLOYER_CRON_TTL_SECONDS_AFTER_FINISHED = KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".cron.ttlSecondsAfterFinished";
+
 	public KubernetesScheduler(KubernetesClient client,
 			KubernetesDeployerProperties properties) {
 		Assert.notNull(client, "KubernetesClient must not be null");
@@ -63,8 +67,8 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 		this.containerFactory = new DefaultContainerFactory(properties);
 		this.deploymentPropertiesResolver = new DeploymentPropertiesResolver(
 				(properties instanceof KubernetesSchedulerProperties) ?
-				KubernetesSchedulerProperties.KUBERNETES_SCHEDULER_PROPERTIES_PREFIX:
-				KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX, properties);
+						KubernetesSchedulerProperties.KUBERNETES_SCHEDULER_PROPERTIES_PREFIX :
+						KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX, properties);
 	}
 
 	@Override
@@ -203,6 +207,24 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 				schedulerProperties.get(SchedulerPropertyKeys.CRON_EXPRESSION);
 		Assert.hasText(schedule, "The property spring.cloud.deployer.cron.expression must be defined");
 
+		String concurrencyPolicy = schedulerProperties.get(KUBERNETES_DEPLOYER_CRON_CONCURRENCY_POLICY);
+		// check default server properties
+		if (!StringUtils.hasText(concurrencyPolicy)) {
+			concurrencyPolicy = this.properties.getCron().getConcurrencyPolicy();
+		}
+		if(concurrencyPolicy==null) {
+			concurrencyPolicy = "Allow";
+		}
+
+		final Integer ttlSecondsAfterFinished;
+		String ttlSecondsAfterFinishedString = schedulerProperties.get(KUBERNETES_DEPLOYER_CRON_TTL_SECONDS_AFTER_FINISHED);
+		if (StringUtils.hasText(ttlSecondsAfterFinishedString)) {
+			ttlSecondsAfterFinished = Integer.parseInt(ttlSecondsAfterFinishedString);
+		}
+		else {
+			ttlSecondsAfterFinished = this.properties.getCron().getTtlSecondsAfterFinished();
+		}
+
 		PodSpec podSpec = createPodSpec(new ScheduleRequest(scheduleRequest.getDefinition(),schedulerProperties, scheduleRequest.getCommandlineArguments(), scheduleRequest.getScheduleName(),scheduleRequest.getResource()));
 		String taskServiceAccountName = this.deploymentPropertiesResolver.getTaskServiceAccountName(schedulerProperties);
 		taskServiceAccountName = taskServiceAccountName != null ? taskServiceAccountName : KubernetesDeployerProperties.DEFAULT_TASK_SERVICE_ACCOUNT_NAME;
@@ -214,8 +236,9 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 
 		CronJob cronJob = new CronJobBuilder().withNewMetadata().withName(scheduleRequest.getScheduleName())
 				.withLabels(labels).withAnnotations(this.deploymentPropertiesResolver.getJobAnnotations(schedulerProperties)).endMetadata()
-				.withNewSpec().withSchedule(schedule).withNewJobTemplate()
-				.withNewSpec().withNewTemplate().withNewMetadata().addToAnnotations(annotations).addToLabels(labels)
+				.withNewSpec().withSchedule(schedule).withConcurrencyPolicy(concurrencyPolicy).withNewJobTemplate()
+				.withNewSpec().withTtlSecondsAfterFinished(ttlSecondsAfterFinished)
+				.withNewTemplate().withNewMetadata().addToAnnotations(annotations).addToLabels(labels)
 				.endMetadata().withSpec(podSpec).endTemplate().endSpec()
 				.endJobTemplate().endSpec().build();
 

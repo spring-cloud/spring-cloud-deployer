@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-deployer-parent</artifactId>
-		<version>2.7.7-SNAPSHOT</version>
+		<version>2.9.0-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>
@@ -35,6 +35,11 @@
 			<artifactId>spring-cloud-deployer-resource-support</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -44,6 +49,7 @@
 				<filtering>true</filtering>
 				<includes>
 					<include>META-INF/spring.factories</include>
+					<include>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</include>
 				</includes>
 			</resource>
 		</resources>

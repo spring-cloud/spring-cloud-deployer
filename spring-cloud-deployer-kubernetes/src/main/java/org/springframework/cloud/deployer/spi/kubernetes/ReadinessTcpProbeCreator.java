@@ -22,51 +22,60 @@ import org.springframework.util.StringUtils;
  * Creates a TCP readiness probe
  *
  * @author Chris Schaefer
+ * @author Corneil du Plessis
  * @since 2.5
  */
 class ReadinessTcpProbeCreator extends TcpProbeCreator {
-	ReadinessTcpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties, ContainerConfiguration containerConfiguration) {
-		super(kubernetesDeployerProperties, containerConfiguration);
-	}
+    ReadinessTcpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties, ContainerConfiguration containerConfiguration) {
+        super(kubernetesDeployerProperties, containerConfiguration);
+    }
 
-	@Override
-	int getInitialDelay() {
-		String probeDelayValue = getDeploymentPropertyValue(READINESS_DEPLOYER_PROPERTY_PREFIX + "TcpProbeDelay");
+    @Override
+    int getInitialDelay() {
+        return getProbeIntProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbeDelay",
+                getKubernetesDeployerProperties().getReadinessTcpProbeDelay());
+    }
 
-		if (StringUtils.hasText(probeDelayValue)) {
-			return Integer.valueOf(probeDelayValue);
-		}
+    @Override
+    int getPeriod() {
+        return getProbeIntProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbePeriod",
+                getKubernetesDeployerProperties().getReadinessTcpProbePeriod());
+    }
 
-		return getKubernetesDeployerProperties().getReadinessTcpProbeDelay();
-	}
+    @Override
+    protected int getTimeout() {
+        return getProbeIntProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbeTimeout",
+                getKubernetesDeployerProperties().getReadinessTcpProbeTimeout());
+    }
 
-	@Override
-	int getPeriod() {
-		String probePeriodValue = getDeploymentPropertyValue(READINESS_DEPLOYER_PROPERTY_PREFIX + "TcpProbePeriod");
+    @Override
+    Integer getPort() {
+        String probePortValue = getProbeProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbePort");
 
-		if (StringUtils.hasText(probePeriodValue)) {
-			return Integer.valueOf(probePeriodValue);
-		}
+        if (StringUtils.hasText(probePortValue)) {
+            if (!probePortValue.chars().allMatch(Character::isDigit)) {
+                throw new IllegalArgumentException("ReadinessTcpProbePort must contain all digits");
+            }
 
-		return getKubernetesDeployerProperties().getReadinessTcpProbePeriod();
-	}
+            return Integer.parseInt(probePortValue);
+        }
 
-	@Override
-	Integer getPort() {
-		String probePortValue = getDeploymentPropertyValue(READINESS_DEPLOYER_PROPERTY_PREFIX + "TcpProbePort");
+        if (getKubernetesDeployerProperties().getReadinessTcpProbePort() != null) {
+            return getKubernetesDeployerProperties().getReadinessTcpProbePort();
+        }
 
-		if (StringUtils.hasText(probePortValue)) {
-			if (!probePortValue.chars().allMatch(Character :: isDigit)) {
-				throw new IllegalArgumentException("ReadinessTcpProbePort must contain all digits");
-			}
+        throw new IllegalArgumentException("A readinessTcpProbePort property must be set.");
+    }
 
-			return Integer.parseInt(probePortValue);
-		}
+    @Override
+    int getFailure() {
+        return getProbeIntProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbeFailure",
+                getKubernetesDeployerProperties().getReadinessTcpProbeFailure());
+    }
 
-		if (getKubernetesDeployerProperties().getReadinessTcpProbePort() != null) {
-			return getKubernetesDeployerProperties().getReadinessTcpProbePort();
-		}
-
-		throw new IllegalArgumentException("A readinessTcpProbePort property must be set.");
-	}
+    @Override
+    int getSuccess() {
+        return getProbeIntProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Tcp", "ProbeSuccess",
+                getKubernetesDeployerProperties().getReadinessTcpProbeSuccess());
+    }
 }

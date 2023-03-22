@@ -163,6 +163,7 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 		}
 		envVariables.put("SPRING_CLOUD_APPLICATION_GUID", "${vcap.application.name}:${vcap.application.instance_index}");
 		envVariables.put("SPRING_APPLICATION_INDEX", "${vcap.application.instance_index}");
+		this.deploymentProperties.getAppAdmin().addCredentialsToAppEnvironment(envVariables);
 		return envVariables;
 	}
 

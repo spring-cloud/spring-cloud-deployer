@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,19 @@ package org.springframework.cloud.deployer.spi.local;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.deployer.spi.app.ActuatorOperations;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Creates a {@link LocalAppDeployer} and {@link LocalTaskLauncher}
  *
  * @author Mark Fisher
+ * @author David Turanski
  */
 @Configuration
 @EnableConfigurationProperties(LocalDeployerProperties.class)
@@ -45,5 +48,18 @@ public class LocalDeployerAutoConfiguration {
 	@ConditionalOnMissingBean(TaskLauncher.class)
 	public TaskLauncher taskLauncher(LocalDeployerProperties properties) {
 		return new LocalTaskLauncher(properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	RestTemplate actuatorRestTemplate() {
+		return new RestTemplate();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(ActuatorOperations.class)
+	ActuatorOperations actuatorOperations(RestTemplate actuatorRestTemplate, AppDeployer appDeployer,
+			LocalDeployerProperties properties) {
+		return new LocalActuatorTemplate(actuatorRestTemplate, appDeployer, properties.getAppAdmin());
 	}
 }

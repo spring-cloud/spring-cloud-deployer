@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,29 +35,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.compress.utils.Sets;
+import org.assertj.core.data.MapEntry;
 import org.cloudfoundry.client.v2.ClientV2Exception;
-import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.InstanceDetail;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
-import org.cloudfoundry.operations.applications.ScaleApplicationRequest;
 import org.cloudfoundry.operations.applications.StartApplicationRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
-import org.cloudfoundry.operations.services.Services;
 import org.cloudfoundry.util.FluentMap;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Answers;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.deployer.resource.docker.DockerResource;
@@ -68,7 +59,6 @@ import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -88,42 +78,17 @@ import static org.mockito.Mockito.mock;
  * @author Ben Hale
  * @author David Turanski
  */
-public class CloudFoundryAppDeployerTests {
-
-	private final CloudFoundryDeploymentProperties deploymentProperties = new CloudFoundryDeploymentProperties();
-
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private AppNameGenerator applicationNameGenerator;
-
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private Applications applications;
-
-	private CloudFoundryAppDeployer deployer;
-
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private CloudFoundryOperations operations;
-
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private Services services;
-
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private RuntimeEnvironmentInfo runtimeEnvironmentInfo;
+public class CloudFoundryAppDeployerTests extends AbstractAppDeployerTestSupport {
 
 	@TempDir
 	public Path folder;
 
-	@BeforeEach
-	public void setUp() {
-		MockitoAnnotations.initMocks(this);
-		given(this.operations.applications()).willReturn(this.applications);
-		given(this.operations.services()).willReturn(this.services);
-
+	@Override
+	protected void postSetUp() {
 		this.deploymentProperties.setServices(new HashSet<>(Arrays.asList("test-service-1", "test-service-2")));
-
 		this.deploymentProperties.setEnv(Collections.singletonMap("SOME_GLOBAL_PROPERTY", "someGlobalValue"));
-
-		this.deployer = new CloudFoundryAppDeployer(this.applicationNameGenerator, this.deploymentProperties,
-				this.operations, this.runtimeEnvironmentInfo);
+		this.deploymentProperties.getAppAdmin().setUser("user");
+		this.deploymentProperties.getAppAdmin().setPassword("password");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -518,6 +483,8 @@ public class CloudFoundryAppDeployerTests {
 		assertThat(merged).containsEntry("SPRING_PROFILES_ACTIVE", "cloud,foo");
 		assertThat(merged).containsEntry("SOME_GLOBAL_PROPERTY", "someGlobalValue");
 		assertThat(merged).containsKey("SPRING_APPLICATION_JSON");
+		assertThat(merged.get("SPRING_CLOUD_STREAMAPP_SECURITY_ADMIN-USER")).isEqualTo("user");
+		assertThat(merged.get("SPRING_CLOUD_STREAMAPP_SECURITY_ADMIN-PASSWORD")).isEqualTo("password");
 		assertThat(deploymentId).isEqualTo("test-application-id");
 	}
 
@@ -967,7 +934,10 @@ public class CloudFoundryAppDeployerTests {
 		assertThat(status.getInstances().get("test-application-0").toString())
 				.isEqualTo("CloudFoundryAppInstanceStatus[test-application-0 : deployed]");
 		assertThat(status.getInstances().get("test-application-0").getAttributes())
-				.isEqualTo(Collections.singletonMap("guid", "test-application:0"));
+				.containsOnly(
+						MapEntry.entry(CloudFoundryAppInstanceStatus.GUID, "test-application:0"),
+						MapEntry.entry(CloudFoundryAppInstanceStatus.INDEX, "0"),
+						MapEntry.entry(CloudFoundryAppInstanceStatus.CF_GUID, "test-application-id"));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1149,45 +1119,5 @@ public class CloudFoundryAppDeployerTests {
 				.build()));
 		givenRequestScaleApplication("test-application-id", 2, 1024, 1024, Mono.empty());
 		this.deployer.scale(new AppScaleRequest("test-application-id", 2));
-	}
-
-	private void givenRequestScaleApplication(String id, Integer count, int memoryLimit, int diskLimit,
-			Mono<Void> response) {
-		given(this.operations.applications()
-				.scale(ScaleApplicationRequest.builder().name(id).instances(count).memoryLimit(memoryLimit)
-						.diskLimit(diskLimit)
-						.startupTimeout(this.deploymentProperties.getStartupTimeout())
-						.stagingTimeout(this.deploymentProperties.getStagingTimeout()).build())).willReturn(response);
-	}
-
-	private void givenRequestDeleteApplication(String id, Mono<Void> response) {
-		given(this.operations.applications()
-				.delete(DeleteApplicationRequest.builder().deleteRoutes(true).name(id).build())).willReturn(response);
-	}
-
-	@SuppressWarnings("unchecked")
-	private void givenRequestGetApplication(String id, Mono<ApplicationDetail> response,
-			Mono<ApplicationDetail>... responses) {
-		given(this.operations.applications().get(GetApplicationRequest.builder().name(id).build())).willReturn(response,
-				responses);
-	}
-
-	private void givenRequestPushApplication(PushApplicationManifestRequest request, Mono<Void> response) {
-		given(this.operations.applications()
-				.pushManifest(any(PushApplicationManifestRequest.class)))
-						.willReturn(response);
-	}
-
-	private Map<String, String> defaultEnvironmentVariables() {
-		Map<String, String> environmentVariables = new HashMap<>();
-		environmentVariables.put("SPRING_APPLICATION_JSON", "{}");
-		addGuidAndIndex(environmentVariables);
-		return environmentVariables;
-	}
-
-	private void addGuidAndIndex(Map<String, String> environmentVariables) {
-		environmentVariables.put("SPRING_APPLICATION_INDEX", "${vcap.application.instance_index}");
-		environmentVariables.put("SPRING_CLOUD_APPLICATION_GUID",
-				"${vcap.application.name}:${vcap.application.instance_index}");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.cloud.deployer.spi.app.DeploymentState;
  * Maps status returned by the Cloud Foundry API to {@link AppInstanceStatus}.
  *
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class CloudFoundryAppInstanceStatus implements AppInstanceStatus {
 
@@ -40,6 +41,21 @@ public class CloudFoundryAppInstanceStatus implements AppInstanceStatus {
 	private final int index;
 
 	private final Map<String, String> attributes = new TreeMap<>();
+
+	/**
+	 * The deployer assigned unique id for each app instance.
+	 */
+	static final String GUID = "guid";
+
+	/**
+	 * The platform assigned guid - common among app instances with replicas
+	 */
+	static final String CF_GUID = "cf-guid";
+
+	/**
+	 * The app index.
+	 */
+	static final String INDEX = "index";
 
 	public CloudFoundryAppInstanceStatus(ApplicationDetail applicationDetail, InstanceDetail instanceDetail, int index) {
 		this.applicationDetail = applicationDetail;
@@ -96,7 +112,13 @@ public class CloudFoundryAppInstanceStatus implements AppInstanceStatus {
 			}
 		}
 		// TODO cf-java-client versions > 2.8 will have an index formally added ot InstanceDetail
-		attributes.put("guid", applicationDetail.getName() + ":" + index);
+		/*
+		 The deployer GUID must be unique for each app instance, the CloudFoundry GUID is common to all instances of
+		 the same app.
+		 */
+		attributes.put(GUID, applicationDetail.getName() + ":" + index);
+		attributes.put(CF_GUID, applicationDetail.getId());
+		attributes.put(INDEX, String.valueOf(index));
 		return attributes;
 	}
 

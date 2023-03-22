@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,235 +16,137 @@
 
 package org.springframework.cloud.deployer.spi.kubernetes;
 
-import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.function.Consumer;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.jupiter.api.Disabled;
+import io.fabric8.kubernetes.client.utils.PodStatusUtil;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.deployer.resource.docker.DockerResource;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
-import org.springframework.cloud.deployer.spi.task.TaskLauncher;
-import org.springframework.cloud.deployer.spi.test.AbstractTaskLauncherIntegrationJUnit5Tests;
-import org.springframework.cloud.deployer.spi.test.Timeout;
 import org.springframework.core.io.Resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.awaitility.Awaitility.await;
 
 /**
  * Integration tests for {@link KubernetesTaskLauncher}.
  *
+ * <p>NOTE: The tests do not call {@code TaskLauncher.destroy/cleanup} in a finally block but instead rely on the
+ * {@link AbstractKubernetesTaskLauncherIntegrationTests#cleanupLingeringApps() AfterEach method} to clean any stray apps.
+ *
  * @author Thomas Risberg
  * @author Chris Schaefer
+ * @author Chris Bono
+ * @author Glenn Renfro
  */
 @SpringBootTest(classes = {KubernetesAutoConfiguration.class}, properties = {
 		"spring.cloud.deployer.kubernetes.namespace=default"
 })
-public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherIntegrationJUnit5Tests {
+@ExtendWith(OutputCaptureExtension.class)
+public class KubernetesTaskLauncherIntegrationIT extends AbstractKubernetesTaskLauncherIntegrationTests {
 
-	@Autowired
-	private TaskLauncher taskLauncher;
-
-	@Autowired
-	private KubernetesClient kubernetesClient;
-
-	@Override
-	protected TaskLauncher provideTaskLauncher() {
-		return taskLauncher;
+	@Test
+	void taskLaunchedWithJobPodAnnotations(TestInfo testInfo) {
+		logTestInfo(testInfo);
+		launchTaskPodAndValidateCreatedPodWithCleanup(
+				Collections.singletonMap("spring.cloud.deployer.kubernetes.jobAnnotations", "key1:val1,key2:val2,key3:val31:val32"),
+				(pod) -> {
+					assertThat(pod.getSpec().getContainers()).isNotEmpty()
+							.element(0).extracting(Container::getPorts).asList().isEmpty();
+					assertThat(pod.getMetadata().getAnnotations()).isNotEmpty()
+							.contains(entry("key1", "val1"), entry("key2", "val2"), entry("key3", "val31:val32"));
+				});
 	}
 
 	@Test
-	@Override
-	@Disabled("Currently reported as failed instead of cancelled")
-	public void testSimpleCancel() throws InterruptedException {
-		super.testSimpleCancel();
-	}
-
-	@Override
-	protected String randomName() {
-		return "task-" + UUID.randomUUID().toString().substring(0, 18);
-	}
-
-	@Override
-	protected Resource testApplication() {
-		return new DockerResource("springcloud/spring-cloud-deployer-spi-test-app:latest");
-	}
-
-	@Override
-	protected Timeout deploymentTimeout() {
-		return new Timeout(20, 5000);
+	void taskLaunchedWithDeploymentLabels(TestInfo testInfo) {
+		logTestInfo(testInfo);
+		launchTaskPodAndValidateCreatedPodWithCleanup(
+				Collections.singletonMap("spring.cloud.deployer.kubernetes.deploymentLabels", "label1:value1,label2:value2"),
+				(pod) -> {
+					assertThat(pod.getSpec().getContainers()).isNotEmpty()
+							.element(0).extracting(Container::getPorts).asList().isEmpty();
+					assertThat(pod.getMetadata().getLabels()).isNotEmpty()
+							.contains(entry("label1", "value1"), entry("label2", "value2"));
+				});
 	}
 
 	@Test
-	public void testJobPodAnnotation() {
-		log.info("Testing {}...", "JobPodAnnotation");
+	void tasksLaunchedWithAdditionalContainers(TestInfo testInfo) {
+		logTestInfo(testInfo);
+		launchTaskPodAndValidateCreatedPodWithCleanup(
+				Collections.singletonMap("spring.cloud.deployer.kubernetes.additionalContainers",
+						"[{name: 'test', image: 'busybox:latest', command: ['sh', '-c', 'echo hello']}]"),
+				(pod) -> assertThat(pod.getSpec().getContainers()).hasSize(2)
+						.filteredOn("name", "test").singleElement()
+						.hasFieldOrPropertyWithValue("image", "busybox:latest")
+						.hasFieldOrPropertyWithValue("command", Arrays.asList("sh", "-c", "echo hello")));
+	}
 
-		KubernetesTaskLauncher kubernetesTaskLauncher = new KubernetesTaskLauncher(new KubernetesDeployerProperties(),
-				new KubernetesTaskLauncherProperties(), kubernetesClient);
-
-		AppDefinition definition = new AppDefinition(randomName(), null);
+	private void launchTaskPodAndValidateCreatedPodWithCleanup(Map<String, String> deploymentProps, Consumer<Pod> assertingConsumer) {
+		String taskName = randomName();
+		AppDefinition definition = new AppDefinition(taskName, null);
 		Resource resource = testApplication();
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource,
-				Collections.singletonMap("spring.cloud.deployer.kubernetes.jobAnnotations", "key1:val1,key2:val2,key3:val31:val32"));
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProps);
 
-		log.info("Launching {}...", request.getDefinition().getName());
+		log.info("Launching {}...", taskName);
+		String launchId = taskLauncher().launch(request);
+		awaitWithPollAndTimeout(deploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running));
 
-		String launchId = kubernetesTaskLauncher.launch(request);
-		Timeout timeout = deploymentTimeout();
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running);
-        });
-
-		String taskName = request.getDefinition().getName();
-
-		log.info("Checking job pod spec annotations of {}...", taskName);
-
-		List<Pod> pods = kubernetesClient.pods().withLabel("task-name", taskName).list().getItems();
-
+		log.info("Checking task Pod for {}...", taskName);
+		List<Pod> pods = getPodsForTask(taskName);
 		assertThat(pods).hasSize(1);
-
-		Pod pod = pods.get(0);
-
-		assertThat(pod.getSpec().getContainers().get(0).getPorts()).isEmpty();
-
-		Map<String, String> annotations = pod.getMetadata().getAnnotations();
-
-		assertThat(annotations).contains(entry("key1", "val1"), entry("key2", "val2"), entry("key3", "val31:val32"));
+		assertThat(pods).singleElement().satisfies(assertingConsumer);
 
 		log.info("Destroying {}...", taskName);
-
-		timeout = undeploymentTimeout();
-		kubernetesTaskLauncher.destroy(taskName);
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown);
-        });
+		taskLauncher().destroy(taskName);
+		awaitWithPollAndTimeout(undeploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));
 	}
 
 	@Test
-	public void testDeploymentLabels() {
-		log.info("Testing {}...", "deploymentLabels");
-
-		KubernetesTaskLauncher kubernetesTaskLauncher = new KubernetesTaskLauncher(new KubernetesDeployerProperties(),
-				new KubernetesTaskLauncherProperties(), kubernetesClient);
-
+	void cleanupDeletesTaskPod(TestInfo testInfo) {
+		logTestInfo(testInfo);
 		AppDefinition definition = new AppDefinition(randomName(), null);
 		Resource resource = testApplication();
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource,
-				Collections.singletonMap("spring.cloud.deployer.kubernetes.deploymentLabels", "label1:value1,label2:value2"));
-
-		log.info("Launching {}...", request.getDefinition().getName());
-
-		String launchId = kubernetesTaskLauncher.launch(request);
-		Timeout timeout = deploymentTimeout();
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running);
-        });
-
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, null);
 		String taskName = request.getDefinition().getName();
 
-		log.info("Checking job pod spec labels of {}...", taskName);
+		log.info("Launching {}...", taskName);
+		String launchId = taskLauncher().launch(request);
+		awaitWithPollAndTimeout(deploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running));
 
-		List<Pod> pods = kubernetesClient.pods().withLabel("task-name", taskName).list().getItems();
-
+		List<Pod> pods = getPodsForTask(taskName);
 		assertThat(pods).hasSize(1);
+		assertThat(PodStatusUtil.isRunning(pods.get(0))).isTrue();
 
-		Pod pod = pods.get(0);
+		log.info("Cleaning up {}...", taskName);
+		taskLauncher().cleanup(launchId);
+		awaitWithPollAndTimeout(undeploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));
 
-		assertThat(pod.getSpec().getContainers().get(0).getPorts()).isEmpty();
-
-		Map<String, String> labels = pod.getMetadata().getLabels();
-
-		assertThat(labels).contains(entry("label1", "value1"), entry("label2", "value2"));
-
-		log.info("Destroying {}...", taskName);
-
-		timeout = undeploymentTimeout();
-		kubernetesTaskLauncher.destroy(taskName);
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown);
-        });
+		pods = getPodsForTask(taskName);
+		assertThat(pods).isEmpty();
 	}
 
 	@Test
-	public void testTaskAdditionalContainer() {
-		log.info("Testing {}...", "TaskAdditionalContainer");
-
-		KubernetesTaskLauncher kubernetesTaskLauncher = new KubernetesTaskLauncher(new KubernetesDeployerProperties(),
-				new KubernetesTaskLauncherProperties(), kubernetesClient);
-
-		AppDefinition definition = new AppDefinition(randomName(), null);
-		Resource resource = testApplication();
-		Map<String, String> props = Collections.singletonMap("spring.cloud.deployer.kubernetes.additionalContainers",
-				"[{name: 'test', image: 'busybox:latest', command: ['sh', '-c', 'echo hello']}]");
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
-
-		log.info("Launching {}...", request.getDefinition().getName());
-
-		String launchId = kubernetesTaskLauncher.launch(request);
-		Timeout timeout = deploymentTimeout();
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running);
-        });
-
-		String taskName = request.getDefinition().getName();
-
-		List<Pod> pods = kubernetesClient.pods().withLabel("task-name", taskName).list().getItems();
-
-		assertThat(pods).hasSize(1);
-
-		Pod pod = pods.get(0);
-
-		assertThat(pod.getSpec().getContainers()).hasSize(2);
-
-		Optional<Container> additionalContainer = pod.getSpec().getContainers().stream().filter(i -> i.getName().equals("test")).findFirst();
-		assertThat(additionalContainer.isPresent()).as("Additional container not found").isTrue();
-
-		Container testAdditionalContainer = additionalContainer.get();
-
-		assertThat(testAdditionalContainer.getName()).as("Unexpected additional container name").isEqualTo("test");
-		assertThat(testAdditionalContainer.getImage()).as("Unexpected additional container image").isEqualTo("busybox:latest");
-
-		List<String> commands = testAdditionalContainer.getCommand();
-
-		assertThat(commands).contains("sh", "-c", "echo hello");
-
-		log.info("Destroying {}...", taskName);
-
-		timeout = undeploymentTimeout();
-		kubernetesTaskLauncher.destroy(taskName);
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown);
-        });
+	void cleanupForNonExistentTaskThrowsException(TestInfo testInfo, CapturedOutput taskOutput) {
+		logTestInfo(testInfo);
+		taskLauncher().cleanup("foo");
+		assertThat(taskOutput.getAll()).contains("Cannot delete pod for task \"foo\" (reason: pod does not exist)");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
-import io.fabric8.kubernetes.api.model.HandlerBuilder;
 import io.fabric8.kubernetes.api.model.Lifecycle;
+import io.fabric8.kubernetes.api.model.LifecycleHandlerBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
@@ -34,6 +34,7 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecurityContext;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -47,6 +48,7 @@ import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.kubernetes.support.PropertyParserUtils;
 import org.springframework.cloud.deployer.spi.util.RuntimeVersionUtils;
 import org.springframework.core.io.Resource;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -60,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author Chris Schaefer
  * @author Enrique Medina Montenegro
  * @author Ilayaperumal Gopinathan
+ * @author Chris Bono
  */
 public class AbstractKubernetesDeployer {
 
@@ -220,12 +223,12 @@ public class AbstractKubernetesDeployer {
 
 		Lifecycle f8Lifecycle = new Lifecycle();
 		if (lifecycle.getPostStart() != null) {
-			f8Lifecycle.setPostStart(new HandlerBuilder()
+			f8Lifecycle.setPostStart(new LifecycleHandlerBuilder()
 					.withNewExec()
 					.addAllToCommand(lifecycle.getPostStart().getExec().getCommand()).and().build());
 		}
 		if (lifecycle.getPreStop() != null) {
-			f8Lifecycle.setPreStop(new HandlerBuilder()
+			f8Lifecycle.setPreStop(new LifecycleHandlerBuilder()
 					.withNewExec()
 					.addAllToCommand(lifecycle.getPreStop().getExec().getCommand()).and().build());
 		}
@@ -250,6 +253,12 @@ public class AbstractKubernetesDeployer {
 		if (hostNetwork) {
 			podSpec.withHostNetwork(true);
 		}
+
+		SecurityContext containerSecurityContext = this.deploymentPropertiesResolver.getContainerSecurityContext(deploymentProperties);
+		if (containerSecurityContext != null) {
+			container.setSecurityContext(containerSecurityContext);
+		}
+
 		podSpec.addToContainers(container);
 
 		podSpec.withRestartPolicy(this.deploymentPropertiesResolver.getRestartPolicy(deploymentProperties).name());
@@ -275,9 +284,28 @@ public class AbstractKubernetesDeployer {
 
 		Container initContainer = this.deploymentPropertiesResolver.getInitContainer(deploymentProperties);
 		if (initContainer != null) {
+			if (initContainer.getSecurityContext() == null && containerSecurityContext != null) {
+				initContainer.setSecurityContext(containerSecurityContext);
+			}
 			podSpec.addToInitContainers(initContainer);
 		}
-		podSpec.addAllToContainers(this.deploymentPropertiesResolver.getAdditionalContainers(deploymentProperties));
+
+		Boolean shareProcessNamespace = this.deploymentPropertiesResolver.getShareProcessNamespace(deploymentProperties);
+		if (shareProcessNamespace != null) {
+			podSpec.withShareProcessNamespace(shareProcessNamespace);
+		}
+
+		String priorityClassName = this.deploymentPropertiesResolver.getPriorityClassName(deploymentProperties);
+		if (StringUtils.hasText(priorityClassName)) {
+			podSpec.withPriorityClassName(priorityClassName);
+		}
+
+		List<Container> additionalContainers = this.deploymentPropertiesResolver.getAdditionalContainers(deploymentProperties);
+		if (containerSecurityContext != null && !CollectionUtils.isEmpty(additionalContainers)) {
+			additionalContainers.stream().filter((c) -> c.getSecurityContext() == null)
+					.forEach((c) -> c.setSecurityContext(containerSecurityContext));
+		}
+		podSpec.addAllToContainers(additionalContainers);
 		return podSpec.build();
 	}
 

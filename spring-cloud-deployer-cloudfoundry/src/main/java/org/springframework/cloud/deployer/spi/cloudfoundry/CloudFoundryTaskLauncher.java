@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import org.springframework.cloud.deployer.spi.task.TaskLauncher;
  * @author Ilayaperumal Gopinathan
  * @author Glenn Renfro
  * @author David Turanski
+ * @author David Bernard
  */
 public class CloudFoundryTaskLauncher extends AbstractCloudFoundryTaskLauncher {
 
@@ -229,6 +230,7 @@ public class CloudFoundryTaskLauncher extends AbstractCloudFoundryTaskLauncher {
 		return requestCreateTask(application.getId(),
 				getCommand(application, request),
 				memory(request),
+				diskQuota(request),
 				request.getDefinition().getName())
 			.map(CreateTaskResponse::getId);
 	}
@@ -257,12 +259,13 @@ public class CloudFoundryTaskLauncher extends AbstractCloudFoundryTaskLauncher {
 			.build());
 	}
 
-	private Mono<CreateTaskResponse> requestCreateTask(String applicationId, String command, int memory, String name) {
+	private Mono<CreateTaskResponse> requestCreateTask(String applicationId, String command, int memory, int disk, String name) {
 		return this.client.tasks()
 			.create(CreateTaskRequest.builder()
 				.applicationId(applicationId)
 				.command(command)
 				.memoryInMb(memory)
+				.diskInMb(disk)
 				.name(name)
 				.build());
 	}

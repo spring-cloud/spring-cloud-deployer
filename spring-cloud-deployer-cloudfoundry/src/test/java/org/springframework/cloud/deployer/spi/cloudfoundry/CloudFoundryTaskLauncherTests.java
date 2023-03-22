@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,6 +90,7 @@ import static org.mockito.Mockito.mock;
  * @author Ben Hale
  * @author Glenn Renfro
  * @author David Turanski
+ * @author David Bernard
  */
 public class CloudFoundryTaskLauncherTests {
 	private final static int TASK_EXECUTION_COUNT = 10;
@@ -360,6 +361,7 @@ public class CloudFoundryTaskLauncherTests {
 		givenRequestCreateTask("test-application-id",
 				"test-command",
 				this.deploymentProperties.getMemory(),
+				this.deploymentProperties.getDisk(),
 				"test-application",
 				Mono.error(new UnsupportedOperationException()));
 
@@ -521,16 +523,18 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	private void givenRequestCreateTask(String applicationId,
-			String command,
-			String memory,
-			String name,
-			Mono<CreateTaskResponse> response) {
+										String command,
+										String memory,
+										String disk,
+										String name,
+										Mono<CreateTaskResponse> response) {
 
 		given(this.client.tasks()
 			.create(CreateTaskRequest.builder()
 				.applicationId(applicationId)
 				.command(command)
 				.memoryInMb((int) ByteSizeUtils.parseToMebibytes(memory))
+				.diskInMb((int) ByteSizeUtils.parseToMebibytes(disk))
 				.name(name)
 				.build()))
 			.willReturn(response);
@@ -608,7 +612,8 @@ public class CloudFoundryTaskLauncherTests {
 			givenRequestCreateTask("test-application-id",
 						"test-command",
 						this.deploymentProperties.getMemory(),
-						"test-application",
+					this.deploymentProperties.getDisk(),
+					"test-application",
 						Mono.just(CreateTaskResponse.builder()
 					.id("test-task-id")
 					.memoryInMb(1024)
@@ -664,7 +669,8 @@ public class CloudFoundryTaskLauncherTests {
 		givenRequestCreateTask("test-application-id",
 					"test-command",
 					this.deploymentProperties.getMemory(),
-					"test-application",
+				this.deploymentProperties.getDisk(),
+				"test-application",
 					Mono.just(CreateTaskResponse.builder()
 				.id("test-task-id")
 				.memoryInMb(1024)
@@ -816,7 +822,8 @@ public class CloudFoundryTaskLauncherTests {
 		givenRequestCreateTask("test-application-id",
 					"test-command",
 					this.deploymentProperties.getMemory(),
-					"test-application",
+				this.deploymentProperties.getDisk(),
+				"test-application",
 					Mono.just(CreateTaskResponse.builder()
 				.id("test-task-id")
 				.memoryInMb(1024)
@@ -873,7 +880,8 @@ public class CloudFoundryTaskLauncherTests {
 		givenRequestCreateTask("test-application-id",
 					"test-command",
 					this.deploymentProperties.getMemory(),
-					"test-application",
+				this.deploymentProperties.getDisk(),
+				"test-application",
 					Mono.just(CreateTaskResponse.builder()
 				.id("test-task-id")
 				.memoryInMb(1024)

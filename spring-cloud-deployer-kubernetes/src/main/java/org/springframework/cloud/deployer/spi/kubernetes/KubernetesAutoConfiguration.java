@@ -22,11 +22,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.deployer.spi.app.ActuatorOperations;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Spring Bean configuration for the {@link KubernetesAppDeployer}.
@@ -70,6 +72,20 @@ public class KubernetesAutoConfiguration {
 	@Bean
 	public ContainerFactory containerFactory() {
 		return new DefaultContainerFactory(deployerProperties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(ActuatorOperations.class)
+	ActuatorOperations actuatorOperations(RestTemplate actuatorRestTemplate, AppDeployer appDeployer,
+			KubernetesDeployerProperties properties) {
+		return new KubernetesActuatorTemplate(actuatorRestTemplate, appDeployer, properties.getAppAdmin());
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	RestTemplate actuatorRestTemplate() {
+		//TODO: Configure security
+		return new RestTemplate();
 	}
 
 }

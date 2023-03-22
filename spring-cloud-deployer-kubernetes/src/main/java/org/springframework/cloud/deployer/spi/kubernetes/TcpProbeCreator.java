@@ -26,20 +26,24 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
  * @since 2.5
  */
 abstract class TcpProbeCreator extends ProbeCreator {
-	TcpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties,
-					ContainerConfiguration containerConfiguration) {
-		super(kubernetesDeployerProperties, containerConfiguration);
-	}
+    TcpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties,
+                    ContainerConfiguration containerConfiguration) {
+        super(kubernetesDeployerProperties, containerConfiguration);
+    }
 
-	abstract Integer getPort();
+    abstract Integer getPort();
 
-	protected Probe create() {
-		return new ProbeBuilder()
-				.withNewTcpSocket()
-				.withNewPort(getPort())
-				.endTcpSocket()
-				.withInitialDelaySeconds(getInitialDelay())
-				.withPeriodSeconds(getPeriod())
-				.build();
-	}
+    protected abstract int getTimeout();
+
+    protected Probe create() {
+        return new ProbeBuilder()
+                .withNewTcpSocket()
+                .withNewPort(getPort())
+                .endTcpSocket()
+                .withInitialDelaySeconds(getInitialDelay())
+                .withPeriodSeconds(getPeriod())
+                .withFailureThreshold(getFailure())
+                .withSuccessThreshold(getSuccess())
+                .build();
+    }
 }

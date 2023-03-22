@@ -23,48 +23,51 @@ import org.springframework.util.StringUtils;
  * Creates a command based liveness probe
  *
  * @author Chris Schaefer
+ * @author Corneil du Plessis
  * @since 2.5
  */
 class LivenessCommandProbeCreator extends CommandProbeCreator {
-	LivenessCommandProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties, ContainerConfiguration containerConfiguration) {
-		super(kubernetesDeployerProperties, containerConfiguration);
-	}
+    LivenessCommandProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties, ContainerConfiguration containerConfiguration) {
+        super(kubernetesDeployerProperties, containerConfiguration);
+    }
 
-	@Override
-	int getInitialDelay() {
-		String probeDelayValue = getDeploymentPropertyValue(LIVENESS_DEPLOYER_PROPERTY_PREFIX + "CommandProbeDelay");
+    @Override
+    int getInitialDelay() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Command", "ProbeDelay",
+                getKubernetesDeployerProperties().getLivenessCommandProbeDelay());
+    }
 
-		if (StringUtils.hasText(probeDelayValue)) {
-			return Integer.valueOf(probeDelayValue);
-		}
+    @Override
+    int getPeriod() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Command", "ProbePeriod",
+                getKubernetesDeployerProperties().getLivenessCommandProbePeriod());
+    }
 
-		return getKubernetesDeployerProperties().getLivenessCommandProbeDelay();
-	}
+    @Override
+    int getFailure() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Command", "ProbeFailure",
+                getKubernetesDeployerProperties().getLivenessCommandProbeFailure());
+    }
 
-	@Override
-	int getPeriod() {
-		String probePeriodValue = getDeploymentPropertyValue(LIVENESS_DEPLOYER_PROPERTY_PREFIX + "CommandProbePeriod");
+    @Override
+    int getSuccess() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Command", "ProbeSuccess",
+                getKubernetesDeployerProperties().getLivenessCommandProbeSuccess());
+    }
 
-		if (StringUtils.hasText(probePeriodValue)) {
-			return Integer.valueOf(probePeriodValue);
-		}
+    @Override
+    String[] getCommand() {
+        String probeCommandValue = getDeploymentPropertyValue(LIVENESS_DEPLOYER_PROPERTY_PREFIX + "CommandProbeCommand");
 
-		return getKubernetesDeployerProperties().getLivenessCommandProbePeriod();
-	}
+        if (StringUtils.hasText(probeCommandValue)) {
+            return new CommandLineTokenizer(probeCommandValue).getArgs().toArray(new String[0]);
+        }
 
-	@Override
-	String[] getCommand() {
-		String probeCommandValue = getDeploymentPropertyValue(LIVENESS_DEPLOYER_PROPERTY_PREFIX + "CommandProbeCommand");
+        if (getKubernetesDeployerProperties().getLivenessCommandProbeCommand() != null) {
+            return new CommandLineTokenizer(getKubernetesDeployerProperties().getLivenessCommandProbeCommand())
+                    .getArgs().toArray(new String[0]);
+        }
 
-		if (StringUtils.hasText(probeCommandValue)) {
-			return new CommandLineTokenizer(probeCommandValue).getArgs().toArray(new String[0]);
-		}
-
-		if (getKubernetesDeployerProperties().getLivenessCommandProbeCommand() != null) {
-			return new CommandLineTokenizer(getKubernetesDeployerProperties().getLivenessCommandProbeCommand())
-					.getArgs().toArray(new String[0]);
-		}
-
-		throw new IllegalArgumentException("The livenessCommandProbeCommand property must be set.");
-	}
+        throw new IllegalArgumentException("The livenessCommandProbeCommand property must be set.");
+    }
 }

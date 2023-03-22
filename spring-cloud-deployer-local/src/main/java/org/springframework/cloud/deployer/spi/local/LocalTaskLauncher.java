@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import org.springframework.util.StringUtils;
  * @author Christian Tzolov
  * @author David Turanski
  * @author Glenn Renfro
+ * @author Ben Blinebury
  */
 public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements TaskLauncher {
 
@@ -100,8 +101,7 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 		args.put("endpoints.jmx.unique-names", "true");
 
 		try {
-
-			Path workDir = createWorkingDir(request.getDeploymentProperties(), taskLaunchId);
+			Path workingDirectory = createWorkingDirectory(request.getDeploymentProperties(), taskLaunchId);
 
 			boolean useDynamicPort = isDynamicPort(request);
 
@@ -109,7 +109,7 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 
 			ProcessBuilder builder = buildProcessBuilder(request, args, Optional.empty(), taskLaunchId).inheritIO();
 
-			TaskInstance instance = new TaskInstance(builder, workDir, port);
+			TaskInstance instance = new TaskInstance(builder, workingDirectory, port);
 			if (this.shouldInheritLogging(request)) {
 				instance.start(builder);
 				logger.info("launching task {}\n    Logs will be inherited.", taskLaunchId);
@@ -117,10 +117,9 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 			}
 			else {
 				instance.start(builder, getLocalDeployerProperties().isDeleteFilesOnExit());
-				logger.info("launching task {}\n   Logs will be in {}", taskLaunchId, workDir);
+				logger.info("launching task {}\n   Logs will be in {}", taskLaunchId, workingDirectory);
 			}
 			running.put(taskLaunchId, instance);
-
 		}
 		catch (IOException e) {
 			throw new RuntimeException("Exception trying to launch " + request, e);
@@ -228,7 +227,7 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 		return runningExecutionCount;
 	}
 
-	private boolean maxConcurrentExecutionsReached() {
+	private synchronized boolean maxConcurrentExecutionsReached() {
 		return getRunningTaskExecutionCount() >= getMaximumConcurrentTasks();
 	}
 
@@ -240,15 +239,20 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 		taskInstanceHistory.clear();
 	}
 
-	private Path createWorkingDir(Map<String, String> deploymentProperties, String taskLaunchId) throws IOException {
+	private Path createWorkingDirectory(Map<String, String> deploymentProperties, String taskLaunchId) throws IOException {
 		LocalDeployerProperties localDeployerPropertiesToUse = bindDeploymentProperties(deploymentProperties);
 
-		Path workingDirectoryRoot = Files.createDirectories(localDeployerPropertiesToUse.getWorkingDirectoriesRoot());
-		Path workDir = Files.createDirectories(workingDirectoryRoot.resolve(Long.toString(System.nanoTime())).resolve(taskLaunchId));
+		Path workingDirectoryRoot = Files.isSymbolicLink(localDeployerPropertiesToUse.getWorkingDirectoriesRoot())
+				? Files.readSymbolicLink(localDeployerPropertiesToUse.getWorkingDirectoriesRoot())
+				: Files.createDirectories(localDeployerPropertiesToUse.getWorkingDirectoriesRoot());
+
+		Path workingDirectory = Files.createDirectories(workingDirectoryRoot.resolve(Long.toString(System.nanoTime())).resolve(taskLaunchId));
+
 		if (localDeployerPropertiesToUse.isDeleteFilesOnExit()) {
-			workDir.toFile().deleteOnExit();
+			workingDirectory.toFile().deleteOnExit();
 		}
-		return workDir;
+
+		return workingDirectory;
 	}
 
 	private static class TaskInstance implements Instance {

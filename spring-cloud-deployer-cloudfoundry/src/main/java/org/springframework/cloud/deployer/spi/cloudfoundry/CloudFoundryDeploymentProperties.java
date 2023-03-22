@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.deployer.spi.app.AppAdmin;
 import org.springframework.validation.annotation.Validated;
 
 
@@ -210,12 +211,7 @@ public class CloudFoundryDeploymentProperties {
 	private String javaOpts;
 
 	private Optional<Map<String, String>> env = Optional.empty();
-
-	/**
-	 * Top level prefix for Cloud Foundry related configuration properties.
-	 */
-	public static final String CLOUDFOUNDRY_PROPERTIES = "spring.cloud.scheduler.cloudfoundry";
-
+	
 	/**
 	 * Location of the PCF scheduler REST API enpoint ot use.
 	 */
@@ -242,6 +238,7 @@ public class CloudFoundryDeploymentProperties {
 	 */
 	private int listTimeoutInSeconds = 60;
 
+	private AppAdmin appAdmin = new AppAdmin();
 
 	public Set<String> getServices() {
 		return services;
@@ -487,5 +484,13 @@ public class CloudFoundryDeploymentProperties {
 
 	public void setListTimeoutInSeconds(int listTimeoutInSeconds) {
 		this.listTimeoutInSeconds = listTimeoutInSeconds;
+	}
+
+	public AppAdmin getAppAdmin() {
+		return appAdmin;
+	}
+
+	public void setAppAdmin(AppAdmin appAdmin) {
+		this.appAdmin = appAdmin;
 	}
 }

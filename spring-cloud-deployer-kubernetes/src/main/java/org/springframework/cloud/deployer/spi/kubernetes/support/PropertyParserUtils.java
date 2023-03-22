@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Chris Schaefer
  * @author Ilayaperumal Gopinathan
+ * @author Glenn Renfro
  */
 public class PropertyParserUtils {
 	/**
@@ -40,14 +41,18 @@ public class PropertyParserUtils {
 		Map<String, String> mapValue = new HashMap<>();
 
 		if (StringUtils.hasText(stringPairs)) {
-			String[] pairs = stringPairs.split(",");
+			/**
+			 * Positive look ahead that into a non capturing group that will skip all commas in quotes.
+			 * Even number quotes will be ignored by the non capturing group.
+			 */
+			String[] pairs = stringPairs.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 			for (String pair : pairs) {
 				String[] splitString = pair.split(":", 2);
 				Assert.isTrue(splitString.length == 2, String.format("Invalid annotation value: %s", pair));
-				mapValue.put(splitString[0].trim(), splitString[1].trim());
+				String value = splitString[1].trim();
+				mapValue.put(splitString[0].trim(), value);
 			}
 		}
-
 		return mapValue;
 	}
 

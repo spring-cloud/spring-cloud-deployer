@@ -25,6 +25,7 @@ import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.deployer.spi.app.AppAdmin;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.env.SystemEnvironmentPropertySource;
 
@@ -85,6 +86,8 @@ public class LocalDeployerPropertiesTests {
 					map.put("spring.cloud.deployer.local.docker.volume-mounts", "/tmp:/opt");
 					map.put("spring.cloud.deployer.local.startup-probe.path", "/path1");
 					map.put("spring.cloud.deployer.local.health-probe.path", "/path2");
+					map.put("spring.cloud.deployer.local.app-admin.user","user");
+					map.put("spring.cloud.deployer.local.app-admin.password","password");
 
 					context.getEnvironment().getPropertySources().addLast(new SystemEnvironmentPropertySource(
 							StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, map));
@@ -110,6 +113,8 @@ public class LocalDeployerPropertiesTests {
 					assertThat(properties.getDocker().getVolumeMounts()).isEqualTo("/tmp:/opt");
 					assertThat(properties.getStartupProbe().getPath()).isEqualTo("/path1");
 					assertThat(properties.getHealthProbe().getPath()).isEqualTo("/path2");
+					assertThat(properties.getAppAdmin().getUser()).isEqualTo("user");
+					assertThat(properties.getAppAdmin().getPassword()).isEqualTo("password");
 				});
 	}
 
@@ -118,6 +123,10 @@ public class LocalDeployerPropertiesTests {
 	public void setAllPropertiesCamelCase() {
 		this.contextRunner
 				.withInitializer(context -> {
+					AppAdmin appAdmin = new AppAdmin();
+					appAdmin.setUser("user");
+					appAdmin.setPassword("password");
+
 					Map<String, Object> map = new HashMap<>();
 					map.put("spring.cloud.deployer.local.debugPort", "8888");
 					map.put("spring.cloud.deployer.local.debugSuspend", "n");
@@ -134,6 +143,8 @@ public class LocalDeployerPropertiesTests {
 					map.put("spring.cloud.deployer.local.docker.network", "spring-cloud-dataflow-server_default");
 					map.put("spring.cloud.deployer.local.docker.portMappings", "9091:5678");
 					map.put("spring.cloud.deployer.local.docker.volumeMounts", "/tmp:/opt");
+					map.put("spring.cloud.deployer.local.appAdmin.user","user");
+					map.put("spring.cloud.deployer.local.appAdmin.password","password");
 
 					context.getEnvironment().getPropertySources().addLast(new SystemEnvironmentPropertySource(
 							StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, map));
@@ -157,6 +168,8 @@ public class LocalDeployerPropertiesTests {
 					assertThat(properties.getDocker().getNetwork()).isEqualTo("spring-cloud-dataflow-server_default");
 					assertThat(properties.getDocker().getPortMappings()).isEqualTo("9091:5678");
 					assertThat(properties.getDocker().getVolumeMounts()).isEqualTo("/tmp:/opt");
+					assertThat(properties.getAppAdmin().getUser()).isEqualTo("user");
+					assertThat(properties.getAppAdmin().getPassword()).isEqualTo("password");
 				});
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
+import io.fabric8.kubernetes.api.model.CapabilitiesBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSource;
 import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
 import io.fabric8.kubernetes.api.model.Container;
@@ -41,6 +42,10 @@ import io.fabric8.kubernetes.api.model.PodSecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.SecretEnvSource;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
+import io.fabric8.kubernetes.api.model.SecurityContext;
+import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
+import io.fabric8.kubernetes.api.model.Sysctl;
+import io.fabric8.kubernetes.api.model.SysctlBuilder;
 import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -60,6 +65,7 @@ import org.springframework.cloud.deployer.spi.util.ByteSizeUtils;
 import org.springframework.cloud.deployer.spi.util.CommandLineTokenizer;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -69,6 +75,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Chris Schaefer
  * @author Ilayaperumal Gopinathan
+ * @author Chris Bono
  */
 
 class DeploymentPropertiesResolver {
@@ -405,6 +412,18 @@ class DeploymentPropertiesResolver {
 		return deploymentServiceAccountName;
 	}
 
+	Boolean getShareProcessNamespace(Map<String, String> kubernetesDeployerProperties) {
+		KubernetesDeployerProperties deployerProperties = bindProperties(kubernetesDeployerProperties,
+				this.propertyPrefix + ".shareProcessNamespace", "shareProcessNamespace");
+		return deployerProperties.getShareProcessNamespace();
+	}
+
+	String getPriorityClassName(Map<String, String> kubernetesDeployerProperties) {
+		KubernetesDeployerProperties deployerProperties = bindProperties(kubernetesDeployerProperties,
+				this.propertyPrefix + ".priorityClassName", "priorityClassName");
+		return deployerProperties.getPriorityClassName();
+	}
+
 	PodSecurityContext getPodSecurityContext(Map<String, String> kubernetesDeployerProperties) {
 		PodSecurityContext podSecurityContext = null;
 
@@ -412,19 +431,100 @@ class DeploymentPropertiesResolver {
 				this.propertyPrefix + ".podSecurityContext", "podSecurityContext");
 
 		if (deployerProperties.getPodSecurityContext() != null) {
-			podSecurityContext = new PodSecurityContextBuilder()
-					.withRunAsUser(deployerProperties.getPodSecurityContext().getRunAsUser())
-					.withFsGroup(deployerProperties.getPodSecurityContext().getFsGroup())
-					.withSupplementalGroups(deployerProperties.getPodSecurityContext().getSupplementalGroups())
-					.build();
+			podSecurityContext = buildPodSecurityContext(deployerProperties);
 		} else if (this.properties.getPodSecurityContext() != null ) {
-			podSecurityContext = new PodSecurityContextBuilder()
-					.withRunAsUser(this.properties.getPodSecurityContext().getRunAsUser())
-					.withFsGroup(this.properties.getPodSecurityContext().getFsGroup())
-					.withSupplementalGroups(this.properties.getPodSecurityContext().getSupplementalGroups())
-					.build();
+			podSecurityContext = buildPodSecurityContext(this.properties);
 		}
 		return podSecurityContext;
+	}
+
+	private PodSecurityContext buildPodSecurityContext(KubernetesDeployerProperties deployerProperties) {
+		PodSecurityContextBuilder podSecurityContextBuilder = new PodSecurityContextBuilder()
+				.withRunAsUser(deployerProperties.getPodSecurityContext().getRunAsUser())
+				.withRunAsGroup(deployerProperties.getPodSecurityContext().getRunAsGroup())
+				.withRunAsNonRoot(deployerProperties.getPodSecurityContext().getRunAsNonRoot())
+				.withFsGroup(deployerProperties.getPodSecurityContext().getFsGroup())
+				.withFsGroupChangePolicy(deployerProperties.getPodSecurityContext().getFsGroupChangePolicy())
+				.withSupplementalGroups(deployerProperties.getPodSecurityContext().getSupplementalGroups());
+		if (deployerProperties.getPodSecurityContext().getSeccompProfile() != null) {
+			podSecurityContextBuilder.withNewSeccompProfile(
+					deployerProperties.getPodSecurityContext().getSeccompProfile().getLocalhostProfile(),
+					deployerProperties.getPodSecurityContext().getSeccompProfile().getType());
+		}
+		if (deployerProperties.getPodSecurityContext().getSeLinuxOptions() != null) {
+			podSecurityContextBuilder.withNewSeLinuxOptions(
+					deployerProperties.getPodSecurityContext().getSeLinuxOptions().getLevel(),
+					deployerProperties.getPodSecurityContext().getSeLinuxOptions().getRole(),
+					deployerProperties.getPodSecurityContext().getSeLinuxOptions().getType(),
+					deployerProperties.getPodSecurityContext().getSeLinuxOptions().getUser());
+		}
+		if (!CollectionUtils.isEmpty(deployerProperties.getPodSecurityContext().getSysctls()))  {
+			List<Sysctl> sysctls = deployerProperties.getPodSecurityContext().getSysctls().stream()
+					.map((sysctlInfo) -> new SysctlBuilder().withName(sysctlInfo.getName())
+							.withValue(sysctlInfo.getValue()).build())
+					.collect(Collectors.toList());
+			podSecurityContextBuilder.withSysctls(sysctls);
+		}
+		if (deployerProperties.getPodSecurityContext().getWindowsOptions() != null) {
+			podSecurityContextBuilder.withNewWindowsOptions(
+					deployerProperties.getPodSecurityContext().getWindowsOptions().getGmsaCredentialSpec(),
+					deployerProperties.getPodSecurityContext().getWindowsOptions().getGmsaCredentialSpecName(),
+					deployerProperties.getPodSecurityContext().getWindowsOptions().getHostProcess(),
+					deployerProperties.getPodSecurityContext().getWindowsOptions().getRunAsUserName());
+		}
+		return podSecurityContextBuilder.build();
+	}
+
+	SecurityContext getContainerSecurityContext(Map<String, String> kubernetesDeployerProperties) {
+		SecurityContext securityContext = null;
+
+		KubernetesDeployerProperties deployerProperties = bindProperties(kubernetesDeployerProperties,
+				this.propertyPrefix + ".containerSecurityContext", "containerSecurityContext");
+
+		if (deployerProperties.getContainerSecurityContext() != null) {
+			securityContext = buildContainerSecurityContext(deployerProperties);
+		} else if (this.properties.getContainerSecurityContext() != null ) {
+			securityContext = buildContainerSecurityContext(this.properties);
+		}
+		return securityContext;
+	}
+
+	private SecurityContext buildContainerSecurityContext(KubernetesDeployerProperties deployerProperties) {
+		SecurityContextBuilder securityContextBuilder = new SecurityContextBuilder()
+				.withAllowPrivilegeEscalation(deployerProperties.getContainerSecurityContext().getAllowPrivilegeEscalation())
+				.withPrivileged(deployerProperties.getContainerSecurityContext().getPrivileged())
+				.withProcMount(deployerProperties.getContainerSecurityContext().getProcMount())
+				.withReadOnlyRootFilesystem(deployerProperties.getContainerSecurityContext().getReadOnlyRootFilesystem())
+				.withRunAsUser(deployerProperties.getContainerSecurityContext().getRunAsUser())
+				.withRunAsGroup(deployerProperties.getContainerSecurityContext().getRunAsGroup())
+				.withRunAsNonRoot(deployerProperties.getContainerSecurityContext().getRunAsNonRoot());
+
+		if (deployerProperties.getContainerSecurityContext().getCapabilities() != null) {
+			securityContextBuilder.withCapabilities(
+					new CapabilitiesBuilder().withAdd(deployerProperties.getContainerSecurityContext().getCapabilities().getAdd())
+							.withDrop(deployerProperties.getContainerSecurityContext().getCapabilities().getDrop())
+							.build());
+		}
+		if (deployerProperties.getContainerSecurityContext().getSeccompProfile() != null) {
+			securityContextBuilder.withNewSeccompProfile(
+					deployerProperties.getContainerSecurityContext().getSeccompProfile().getLocalhostProfile(),
+					deployerProperties.getContainerSecurityContext().getSeccompProfile().getType());
+		}
+		if (deployerProperties.getContainerSecurityContext().getSeLinuxOptions() != null) {
+			securityContextBuilder.withNewSeLinuxOptions(
+					deployerProperties.getContainerSecurityContext().getSeLinuxOptions().getLevel(),
+					deployerProperties.getContainerSecurityContext().getSeLinuxOptions().getRole(),
+					deployerProperties.getContainerSecurityContext().getSeLinuxOptions().getType(),
+					deployerProperties.getContainerSecurityContext().getSeLinuxOptions().getUser());
+		}
+		if (deployerProperties.getContainerSecurityContext().getWindowsOptions() != null) {
+			securityContextBuilder.withNewWindowsOptions(
+					deployerProperties.getContainerSecurityContext().getWindowsOptions().getGmsaCredentialSpec(),
+					deployerProperties.getContainerSecurityContext().getWindowsOptions().getGmsaCredentialSpecName(),
+					deployerProperties.getContainerSecurityContext().getWindowsOptions().getHostProcess(),
+					deployerProperties.getContainerSecurityContext().getWindowsOptions().getRunAsUserName());
+		}
+		return securityContextBuilder.build();
 	}
 
 	Affinity getAffinityRules(Map<String, String> kubernetesDeployerProperties) {
@@ -562,10 +662,8 @@ class DeploymentPropertiesResolver {
 		// deployment properties
 		if (this.properties.getAdditionalContainers() != null) {
 			this.properties.getAdditionalContainers().stream()
-					.filter(container -> containers.stream()
-							.noneMatch(existing -> existing.getName().equals(container.getName())))
-					.collect(Collectors.toList())
-					.forEach(container -> containers.add(container));
+					.filter(container -> containers.stream().noneMatch(existing -> existing.getName().equals(container.getName())))
+					.forEachOrdered(container -> containers.add(container));
 		}
 
 		return containers;
@@ -625,20 +723,17 @@ class DeploymentPropertiesResolver {
 			return RestartPolicy.valueOf(restartPolicy);
 		}
 
-		return (this.properties instanceof KubernetesSchedulerProperties) ?
-				((KubernetesSchedulerProperties) this.properties).getRestartPolicy() : RestartPolicy.Always;
+		return this.properties.getRestartPolicy();
 	}
 
 	String getTaskServiceAccountName(Map<String, String> kubernetesDeployerProperties) {
 		String taskServiceAccountName = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
 				this.propertyPrefix + ".taskServiceAccountName", "");
-
 		if (StringUtils.hasText(taskServiceAccountName)) {
 			return taskServiceAccountName;
 		}
 
-		return (this.properties instanceof KubernetesSchedulerProperties) ?
-				((KubernetesSchedulerProperties) this.properties).getTaskServiceAccountName() : null;
+		return this.properties.getTaskServiceAccountName();
 	}
 
 	/**

@@ -1,4 +1,4 @@
-= Spring Cloud Deployer for Cloud Foundry image:https://build.spring.io/plugins/servlet/wittified/build-status/SCD-DCF[Build Status, link=https://build.spring.io/browse/SCD-DCF]
+= Spring Cloud Deployer for Cloud Foundry
 
 This project provides a common means to deploy applications to Cloud Foundry based on the Spring Cloud Deployer SPI.
 

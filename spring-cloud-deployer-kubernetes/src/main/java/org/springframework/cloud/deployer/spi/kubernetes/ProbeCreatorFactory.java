@@ -25,31 +25,45 @@ import io.fabric8.kubernetes.api.model.Probe;
  * @since 2.5
  */
 class ProbeCreatorFactory {
-	static Probe createReadinessProbe(ContainerConfiguration containerConfiguration,
-									  KubernetesDeployerProperties kubernetesDeployerProperties, ProbeType probeType) {
-		switch (probeType) {
-			case HTTP:
-				return new ReadinessHttpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
-			case TCP:
-				return new ReadinessTcpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
-			case COMMAND:
-				return new ReadinessCommandProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
-			default:
-				throw new IllegalArgumentException("Unknown readiness probe type: " + probeType);
-		}
-	}
+    static Probe createStartupProbe(ContainerConfiguration containerConfiguration,
+                                    KubernetesDeployerProperties kubernetesDeployerProperties, ProbeType probeType) {
+        switch (probeType) {
+            case HTTP:
+                return new StartupHttpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
+            case TCP:
+                return new StartupTcpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
+            case COMMAND:
+                return new StartupCommandProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
+            default:
+                throw new IllegalArgumentException("Unknown startup probe type: " + probeType);
+        }
+    }
 
-	static Probe createLivenessProbe(ContainerConfiguration containerConfiguration,
-									 KubernetesDeployerProperties kubernetesDeployerProperties, ProbeType probeType) {
-		switch (probeType) {
-			case HTTP:
-				return new LivenessHttpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
-			case TCP:
-				return new LivenessTcpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
-			case COMMAND:
-				return new LivenessCommandProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
-			default:
-				throw new IllegalArgumentException("Unknown liveness probe type: " + probeType);
-		}
-	}
+    static Probe createReadinessProbe(ContainerConfiguration containerConfiguration,
+                                      KubernetesDeployerProperties kubernetesDeployerProperties, ProbeType probeType) {
+        switch (probeType) {
+            case HTTP:
+                return new ReadinessHttpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
+            case TCP:
+                return new ReadinessTcpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
+            case COMMAND:
+                return new ReadinessCommandProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
+            default:
+                throw new IllegalArgumentException("Unknown readiness probe type: " + probeType);
+        }
+    }
+
+    static Probe createLivenessProbe(ContainerConfiguration containerConfiguration,
+                                     KubernetesDeployerProperties kubernetesDeployerProperties, ProbeType probeType) {
+        switch (probeType) {
+            case HTTP:
+                return new LivenessHttpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
+            case TCP:
+                return new LivenessTcpProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
+            case COMMAND:
+                return new LivenessCommandProbeCreator(kubernetesDeployerProperties, containerConfiguration).create();
+            default:
+                throw new IllegalArgumentException("Unknown liveness probe type: " + probeType);
+        }
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.deployer.resource.docker.DockerResource;
+import org.springframework.cloud.deployer.spi.app.ActuatorOperations;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
@@ -67,13 +68,17 @@ import static org.awaitility.Awaitility.await;
  */
 @SpringBootTest(classes = { Config.class, AbstractIntegrationTests.Config.class }, value = {
 		"maven.remoteRepositories.springRepo.url=https://repo.spring.io/snapshot",
-		"spring.cloud.deployer.local.use-spring-application-json=false" })
+		"spring.cloud.deployer.local.use-spring-application-json=false"
+})
 public class LocalAppDeployerEnvironmentIntegrationTests extends AbstractAppDeployerIntegrationJUnit5Tests {
 
 	private static final String TESTAPP_DOCKER_IMAGE_NAME = "springcloud/spring-cloud-deployer-spi-test-app:latest";
 
 	@Autowired
 	private AppDeployer appDeployer;
+
+	@Autowired
+	private ActuatorOperations actuatorOperations;
 
 	@Value("${spring-cloud-deployer-spi-test-use-docker:false}")
 	private boolean useDocker;
@@ -242,6 +247,46 @@ public class LocalAppDeployerEnvironmentIntegrationTests extends AbstractAppDepl
 		deployer.undeploy(deploymentId);
 	}
 
+	@Test
+	public void testActuatorOperations() {
+		if (useDocker) {
+			// would not expect to be able to check anything on docker
+			return;
+		}
+		Map<String, String> properties = new HashMap<>();
+		AppDefinition definition = new AppDefinition(randomName(), properties);
+		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
+
+		log.info("Deploying {}...", request.getDefinition().getName());
+
+		String deploymentId = appDeployer().deploy(request);
+		Timeout timeout = deploymentTimeout();
+		await().pollInterval(Duration.ofMillis(timeout.pause))
+				.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+				.untilAsserted(() -> {
+					assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+				});
+		String id = deploymentId + "-0";
+		Map<String, Object> env = actuatorOperations
+				.getFromActuator(deploymentId, id, "/env", Map.class);
+		assertThat(env).containsKeys("activeProfiles", "propertySources");
+		Map<String, Object> status = actuatorOperations
+				.getFromActuator(deploymentId, id, "/health", Map.class);
+		assertThat(status.get("status")).isEqualTo("UP");
+
+		Map<String, Object> loggers = actuatorOperations
+				.getFromActuator(deploymentId, id, "/loggers/org.springframework", Map.class);
+		assertThat(loggers).isNotNull();
+		assertThat(loggers.get("configuredLevel")).isNull();
+		actuatorOperations.postToActuator(deploymentId, id,"/loggers/org.springframework",
+				Collections.singletonMap("configuredLevel", "debug"),  Object.class);
+		loggers = actuatorOperations
+				.getFromActuator(deploymentId, id, "/loggers/org.springframework", Map.class);
+		assertThat(((String)loggers.get("configuredLevel")).toLowerCase()).isEqualTo("debug");
+
+	}
+
 	private String getCommandOutput(String cmd) throws IOException {
 		Process process = Runtime.getRuntime().exec(cmd);
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -255,6 +300,11 @@ public class LocalAppDeployerEnvironmentIntegrationTests extends AbstractAppDepl
 		@Bean
 		public AppDeployer appDeployer(LocalDeployerProperties properties) {
 			return new LocalAppDeployer(properties);
+		}
+
+		@Bean
+		ActuatorOperations actuatorOperations(AppDeployer appDeployer, LocalDeployerProperties properties) {
+			return new LocalActuatorTemplate(new RestTemplate(), appDeployer, properties.getAppAdmin());
 		}
 	}
 

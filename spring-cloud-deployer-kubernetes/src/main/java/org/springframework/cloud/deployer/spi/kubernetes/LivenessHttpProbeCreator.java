@@ -23,96 +23,88 @@ import org.springframework.util.StringUtils;
  *
  * @author Chris Schaefer
  * @author Ilayaperumal Gopinathan
+ * @author Corneil du Plessis
  */
 class LivenessHttpProbeCreator extends HttpProbeCreator {
-	LivenessHttpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties,
-							 ContainerConfiguration containerConfiguration) {
-		super(kubernetesDeployerProperties, containerConfiguration);
-	}
+    LivenessHttpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties,
+                             ContainerConfiguration containerConfiguration) {
+        super(kubernetesDeployerProperties, containerConfiguration);
+    }
 
-	@Override
-	public Integer getPort() {
-		String probePortValue = getProbePropertyName(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "ProbePort");
+    @Override
+    public Integer getPort() {
+        String probePortValue = getProbeProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Http", "ProbePort");
 
-		if (StringUtils.hasText(probePortValue)) {
-			return Integer.parseInt(probePortValue);
-		}
+        if (StringUtils.hasText(probePortValue)) {
+            return Integer.parseInt(probePortValue);
+        }
 
-		if (getKubernetesDeployerProperties().getLivenessHttpProbePort() != null) {
-			return getKubernetesDeployerProperties().getLivenessHttpProbePort();
-		}
+        if (getKubernetesDeployerProperties().getLivenessHttpProbePort() != null) {
+            return getKubernetesDeployerProperties().getLivenessHttpProbePort();
+        }
 
-		if (getDefaultPort() != null) {
-			return getDefaultPort();
-		}
+        if (getDefaultPort() != null) {
+            return getDefaultPort();
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	@Override
-	protected String getProbePath() {
-		String probePathValue = getProbePropertyName(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "ProbePath");
+    @Override
+    protected String getProbePath() {
+        String probePathValue = getProbeProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Http", "ProbePath",
+                getKubernetesDeployerProperties().getLivenessHttpProbePath());
 
-		if (StringUtils.hasText(probePathValue)) {
-			return probePathValue;
-		}
+        if (StringUtils.hasText(probePathValue)) {
+            return probePathValue;
+        }
 
-		if (getKubernetesDeployerProperties().getLivenessHttpProbePath() != null) {
-			return getKubernetesDeployerProperties().getLivenessHttpProbePath();
-		}
+        if (useBoot1ProbePath()) {
+            return BOOT_1_LIVENESS_PROBE_PATH;
+        }
 
-		if (useBoot1ProbePath()) {
-			return BOOT_1_LIVENESS_PROBE_PATH;
-		}
+        return BOOT_2_LIVENESS_PROBE_PATH;
+    }
 
-		return BOOT_2_LIVENESS_PROBE_PATH;
-	}
+    @Override
+    protected String getScheme() {
+        String probeSchemeValue = getProbeProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Http", "ProbeScheme",
+                getKubernetesDeployerProperties().getLivenessHttpProbeScheme());
 
-	@Override
-	protected String getScheme() {
-		String probeSchemeValue = getProbePropertyName(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "ProbeScheme");
+        if (StringUtils.hasText(probeSchemeValue)) {
+            return probeSchemeValue;
+        }
 
-		if (StringUtils.hasText(probeSchemeValue)) {
-			return probeSchemeValue;
-		}
+        return DEFAULT_PROBE_SCHEME;
+    }
 
-		if (getKubernetesDeployerProperties().getLivenessHttpProbeScheme() != null) {
-			return getKubernetesDeployerProperties().getLivenessHttpProbeScheme();
-		}
+    @Override
+    protected int getTimeout() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Http", "ProbeTimeout",
+                getKubernetesDeployerProperties().getLivenessHttpProbeTimeout());
+    }
 
-		return DEFAULT_PROBE_SCHEME;
-	}
+    @Override
+    protected int getInitialDelay() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Http", "ProbeDelay",
+                getKubernetesDeployerProperties().getLivenessHttpProbeDelay());
+    }
 
-	@Override
-	protected int getTimeout() {
-		String probeTimeoutValue = getProbePropertyName(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "ProbeTimeout");
+    @Override
+    protected int getPeriod() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Http", "ProbePeriod",
+                getKubernetesDeployerProperties().getLivenessHttpProbePeriod());
+    }
 
-		if (StringUtils.hasText(probeTimeoutValue)) {
-			return Integer.valueOf(probeTimeoutValue);
-		}
+    @Override
+    int getFailure() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Http", "ProbeFailure",
+                getKubernetesDeployerProperties().getLivenessHttpProbeFailure());
+    }
 
-		return getKubernetesDeployerProperties().getLivenessHttpProbeTimeout();
-	}
-
-	@Override
-	protected int getInitialDelay() {
-		String probeDelayValue = getProbePropertyName(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "ProbeDelay");
-
-		if (StringUtils.hasText(probeDelayValue)) {
-			return Integer.valueOf(probeDelayValue);
-		}
-
-		return getKubernetesDeployerProperties().getLivenessHttpProbeDelay();
-	}
-
-	@Override
-	protected int getPeriod() {
-		String probePeriodValue = getProbePropertyName(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "ProbePeriod");
-
-		if (StringUtils.hasText(probePeriodValue)) {
-			return Integer.valueOf(probePeriodValue);
-		}
-
-		return getKubernetesDeployerProperties().getLivenessHttpProbePeriod();
-	}
+    @Override
+    int getSuccess() {
+        return getProbeIntProperty(LIVENESS_DEPLOYER_PROPERTY_PREFIX, "Http", "ProbeSuccess",
+                getKubernetesDeployerProperties().getLivenessHttpProbeSuccess());
+    }
 }

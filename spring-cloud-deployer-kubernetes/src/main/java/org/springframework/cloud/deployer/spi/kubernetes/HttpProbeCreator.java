@@ -32,109 +32,101 @@ import org.springframework.util.StringUtils;
  * Base class for HTTP based probe creators
  *
  * @author Chris Schaefer
+ * @author Corneil du Plessis
  * @since 2.5
  */
 public abstract class HttpProbeCreator extends ProbeCreator {
-	private static final int BOOT_1_MAJOR_VERSION = 1;
+    private static final int BOOT_1_MAJOR_VERSION = 1;
 
-	static final String AUTHORIZATION_HEADER_NAME = "Authorization";
-	static final String PROBE_CREDENTIALS_SECRET_KEY_NAME = "credentials";
-	static final String BOOT_1_READINESS_PROBE_PATH = "/info";
-	static final String BOOT_1_LIVENESS_PROBE_PATH = "/health";
-	static final String BOOT_2_READINESS_PROBE_PATH = "/actuator" + BOOT_1_READINESS_PROBE_PATH;
-	static final String BOOT_2_LIVENESS_PROBE_PATH = "/actuator" + BOOT_1_LIVENESS_PROBE_PATH;
-	static final String DEFAULT_PROBE_SCHEME = "HTTP";
+    static final String AUTHORIZATION_HEADER_NAME = "Authorization";
+    static final String PROBE_CREDENTIALS_SECRET_KEY_NAME = "credentials";
+    static final String BOOT_1_READINESS_PROBE_PATH = "/info";
+    static final String BOOT_1_LIVENESS_PROBE_PATH = "/health";
+    static final String BOOT_2_READINESS_PROBE_PATH = "/actuator" + BOOT_1_READINESS_PROBE_PATH;
+    static final String BOOT_2_LIVENESS_PROBE_PATH = "/actuator" + BOOT_1_LIVENESS_PROBE_PATH;
+    static final String DEFAULT_PROBE_SCHEME = "HTTP";
 
-	HttpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties,
-					 ContainerConfiguration containerConfiguration) {
-		super(kubernetesDeployerProperties, containerConfiguration);
-	}
+    HttpProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties,
+                     ContainerConfiguration containerConfiguration) {
+        super(kubernetesDeployerProperties, containerConfiguration);
+    }
 
-	protected abstract String getProbePath();
+    protected abstract String getProbePath();
 
-	protected abstract Integer getPort();
+    protected abstract Integer getPort();
 
-	protected abstract String getScheme();
+    protected abstract String getScheme();
 
-	protected abstract int getTimeout();
+    protected abstract int getTimeout();
 
-	protected Probe create() {
-		HTTPGetActionBuilder httpGetActionBuilder = new HTTPGetActionBuilder()
-				.withPath(getProbePath())
-				.withNewPort(getPort())
-				.withScheme(getScheme());
+    protected Probe create() {
+        HTTPGetActionBuilder httpGetActionBuilder = new HTTPGetActionBuilder()
+                .withPath(getProbePath())
+                .withNewPort(getPort())
+                .withScheme(getScheme());
 
-		List<HTTPHeader> httpHeaders = getHttpHeaders();
+        List<HTTPHeader> httpHeaders = getHttpHeaders();
 
-		if (!httpHeaders.isEmpty()) {
-			httpGetActionBuilder.withHttpHeaders(httpHeaders);
-		}
+        if (!httpHeaders.isEmpty()) {
+            httpGetActionBuilder.withHttpHeaders(httpHeaders);
+        }
 
-		return new ProbeBuilder()
-				.withHttpGet(httpGetActionBuilder.build())
-				.withTimeoutSeconds(getTimeout())
-				.withInitialDelaySeconds(getInitialDelay())
-				.withPeriodSeconds(getPeriod())
-				.build();
+        return new ProbeBuilder()
+                .withHttpGet(httpGetActionBuilder.build())
+                .withTimeoutSeconds(getTimeout())
+                .withInitialDelaySeconds(getInitialDelay())
+                .withPeriodSeconds(getPeriod())
+                .withFailureThreshold(getFailure())
+                .withSuccessThreshold(getSuccess())
+                .build();
 
-	}
+    }
 
-	private List<HTTPHeader> getHttpHeaders() {
-		List<HTTPHeader> httpHeaders = new ArrayList<>();
+    private List<HTTPHeader> getHttpHeaders() {
+        List<HTTPHeader> httpHeaders = new ArrayList<>();
 
-		HTTPHeader authenticationHeader = getAuthorizationHeader();
+        HTTPHeader authenticationHeader = getAuthorizationHeader();
 
-		if (authenticationHeader != null) {
-			httpHeaders.add(authenticationHeader);
-		}
+        if (authenticationHeader != null) {
+            httpHeaders.add(authenticationHeader);
+        }
 
-		return httpHeaders;
-	}
+        return httpHeaders;
+    }
 
-	private HTTPHeader getAuthorizationHeader() {
-		HTTPHeader httpHeader = null;
+    private HTTPHeader getAuthorizationHeader() {
+        HTTPHeader httpHeader = null;
 
-		Secret probeCredentialsSecret = getContainerConfiguration().getProbeCredentialsSecret();
+        Secret probeCredentialsSecret = getContainerConfiguration().getProbeCredentialsSecret();
 
-		if (probeCredentialsSecret != null) {
-			Assert.isTrue(probeCredentialsSecret.getData().containsKey(PROBE_CREDENTIALS_SECRET_KEY_NAME),
-					"Secret does not contain a key by the name of " + PROBE_CREDENTIALS_SECRET_KEY_NAME);
+        if (probeCredentialsSecret != null) {
+            Assert.isTrue(probeCredentialsSecret.getData().containsKey(PROBE_CREDENTIALS_SECRET_KEY_NAME),
+                    "Secret does not contain a key by the name of " + PROBE_CREDENTIALS_SECRET_KEY_NAME);
 
-			httpHeader = new HTTPHeader();
-			httpHeader.setName(AUTHORIZATION_HEADER_NAME);
+            httpHeader = new HTTPHeader();
+            httpHeader.setName(AUTHORIZATION_HEADER_NAME);
 
-			// only Basic auth is supported currently
-			httpHeader.setValue(ProbeAuthenticationType.Basic.name() + " " +
-					probeCredentialsSecret.getData().get(PROBE_CREDENTIALS_SECRET_KEY_NAME));
-		}
+            // only Basic auth is supported currently
+            httpHeader.setValue(ProbeAuthenticationType.Basic.name() + " " +
+                    probeCredentialsSecret.getData().get(PROBE_CREDENTIALS_SECRET_KEY_NAME));
+        }
 
-		return httpHeader;
-	}
+        return httpHeader;
+    }
 
-	Integer getDefaultPort() {
-		return getContainerConfiguration().getExternalPort();
-	}
+    Integer getDefaultPort() {
+        return getContainerConfiguration().getExternalPort();
+    }
 
-	boolean useBoot1ProbePath() {
-		String bootMajorVersionProperty = KUBERNETES_DEPLOYER_PREFIX + ".bootMajorVersion";
-		String bootMajorVersionValue = getDeploymentPropertyValue(bootMajorVersionProperty);
+    boolean useBoot1ProbePath() {
+        String bootMajorVersionProperty = KUBERNETES_DEPLOYER_PREFIX + ".bootMajorVersion";
+        String bootMajorVersionValue = getDeploymentPropertyValue(bootMajorVersionProperty);
 
-		if (StringUtils.hasText(bootMajorVersionValue)) {
-			return Integer.parseInt(bootMajorVersionValue) == BOOT_1_MAJOR_VERSION;
-		}
+        if (StringUtils.hasText(bootMajorVersionValue)) {
+            return Integer.parseInt(bootMajorVersionValue) == BOOT_1_MAJOR_VERSION;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	// used to resolve deprecated HTTP probe property names that do not include "Http" in them
-	// can be removed when deprecated HTTP probes without "Http" in them get removed
-	String getProbePropertyName(String propertyPrefix, String propertySuffix) {
-		String propertyName = getDeploymentPropertyValue(propertyPrefix + propertySuffix);
-
-		if (StringUtils.hasText(propertyName)) {
-			return propertyName;
-		}
-
-		return getDeploymentPropertyValue(propertyPrefix + "Http" + propertySuffix);
-	}
 }

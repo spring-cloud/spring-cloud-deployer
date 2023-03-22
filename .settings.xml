@@ -12,7 +12,15 @@
 	  <id>spring</id>
 	  <activation><activeByDefault>true</activeByDefault></activation>
 	  <repositories>
-		<repository>
+		  <repository>
+			  <id>maven-central</id>
+			  <name>Maven Central</name>
+			  <url>https://repo.maven.apache.org/maven2</url>
+			  <snapshots>
+				  <enabled>false</enabled>
+			  </snapshots>
+		  </repository>
+		  <repository>
 			<id>spring-snapshots</id>
 			<name>Spring Snapshots</name>
 			<url>https://repo.spring.io/libs-snapshot</url>
@@ -20,7 +28,7 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-		<repository>
+		  <repository>
 			<id>spring-milestones</id>
 			<name>Spring Milestones</name>
 			<url>https://repo.spring.io/libs-milestone</url>
@@ -30,7 +38,15 @@
 		</repository>
 	  </repositories>
 	  <pluginRepositories>
-		<pluginRepository>
+		  <pluginRepository>
+			  <id>maven-central</id>
+			  <name>Maven Central</name>
+			  <url>https://repo.maven.apache.org/maven2</url>
+			  <snapshots>
+				  <enabled>false</enabled>
+			  </snapshots>
+		  </pluginRepository>
+		  <pluginRepository>
 			<id>spring-snapshots</id>
 			<name>Spring Snapshots</name>
 			<url>https://repo.spring.io/libs-snapshot</url>
@@ -38,7 +54,7 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</pluginRepository>
-		<pluginRepository>
+		  <pluginRepository>
 			<id>spring-milestones</id>
 			<name>Spring Milestones</name>
 			<url>https://repo.spring.io/libs-milestone</url>

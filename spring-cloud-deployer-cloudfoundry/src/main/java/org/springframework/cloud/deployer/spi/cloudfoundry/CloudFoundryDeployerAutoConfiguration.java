@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 
 /**
@@ -106,6 +107,17 @@ public class CloudFoundryDeployerAutoConfiguration {
 			operations,
 			runtimeEnvironmentInfo(AppDeployer.class, CloudFoundryAppDeployer.class)
 		);
+	}
+
+	@Bean
+	CloudFoundryActuatorTemplate actuatorOperations(RestTemplate actuatorRestTemplate, AppDeployer appDeployer) {
+		return new CloudFoundryActuatorTemplate(actuatorRestTemplate, appDeployer,
+				connectionConfiguration.appDeploymentProperties().getAppAdmin());
+	}
+
+	@Bean
+	RestTemplate actuatorRestTemplate() {
+		return new RestTemplate();
 	}
 
 	@Bean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.deployer.spi.app.AppAdmin;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
@@ -177,6 +178,8 @@ public class LocalDeployerProperties {
 	 */
 	private String hostname;
 
+	private AppAdmin appAdmin = new AppAdmin();
+
 	public LocalDeployerProperties() {
 	}
 
@@ -200,6 +203,7 @@ public class LocalDeployerProperties {
 		this.useSpringApplicationJson = from.isUseSpringApplicationJson();
 		this.workingDirectoriesRoot = Paths.get(from.getWorkingDirectoriesRoot().toUri());
 		this.hostname =from.getHostname();
+		this.appAdmin = from.appAdmin;
 	}
 
 	public static class PortRange {
@@ -491,6 +495,14 @@ public class LocalDeployerProperties {
 
 	public void setHealthProbe(HttpProbe healthProbe) {
 		this.healthProbe = healthProbe;
+	}
+
+	public AppAdmin getAppAdmin() {
+		return appAdmin;
+	}
+
+	public void setAppAdmin(AppAdmin appAdmin) {
+		this.appAdmin = appAdmin;
 	}
 
 	public static class HttpProbe {

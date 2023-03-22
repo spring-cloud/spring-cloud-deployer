@@ -35,10 +35,13 @@ jobs:
     - name: Configure JFrog Cli
       run: |
         jfrog rt mvnc \
+          --server-id-resolve=repo.spring.io \
           --server-id-deploy=repo.spring.io \
-          --repo-deploy-releases=libs-staging-local \
-          --repo-deploy-snapshots=libs-staging-local
-        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-27x-milestone >> $GITHUB_ENV
+          --repo-resolve-releases=libs-milestone \
+          --repo-resolve-snapshots=libs-snapshot \
+          --repo-deploy-releases=libs-milestone-local \
+          --repo-deploy-snapshots=libs-snapshot-local
+        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-main-milestone >> $GITHUB_ENV
         echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
 
     # zoo extract and ensure
@@ -72,9 +75,9 @@ jobs:
         jfrog rt mvn clean install \
           -gs .github/settings.xml \
           -P-spring,stagingmilestone \
-          -DskipTests -U -B
+          -DskipTests -U -B -T 0.5C
         jfrog rt build-publish
-        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-27x-milestone >> $GITHUB_ENV
+        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-main-milestone >> $GITHUB_ENV
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildnumber=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
 
     # zoo tag

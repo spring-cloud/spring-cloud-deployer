@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ import org.springframework.util.StringUtils;
  * @author Michael Minella
  * @author Glenn Renfro
  * @author Christian Tzolov
+ * @author David Turanski
  */
 public class LocalAppDeployer extends AbstractLocalDeployerSupport implements AppDeployer {
 
@@ -301,6 +302,8 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 			appInstanceEnv.put("SPRING_APPLICATION_INDEX", Integer.toString(index));
 			appInstanceEnv.put("SPRING_CLOUD_APPLICATION_GUID", guid);
 		}
+
+		this.getLocalDeployerProperties().getAppAdmin().addCredentialsToAppEnvironmentAsProperties(appInstanceEnv);
 
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		// WATCH OUT: The calcServerPort sets the computed port in the appInstanceEnv#SERVER_PORT_KEY.

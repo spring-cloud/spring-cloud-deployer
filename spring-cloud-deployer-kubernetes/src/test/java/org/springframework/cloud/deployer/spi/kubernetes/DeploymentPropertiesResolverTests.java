@@ -56,12 +56,12 @@ public class DeploymentPropertiesResolverTests {
 		DeploymentPropertiesResolver deploymentPropertiesResolver = getDeploymentPropertiesResolver(isDeprecated, kubernetesDeployerProperties);
 		Map<String, String> properties = new HashMap<>();
 		String taskServiceAccountName = deploymentPropertiesResolver.getTaskServiceAccountName(properties);
-		Assertions.assertThat(taskServiceAccountName).isNull();
+		Assertions.assertThat(taskServiceAccountName).isEqualTo("default");
 		if (isDeprecated) {
 			properties.put(KubernetesSchedulerProperties.KUBERNETES_SCHEDULER_PROPERTIES_PREFIX + ".taskServiceAccountName", "FOO");
 		}
 		else {
-			properties.put(KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".taskServiceAccountName", "FOO");
+			properties.put(KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".task-service-account-name", "FOO");
 		}
 		taskServiceAccountName = deploymentPropertiesResolver.getTaskServiceAccountName(properties);
 		Assertions.assertThat(taskServiceAccountName).isEqualTo("FOO");

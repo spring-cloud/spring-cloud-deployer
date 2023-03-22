@@ -1,5 +1,25 @@
 # spring.cloud.deployer.kubernetes.podSecurityContext:
 podSecurityContext:
-  runAsUser: 65534
   fsGroup: 65534
-  supplementalGroups: [65534,65535]
+  fsGroupChangePolicy: Always
+  runAsUser: 65534
+  runAsGroup: 65534
+  runAsNonRoot: true
+  seLinuxOptions:
+    level: "s0:c123,c456"
+  seccompProfile:
+    type: Localhost
+    localhostProfile: my-profiles/profile-allow.json
+  supplementalGroups:
+    - 65534
+    - 65535
+  sysctls:
+    - name: "kernel.shm_rmid_forced"
+      value: 0
+    - name: "net.core.somaxconn"
+      value: 1024
+  windowsOptions:
+    gmsaCredentialSpec: specA
+    gmsaCredentialSpecName: specA-name
+    hostProcess: true
+    runAsUserName: userA

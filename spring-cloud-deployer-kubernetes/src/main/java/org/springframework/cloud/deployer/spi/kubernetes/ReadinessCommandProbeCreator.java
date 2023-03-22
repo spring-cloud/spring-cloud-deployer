@@ -23,48 +23,51 @@ import org.springframework.util.StringUtils;
  * Creates a command based readiness probe
  *
  * @author Chris Schaefer
+ * @author Corneil du Plessis
  * @since 2.5
  */
 class ReadinessCommandProbeCreator extends CommandProbeCreator {
-	ReadinessCommandProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties, ContainerConfiguration containerConfiguration) {
-		super(kubernetesDeployerProperties, containerConfiguration);
-	}
+    ReadinessCommandProbeCreator(KubernetesDeployerProperties kubernetesDeployerProperties, ContainerConfiguration containerConfiguration) {
+        super(kubernetesDeployerProperties, containerConfiguration);
+    }
 
-	@Override
-	int getInitialDelay() {
-		String probeDelayValue = getDeploymentPropertyValue(READINESS_DEPLOYER_PROPERTY_PREFIX + "CommandProbeDelay");
+    @Override
+    int getInitialDelay() {
+        return getProbeIntProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Command", "ProbeDelay",
+                getKubernetesDeployerProperties().getReadinessCommandProbeDelay());
+    }
 
-		if (StringUtils.hasText(probeDelayValue)) {
-			return Integer.valueOf(probeDelayValue);
-		}
+    @Override
+    int getPeriod() {
+        return getProbeIntProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Command", "ProbePeriod",
+                getKubernetesDeployerProperties().getReadinessCommandProbePeriod());
+    }
 
-		return getKubernetesDeployerProperties().getReadinessCommandProbeDelay();
-	}
+    @Override
+    int getFailure() {
+        return getProbeIntProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Command", "ProbeFailure",
+                getKubernetesDeployerProperties().getReadinessCommandProbeFailure());
+    }
 
-	@Override
-	int getPeriod() {
-		String probePeriodValue = getDeploymentPropertyValue(READINESS_DEPLOYER_PROPERTY_PREFIX + "CommandProbePeriod");
+    @Override
+    int getSuccess() {
+        return getProbeIntProperty(READINESS_DEPLOYER_PROPERTY_PREFIX, "Command", "ProbeSuccess",
+                getKubernetesDeployerProperties().getReadinessCommandProbeSuccess());
+    }
 
-		if (StringUtils.hasText(probePeriodValue)) {
-			return Integer.valueOf(probePeriodValue);
-		}
+    @Override
+    String[] getCommand() {
+        String probeCommandValue = getDeploymentPropertyValue(READINESS_DEPLOYER_PROPERTY_PREFIX + "CommandProbeCommand");
 
-		return getKubernetesDeployerProperties().getReadinessCommandProbePeriod();
-	}
+        if (StringUtils.hasText(probeCommandValue)) {
+            return new CommandLineTokenizer(probeCommandValue).getArgs().toArray(new String[0]);
+        }
 
-	@Override
-	String[] getCommand() {
-		String probeCommandValue = getDeploymentPropertyValue(READINESS_DEPLOYER_PROPERTY_PREFIX + "CommandProbeCommand");
+        if (getKubernetesDeployerProperties().getReadinessCommandProbeCommand() != null) {
+            return new CommandLineTokenizer(getKubernetesDeployerProperties().getReadinessCommandProbeCommand())
+                    .getArgs().toArray(new String[0]);
+        }
 
-		if (StringUtils.hasText(probeCommandValue)) {
-			return new CommandLineTokenizer(probeCommandValue).getArgs().toArray(new String[0]);
-		}
-
-		if (getKubernetesDeployerProperties().getReadinessCommandProbeCommand() != null) {
-			return new CommandLineTokenizer(getKubernetesDeployerProperties().getReadinessCommandProbeCommand())
-					.getArgs().toArray(new String[0]);
-		}
-
-		throw new IllegalArgumentException("The readinessCommandProbeCommand property must be set.");
-	}
+        throw new IllegalArgumentException("The readinessCommandProbeCommand property must be set.");
+    }
 }

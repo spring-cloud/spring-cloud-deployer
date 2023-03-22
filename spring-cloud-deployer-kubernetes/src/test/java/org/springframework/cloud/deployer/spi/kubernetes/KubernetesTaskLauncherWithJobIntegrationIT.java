@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,53 +16,48 @@
 
 package org.springframework.cloud.deployer.spi.kubernetes;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.function.Consumer;
 
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.batch.Job;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.deployer.resource.docker.DockerResource;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
-import org.springframework.cloud.deployer.spi.task.TaskLauncher;
-import org.springframework.cloud.deployer.spi.test.AbstractTaskLauncherIntegrationJUnit5Tests;
-import org.springframework.cloud.deployer.spi.test.Timeout;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
-import static org.awaitility.Awaitility.await;
 
 /**
  * Integration tests for {@link KubernetesTaskLauncher} using jobs instead of bare pods.
  *
+ * <p>NOTE: The tests do not call {@code TaskLauncher.destroy/cleanup} in a finally block but instead rely on the
+ * {@link AbstractKubernetesTaskLauncherIntegrationTests#cleanupLingeringApps() AfterEach method} to clean any stray apps.
+ *
  * @author Leonardo Diniz
  * @author Chris Schaefer
  * @author Ilayaperumal Gopinathan
+ * @author Chris Bono
+ * @author Glenn Renfro
  */
 @SpringBootTest(classes = {KubernetesAutoConfiguration.class})
 @TestPropertySource(properties = "spring.cloud.deployer.kubernetes.create-job=true")
-public class KubernetesTaskLauncherWithJobIntegrationIT extends AbstractTaskLauncherIntegrationJUnit5Tests {
-
-	@Autowired
-	private TaskLauncher taskLauncher;
-
-	@Autowired
-	private KubernetesClient kubernetesClient;
+@ExtendWith(OutputCaptureExtension.class)
+public class KubernetesTaskLauncherWithJobIntegrationIT extends AbstractKubernetesTaskLauncherIntegrationTests {
 
 	@BeforeEach
 	public void setup() {
@@ -71,173 +66,136 @@ public class KubernetesTaskLauncherWithJobIntegrationIT extends AbstractTaskLaun
 		}
 	}
 
-	@Override
-	protected TaskLauncher provideTaskLauncher() {
-		return taskLauncher;
-	}
-
-	@Override
-	protected String randomName() {
-		return "task-" + UUID.randomUUID().toString().substring(0, 18);
-	}
-
-	@Override
-	protected Resource testApplication() {
-		return new DockerResource("springcloud/spring-cloud-deployer-spi-test-app:latest");
-	}
-
-	@Override
-	protected Timeout deploymentTimeout() {
-		return new Timeout(20, 5000);
+	@Test
+	void taskLaunchedWithJobAnnotations(TestInfo testInfo) {
+		logTestInfo(testInfo);
+		launchTaskJobAndValidateCreatedJobAndPodWithCleanup(
+				Collections.singletonMap("spring.cloud.deployer.kubernetes.jobAnnotations", "key1:val1,key2:val2,key3:val31:val32"),
+				(job) -> assertThat(job.getMetadata().getAnnotations()).isNotEmpty()
+						.contains(entry("key1", "val1"), entry("key2", "val2"), entry("key3", "val31:val32")),
+				(pod) -> assertThat(pod.getMetadata().getAnnotations()).isNotEmpty()
+						.contains(entry("key1", "val1"), entry("key2", "val2"), entry("key3", "val31:val32")));
 	}
 
 	@Test
-	@Override
-	@Disabled("Currently reported as failed instead of cancelled")
-	public void testSimpleCancel() throws InterruptedException {
-		super.testSimpleCancel();
+	void taskLaunchedWithJobSpecProperties(TestInfo testInfo) {
+		logTestInfo(testInfo);
+		Map<String, String> deploymentProps = new HashMap<>();
+		deploymentProps.put("spring.cloud.deployer.kubernetes.restartPolicy", "OnFailure");
+		deploymentProps.put("spring.cloud.deployer.kubernetes.backoffLimit", "5");
+		launchTaskJobAndValidateCreatedJobAndPodWithCleanup(
+				deploymentProps,
+				(job) -> assertThat(job.getSpec().getBackoffLimit()).isEqualTo(5),
+				(pod) -> {});
 	}
 
-	@Test
-	public void testJobAnnotations() {
-		log.info("Testing {}...", "JobAnnotations");
-
-		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-		kubernetesDeployerProperties.setCreateJob(true);
-
-		KubernetesTaskLauncher kubernetesTaskLauncher = new KubernetesTaskLauncher(kubernetesDeployerProperties,
-				new KubernetesTaskLauncherProperties(), kubernetesClient);
-
-		AppDefinition definition = new AppDefinition(randomName(), null);
+	private void launchTaskJobAndValidateCreatedJobAndPodWithCleanup(Map<String, String> deploymentProps,
+			Consumer<Job> assertingJobConsumer, Consumer<Pod> assertingPodConsumer) {
+		String taskName = randomName();
+		AppDefinition definition = new AppDefinition(taskName, null);
 		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProps);
 
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource,
-				Collections.singletonMap("spring.cloud.deployer.kubernetes.jobAnnotations",
-						"key1:val1,key2:val2,key3:val31:val32"));
+		log.info("Launching {}...", taskName);
+		String launchId = taskLauncher().launch(request);
+		awaitWithPollAndTimeout(deploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.launching));
 
-		log.info("Launching {}...", request.getDefinition().getName());
-
-		String launchId = kubernetesTaskLauncher.launch(request);
-		Timeout timeout = deploymentTimeout();
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.launching);
-        });
-
-		String taskName = request.getDefinition().getName();
-
-		log.info("Checking Job spec annotations of {}...", taskName);
-
-		List<Job> jobs = kubernetesClient.batch().jobs().withLabel("task-name", taskName).list().getItems();
-
+		log.info("Checking task Job for {}...", taskName);
+		List<Job> jobs = getJobsForTask(taskName);
 		assertThat(jobs).hasSize(1);
+		assertThat(jobs).singleElement().satisfies(assertingJobConsumer);
 
-		Map<String, String> jobAnnotations = jobs.get(0).getMetadata().getAnnotations();
-		assertThat(jobAnnotations).contains(entry("key1", "val1"), entry("key2", "val2"), entry("key3", "val31:val32"));
-
-		log.info("Checking Pod spec annotations of {}...", taskName);
-
-		List<Pod> pods = kubernetesClient.pods().withLabel("task-name", taskName).list().getItems();
-
+		log.info("Checking task Pod for {}...", taskName);
+		List<Pod> pods = getPodsForTask(taskName);
 		assertThat(pods).hasSize(1);
-
-		Map<String, String> podAnnotations = pods.get(0).getMetadata().getAnnotations();
-		assertThat(podAnnotations).contains(entry("key1", "val1"), entry("key2", "val2"), entry("key3", "val31:val32"));
+		assertThat(pods).singleElement().satisfies(assertingPodConsumer);
 
 		log.info("Destroying {}...", taskName);
-
-		timeout = undeploymentTimeout();
-		kubernetesTaskLauncher.destroy(taskName);
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown);
-        });
+		taskLauncher().destroy(taskName);
+		awaitWithPollAndTimeout(undeploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));
 	}
 
-
 	@Test
-	public void testJobSpecProperties() {
-		log.info("Testing {}...", "JobSpecProperties");
-
-		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-		kubernetesDeployerProperties.setCreateJob(true);
-
-		KubernetesTaskLauncher kubernetesTaskLauncher = new KubernetesTaskLauncher(kubernetesDeployerProperties,
-				new KubernetesTaskLauncherProperties(), this.kubernetesClient);
-
+	void taskLaunchedWithInvalidRestartPolicyThrowsException(TestInfo testInfo) {
+		logTestInfo(testInfo);
 		AppDefinition definition = new AppDefinition(randomName(), null);
 		Resource resource = testApplication();
-		Map<String, String> appRequest = new HashMap<>();
-		appRequest.put("spring.cloud.deployer.kubernetes.restartPolicy", "OnFailure");
-		appRequest.put("spring.cloud.deployer.kubernetes.backoffLimit", "5");
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, appRequest);
+		Map<String, String> deploymentProps = new HashMap<>();
+		deploymentProps.put("spring.cloud.deployer.kubernetes.restartPolicy", "Always");
+		deploymentProps.put("spring.cloud.deployer.kubernetes.backoffLimit", "5");
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProps);
 
 		log.info("Launching {}...", request.getDefinition().getName());
+		assertThatThrownBy(() -> taskLauncher.launch(request))
+				.isInstanceOf(Exception.class)
+				.hasMessage("RestartPolicy should not be 'Always' when the JobSpec is used.");
+	}
 
-		String launchId = kubernetesTaskLauncher.launch(request);
-		Timeout timeout = deploymentTimeout();
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.launching);
-        });
-
+	@Test
+	void cleanupDeletesTaskJob(TestInfo testInfo) {
+		logTestInfo(testInfo);
+		AppDefinition definition = new AppDefinition(randomName(), null);
+		Resource resource = testApplication();
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, null);
 		String taskName = request.getDefinition().getName();
 
-		log.info("Checking job spec of {}...", taskName);
+		log.info("Launching {}...", taskName);
+		String launchId = taskLauncher().launch(request);
+		awaitWithPollAndTimeout(deploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.launching));
 
-		List<Job> jobs = kubernetesClient.batch().jobs().withLabel("task-name", taskName).list().getItems();
-
+		List<Job> jobs = getJobsForTask(taskName);
 		assertThat(jobs).hasSize(1);
 
-		Job job = jobs.get(0);
-		assertThat(job.getSpec().getBackoffLimit()).isEqualTo(5);
+		log.info("Cleaning up {}...", taskName);
+		taskLauncher().cleanup(launchId);
+		awaitWithPollAndTimeout(undeploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));
 
-		log.info("Checking pod spec of {}...", taskName);
-
-		List<Pod> pods = kubernetesClient.pods().withLabel("task-name", taskName).list().getItems();
-
-		assertThat(pods).hasSize(1);
-
-		log.info("Destroying {}...", taskName);
-
-		timeout = undeploymentTimeout();
-		kubernetesTaskLauncher.destroy(taskName);
-
-		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
-                .untilAsserted(() -> {
-			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown);
-        });
+		jobs = getJobsForTask(taskName);
+		assertThat(jobs).isEmpty();
 	}
 
 	@Test
-	public void testJobSpecWithInvalidRestartPolicy() {
-		log.info("Testing {}...", "JobSpecWithInvalidRestartPolicy");
+	void cleanupForNonExistentTaskThrowsException(TestInfo testInfo, CapturedOutput taskOutput) {
+		logTestInfo(testInfo);
+		taskLauncher().cleanup("foo");
+		assertThat(taskOutput.getAll()).contains("Cannot delete job for task \"foo\" (reason: job does not exist)");
+	}
 
-		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-		kubernetesDeployerProperties.setCreateJob(true);
+	@Test
+	void deleteJobAfterTtlSecondsOnAfterFinishedExpire(TestInfo testInfo) {
+		logTestInfo(testInfo);
 
-		KubernetesTaskLauncher kubernetesTaskLauncher = new KubernetesTaskLauncher(kubernetesDeployerProperties,
-				new KubernetesTaskLauncherProperties(), this.kubernetesClient);
+		Map<String, String> applicationProps = new HashMap<>();
+		applicationProps.put("killDelay", "1");
+		AppDefinition definition = new AppDefinition(randomName(), applicationProps);
 
-		AppDefinition definition = new AppDefinition(randomName(), null);
 		Resource resource = testApplication();
-		Map<String, String> appRequest = new HashMap<>();
-		appRequest.put("spring.cloud.deployer.kubernetes.restartPolicy", "Always");
-		appRequest.put("spring.cloud.deployer.kubernetes.backoffLimit", "5");
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, appRequest);
 
-		log.info("Launching {}...", request.getDefinition().getName());
+		Map<String, String> deploymentProps = new HashMap<>();
+		deploymentProps.put("spring.cloud.deployer.kubernetes.restartPolicy", "Never");
+		deploymentProps.put("spring.cloud.deployer.kubernetes.backoffLimit", "0");
+		deploymentProps.put("spring.cloud.deployer.kubernetes.ttlSecondsAfterFinished", "3");
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProps);
+		String taskName = request.getDefinition().getName();
 
-		assertThatThrownBy(() -> {
-			kubernetesTaskLauncher.launch(request);
-		}).isInstanceOf(Exception.class)
-			.hasMessage("RestartPolicy should not be 'Always' when the JobSpec is used.");
+		log.info("Launching {}...", taskName);
+		String launchId = taskLauncher().launch(request);
+		awaitWithPollAndTimeout(deploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.launching));
+
+		List<Job> jobs = getJobsForTask(taskName);
+		assertThat(jobs).hasSize(1);
+
+		log.info("Waiting for deleting the job {}...", taskName);
+
+		awaitWithPollAndTimeout(undeploymentTimeout())
+				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));
+
+		jobs = getJobsForTask(taskName);
+		assertThat(jobs).isEmpty();
 	}
 }
