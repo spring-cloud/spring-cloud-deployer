@@ -1,0 +1,5 @@
+# spring.cloud.deployer.kubernetes.podSecurityContext:
+podSecurityContext:
+  runAsUser: 65534
+  fsGroup: 65534
+  supplementalGroups: [65534,65535]

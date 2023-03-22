@@ -1,0 +1,5 @@
+# spring.cloud.deployer.kubernetes.configMapKeyRefs:
+configMapKeyRefs:
+  - envVarName: "MY_ENV"
+    configMapName: "myConfigMap"
+    dataKey: "envName"
