@@ -1,0 +1,15 @@
+{
+  "hints": [
+    {
+      "name": "spring.cloud.deployer.local.debug-suspend",
+      "values": [
+        {
+          "value": "y"
+        },
+        {
+          "value": "n"
+        }
+      ]
+    }
+  ]
+}

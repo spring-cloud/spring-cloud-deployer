@@ -1,0 +1,6 @@
+# spring.cloud.deployer.kubernetes.tolerations:
+tolerations:
+  - key: "scdf"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"

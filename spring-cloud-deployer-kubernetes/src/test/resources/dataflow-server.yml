@@ -1,0 +1,15 @@
+# spring.cloud.deployer.kubernetes.volumes:
+volumes:
+  - name: testhostpath
+    hostPath:
+      path: /test/hostPath
+
+  - name: testpvc
+    persistentVolumeClaim:
+      claimName: testClaim
+      readOnly: true
+
+  - name: testnfs
+    nfs:
+      server: 10.0.0.1:111
+      path: /test/nfs
