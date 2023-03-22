@@ -36,6 +36,9 @@
 		<module>spring-cloud-deployer-spi-scheduler-test-app</module>
 		<module>spring-cloud-deployer-autoconfigure</module>
 		<module>spring-cloud-deployer-dependencies</module>
+		<module>spring-cloud-deployer-local</module>
+		<module>spring-cloud-deployer-kubernetes</module>
+		<module>spring-cloud-deployer-cloudfoundry</module>
 	</modules>
 
 	<dependencyManagement>
