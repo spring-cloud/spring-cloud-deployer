@@ -1,0 +1,21 @@
+{
+  "hints": [
+    {
+      "name": "spring.cloud.deployer.cloudfoundry.health-check",
+      "values": [
+        {
+          "value": "NONE"
+        },
+        {
+          "value": "HTTP"
+        },
+        {
+          "value": "PROCESS"
+        },
+        {
+          "value": "PORT"
+        }
+      ]
+    }
+  ]
+}

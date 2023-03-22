@@ -1,0 +1,104 @@
+= Spring Cloud Deployer for Cloud Foundry image:https://build.spring.io/plugins/servlet/wittified/build-status/SCD-DCF[Build Status, link=https://build.spring.io/browse/SCD-DCF]
+
+This project provides a common means to deploy applications to Cloud Foundry based on the Spring Cloud Deployer SPI.
+
+== Building
+
+Clone the repo and type
+
+----
+$ ./mvnw clean install
+----
+
+The project includes a set of integration tests that can be run against a Cloud Foundry installation, provided that
+connection information is correctly set. If credentials are not set correctly, those tests will be silently skipped.
+Below is a short list of common Spring Boot `@ConfigurationProperties` (in environment variable format) that you will
+need to set in order to deploy applications to Cloud Foundry:
+
+----
+# url of the CF API (used when using cf login -a for example)
+SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_URL
+
+# name of the space into which modules will be deployed
+SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SPACE
+
+# name of the organization that owns the space above
+SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_ORG
+
+# the root domain to use when mapping routes
+SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_DOMAIN
+
+# Comma separated set of service instance names to bind to the deployed app
+SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES
+
+# username and password of the user to use to create apps
+SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_USERNAME
+SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_PASSWORD
+
+# the identity provider to be used when accessing the Cloud Foundry API (optional)
+# the passed string has to be a URL-Encoded JSON Object, containing the field origin with value as origin_key of an identity provider.
+SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_LOGIN_HINT
+
+# whether to allow self-signed certificates during SSL validation
+SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SKIP_SSL_VALIDATION
+----
+
+Refer to `CloudFoundryDeploymentProperties.java` and `CloudFoundryConnectionProperties.java` for a complete listing.
+
+== Services, Disk and Memory Settings for Applications
+
+The deployer also supports setting the properties `spring.cloud.deployer.cloudfoundry.services`,
+`spring.cloud.deployer.cloudfoundry.memory`, and `spring.cloud.deployer.cloudfoundry.disk` as part of an individual
+deployment request.
+
+== Application Name Settings and Deployments
+
+To help avoid clashes with routes across spaces on Cloud Foundry, a naming strategy to provide a random prefix to a
+deployed application is available and is enabled by default.  There are two configuration properties,
+`enableRandomAppNamePrefix` and `appNamePrefix`.  The `appNamePrefix` property defaults to `spring.application.name`
+if present, otherwise defaults to an empty string.
+
+An application can have four possible "name" combinations. For instance, the `time` application can have name
+combinations as shown in the table below. The name of the deployed application is defined via deployer's high level API,
+ in this case it is 'time'.
+
+.Application Name
+|===
+|appNamePrefix | enableRandomAppNamePrefix | application name
+
+|server
+|true
+|server-u7r9fhm-time
+
+|<empty string>
+|true
+|u7r9fhm-time
+
+|server
+|false
+|server-time
+
+|<emtpy string>
+|false
+|time
+|===
+
+== Disable Push Task Applications
+
+If an application does not exist when the `TaskLauncher` `launch` method is invoked, the TaskLauncher by default pushes a task application using the `AppDeploymentRequest` `resource` property.
+
+The default behavior is disabled by setting `spring.cloud.deployer.cloudfoundry.push-task-apps-enabled` to `false`.
+In this case, the application must have already been pushed to CloudFoundry via an external process and the TaskLauncher simply starts it, providing any command line arguments defined in the deployment request.
+
+This is useful in cases in which the Cloud Foundry foundation is isolated from external code repositories.
+
+== Set Additional Environment Variables
+
+By default, the deployer adds global and application configuration properties to a single `SPRING_APPLICATION_JSON` environment variable entry in the application manifest.
+You can configure additional top-level environment variables in the manifest by setting `spring.cloud.deployer.cloudfoundry.env.<key>=<value>`.
+This is useful for adding https://github.com/cloudfoundry/java-buildpack[Java build pack configuration properties] to the application manifest since the Java build pack does not recognize `SPRING_APPLICATION_JSON`.
+
+
+
+
+

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{HH:mm:ss.SSS} %-25thread %-37logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="cloudfoundry-client" level="DEBUG"/>
+    <logger name="org.springframework.cloud.deployer" level="DEBUG"/>
+    <!--
+    <logger name="reactor.ipc.netty"   level="DEBUG"/>
+    <logger name="stream"              level="INFO"/>
+    -->
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>
