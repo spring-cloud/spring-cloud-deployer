@@ -8,7 +8,7 @@
 	</parent>
 	<artifactId>spring-cloud-deployer-spi-scheduler-test-app</artifactId>
 	<properties>
-		<spring-boot.version>2.7.9</spring-boot.version>
+		<spring-boot.version>2.7.10</spring-boot.version>
 		<start-class>org.springframework.cloud.deployer.spi.scheduler.test.app.SchedulerIntegrationTestApplication</start-class>
 		<java.version>1.8</java.version>
 		<docker.image.prefix>springcloud</docker.image.prefix>
@@ -36,6 +36,7 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring-boot.version}</version>
 				<executions>
 					<execution>
 						<goals>
