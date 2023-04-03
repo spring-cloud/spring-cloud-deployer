@@ -3,7 +3,7 @@ name: CI IT
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 1,3,5'
+    - cron: '0 5 * * 1,3,5'
 
 jobs:
   k8s-it:
