@@ -35,6 +35,7 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobList;
@@ -45,6 +46,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.fabric8.kubernetes.client.dsl.ScalableResource;
 import org.hashids.Hashids;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -393,11 +395,11 @@ public class KubernetesTaskLauncher extends AbstractKubernetesDeployer implement
 
 		if (jobsToDelete == null || ObjectUtils.isEmpty(jobsToDelete.list().getItems())) {
 			logger.warn(String.format("Cannot delete job for task \"%s\" (reason: job does not exist)", id));
+		} else {
+			logger.debug(String.format("Deleting job for task: %s", id));
+			boolean deleted = jobsToDelete.delete();
+			logger.debug(String.format("Job was%s deleted for task: %s", id, (deleted ? "" : " not")));
 		}
-
-		logger.debug(String.format("Deleting job for task: %s", id));
-		boolean deleted = jobsToDelete.delete();
-		logger.debug(String.format("Job was%s deleted for task: %s", id, (deleted ? "" : " not")));
 	}
 
 	private void deletePod(String id) {
