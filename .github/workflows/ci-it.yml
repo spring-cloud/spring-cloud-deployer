@@ -8,6 +8,10 @@ on:
 jobs:
   k8s-it:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        k8s_version: [ 'v1.23', 'v1.24', 'v1.25' ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -21,11 +25,11 @@ jobs:
           java-version: 1.8
       - uses: jvalkeal/setup-maven@v1
         with:
-          maven-version: 3.6.2
+          maven-version: 3.8.3
       - uses: manusa/actions-setup-minikube@v2.7.2
         with:
           minikube version: 'v1.28.0'
-          kubernetes version: 'v1.25.4'
+          kubernetes version: '${{ matrix.k8s_version }}'
           github token: ${{ secrets.GITHUB_TOKEN }}
       # build
       - name: Build
