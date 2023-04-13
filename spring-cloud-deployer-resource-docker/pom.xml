@@ -3,11 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-deployer-resource-docker</artifactId>
-	<groupId>org.springframework.cloud</groupId>
 	<packaging>jar</packaging>
-
-	<name>spring-cloud-deployer-resource-docker</name>
-	<description>Spring Cloud Deployer Docker Resource</description>
+	<name>Spring Cloud Deployer Resource Docker</name>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>

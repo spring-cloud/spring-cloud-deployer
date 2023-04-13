@@ -7,7 +7,7 @@
 	<groupId>org.springframework.cloud</groupId>
 	<packaging>pom</packaging>
 
-	<name>spring-cloud-deployer-parent</name>
+	<name>Spring Cloud Deployer</name>
 	<description>Spring Cloud Deployer</description>
 
 	<properties>

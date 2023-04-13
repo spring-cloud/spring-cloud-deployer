@@ -4,9 +4,7 @@
 
 	<artifactId>spring-cloud-deployer-resource-support</artifactId>
 	<packaging>jar</packaging>
-
-	<name>spring-cloud-deployer-resource-support</name>
-	<description>Spring Cloud Deployer Resource Support</description>
+	<name>Spring Cloud Deployer Resource Support</name>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>

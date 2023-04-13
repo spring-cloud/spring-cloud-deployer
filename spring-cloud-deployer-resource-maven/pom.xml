@@ -3,11 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-deployer-resource-maven</artifactId>
-	<groupId>org.springframework.cloud</groupId>
 	<packaging>jar</packaging>
-
-	<name>spring-cloud-deployer-resource-maven</name>
-	<description>Spring Cloud Deployer Maven Resource</description>
+	<name>Spring Cloud Deployer Resource Maven</name>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>

@@ -4,9 +4,7 @@
 
 	<artifactId>spring-cloud-deployer-local</artifactId>
 	<packaging>jar</packaging>
-
-	<name>spring-cloud-deployer-local</name>
-	<description>Spring Cloud Local Deployer</description>
+	<name>Spring Cloud Deployer Local</name>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>

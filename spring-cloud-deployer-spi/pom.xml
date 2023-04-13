@@ -4,9 +4,7 @@
 
 	<artifactId>spring-cloud-deployer-spi</artifactId>
 	<packaging>jar</packaging>
-
-	<name>spring-cloud-deployer-spi</name>
-	<description>Spring Cloud Deployer SPI</description>
+	<name>Spring Cloud Deployer SPI</name>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
