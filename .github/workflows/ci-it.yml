@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        k8s_version: [ 'v1.23.17', 'v1.24.12', 'v1.25.8' ]
+        k8s_version: [ 'v1.23.17', 'v1.24.12', 'v1.25.8', 'v1.26.4' ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -28,7 +28,7 @@ jobs:
           maven-version: 3.8.3
       - uses: manusa/actions-setup-minikube@v2.7.2
         with:
-          minikube version: 'v1.28.0'
+          minikube version: 'v1.30.1'
           kubernetes version: '${{ matrix.k8s_version }}'
           github token: ${{ secrets.GITHUB_TOKEN }}
       # build
