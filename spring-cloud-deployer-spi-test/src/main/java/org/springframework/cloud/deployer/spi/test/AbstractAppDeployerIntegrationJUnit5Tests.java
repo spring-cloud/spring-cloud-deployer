@@ -66,6 +66,7 @@ import static org.awaitility.Awaitility.await;
  * @author Mark Fisher
  * @author Greg Turnquist
  * @author David Turanski
+ * @author Corneil du Plessis
  */
 public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends AbstractIntegrationJUnit5Tests {
 
@@ -97,11 +98,11 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 	public void cleanupLingeringApps() {
 		for (String id : deployerWrapper.deployments) {
 			try {
-				log.warn("Test named {} left behind an app for deploymentId '{}', trying to cleanup", this.testName, id);
+				logger.warn("Test named {} left behind an app for deploymentId '{}', trying to cleanup", this.testName, id);
 				deployerWrapper.wrapped.undeploy(id);
 			}
 			catch (Exception e) {
-				log.warn("Exception caught while trying to cleanup '{}'. Moving on...", id);
+				logger.warn("Exception caught while trying to cleanup '{}'. Moving on...", id);
 			}
 		}
 	}
@@ -125,7 +126,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -136,13 +137,13 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		});
 
 
-		log.info("Deploying {} again...", request.getDefinition().getName());
+		logger.info("Deploying {} again...", request.getDefinition().getName());
 
 		assertThatThrownBy(() -> {
 			appDeployer().deploy(request);
 		}).isInstanceOf(IllegalStateException.class);
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -167,7 +168,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -177,7 +178,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -195,7 +196,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			Thread.currentThread().interrupt();
 		}
 
-		log.info("Deploying {} again...", request.getDefinition().getName());
+		logger.info("Deploying {} again...", request.getDefinition().getName());
 
 		// Attempt re-deploy of SAME request
 		String deploymentId2 = appDeployer().deploy(request);
@@ -206,7 +207,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId2).getState()).isEqualTo(DeploymentState.deployed);
 		});
 
-		log.info("Undeploying {}...", deploymentId2);
+		logger.info("Undeploying {}...", deploymentId2);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId2);
@@ -229,7 +230,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -239,7 +240,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deploying);
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -258,7 +259,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -268,7 +269,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.failed);
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -294,7 +295,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), deploymentProperties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -304,7 +305,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -322,7 +323,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 
 		request = new AppDeploymentRequest(definition, testApplication(), deploymentProperties);
 
-		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
+		logger.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
 		String deploymentId2 = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
@@ -332,7 +333,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId2).getState()).isEqualTo(DeploymentState.failed);
 		});
 
-		log.info("Undeploying {}...", deploymentId2);
+		logger.info("Undeploying {}...", deploymentId2);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId2);
@@ -357,7 +358,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		AppDeploymentRequest request =
 				new AppDeploymentRequest(definition, testApplication(), deploymentProperties, cmdLineArgs);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -367,7 +368,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -386,7 +387,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		request =
 				new AppDeploymentRequest(definition, testApplication(), deploymentProperties, cmdLineArgs);
 
-		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
+		logger.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
 		String deploymentId2 = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
@@ -396,7 +397,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId2).getState()).isEqualTo(DeploymentState.failed);
 		});
 
-		log.info("Undeploying {}...", deploymentId2);
+		logger.info("Undeploying {}...", deploymentId2);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId2);
@@ -424,7 +425,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		deploymentProperties.put(AppDeployer.INDEXED_PROPERTY_KEY, "true");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -444,7 +445,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		assertThat(individualStates).containsExactlyInAnyOrder(DeploymentState.deployed, DeploymentState.deployed,
 				DeploymentState.failed);
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -489,7 +490,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
 
-		log.info("Deploying {} index={}...", request.getDefinition().getName(), indexed);
+		logger.info("Deploying {} index={}...", request.getDefinition().getName(), indexed);
 
 		String deploymentId = appDeployer().deploy(request);
 
@@ -501,7 +502,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
 
-		log.info("Scaling {} to {} instances...", request.getDefinition().getName(), DESIRED_COUNT);
+		logger.info("Scaling {} to {} instances...", request.getDefinition().getName(), DESIRED_COUNT);
 
 		appDeployer().scale(new AppScaleRequest(deploymentId, DESIRED_COUNT));
 
@@ -524,7 +525,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 
 		assertThat(individualStates).allMatch(is -> is == DeploymentState.deployed);
 
-		log.info("Scaling {} from {} to 1 instance...", request.getDefinition().getName(), DESIRED_COUNT);
+		logger.info("Scaling {} from {} to 1 instance...", request.getDefinition().getName(), DESIRED_COUNT);
 
 		appDeployer().scale(new AppScaleRequest(deploymentId, 1));
 
@@ -540,7 +541,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 			assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(1);
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);

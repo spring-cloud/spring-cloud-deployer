@@ -57,7 +57,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(classes = AbstractIntegrationTests.Config.class)
 public abstract class AbstractIntegrationJUnit5Tests {
 
-	protected final Logger log = LoggerFactory.getLogger(this.getClass());
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     protected String testName;
 
@@ -67,9 +67,7 @@ public abstract class AbstractIntegrationJUnit5Tests {
 	@BeforeEach
 	public void setup(TestInfo testInfo) {
         Optional<Method> testMethod = testInfo.getTestMethod();
-        if (testMethod.isPresent()) {
-            this.testName = testMethod.get().getName();
-        }
+		testMethod.ifPresent(method -> this.testName = method.getName());
 	}
 
 	protected String randomName() {
