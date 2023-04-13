@@ -90,7 +90,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 
 	@Test
 	public void testJobPodAnnotation() {
-		log.info("Testing {}...", "JobPodAnnotation");
+		logger.info("Testing {}...", "JobPodAnnotation");
 
 		KubernetesTaskLauncher kubernetesTaskLauncher = new KubernetesTaskLauncher(new KubernetesDeployerProperties(),
 				new KubernetesTaskLauncherProperties(), kubernetesClient);
@@ -100,7 +100,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource,
 				Collections.singletonMap("spring.cloud.deployer.kubernetes.jobAnnotations", "key1:val1,key2:val2,key3:val31:val32"));
 
-		log.info("Launching {}...", request.getDefinition().getName());
+		logger.info("Launching {}...", request.getDefinition().getName());
 
 		String launchId = kubernetesTaskLauncher.launch(request);
 		Timeout timeout = deploymentTimeout();
@@ -113,7 +113,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 
 		String taskName = request.getDefinition().getName();
 
-		log.info("Checking job pod spec annotations of {}...", taskName);
+		logger.info("Checking job pod spec annotations of {}...", taskName);
 
 		List<Pod> pods = kubernetesClient.pods().withLabel("task-name", taskName).list().getItems();
 
@@ -127,7 +127,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 
 		assertThat(annotations).contains(entry("key1", "val1"), entry("key2", "val2"), entry("key3", "val31:val32"));
 
-		log.info("Destroying {}...", taskName);
+		logger.info("Destroying {}...", taskName);
 
 		timeout = undeploymentTimeout();
 		kubernetesTaskLauncher.destroy(taskName);
@@ -141,7 +141,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 
 	@Test
 	public void testDeploymentLabels() {
-		log.info("Testing {}...", "deploymentLabels");
+		logger.info("Testing {}...", "deploymentLabels");
 
 		KubernetesTaskLauncher kubernetesTaskLauncher = new KubernetesTaskLauncher(new KubernetesDeployerProperties(),
 				new KubernetesTaskLauncherProperties(), kubernetesClient);
@@ -151,7 +151,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource,
 				Collections.singletonMap("spring.cloud.deployer.kubernetes.deploymentLabels", "label1:value1,label2:value2"));
 
-		log.info("Launching {}...", request.getDefinition().getName());
+		logger.info("Launching {}...", request.getDefinition().getName());
 
 		String launchId = kubernetesTaskLauncher.launch(request);
 		Timeout timeout = deploymentTimeout();
@@ -164,7 +164,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 
 		String taskName = request.getDefinition().getName();
 
-		log.info("Checking job pod spec labels of {}...", taskName);
+		logger.info("Checking job pod spec labels of {}...", taskName);
 
 		List<Pod> pods = kubernetesClient.pods().withLabel("task-name", taskName).list().getItems();
 
@@ -178,7 +178,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 
 		assertThat(labels).contains(entry("label1", "value1"), entry("label2", "value2"));
 
-		log.info("Destroying {}...", taskName);
+		logger.info("Destroying {}...", taskName);
 
 		timeout = undeploymentTimeout();
 		kubernetesTaskLauncher.destroy(taskName);
@@ -192,7 +192,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 
 	@Test
 	public void testTaskAdditionalContainer() {
-		log.info("Testing {}...", "TaskAdditionalContainer");
+		logger.info("Testing {}...", "TaskAdditionalContainer");
 
 		KubernetesTaskLauncher kubernetesTaskLauncher = new KubernetesTaskLauncher(new KubernetesDeployerProperties(),
 				new KubernetesTaskLauncherProperties(), kubernetesClient);
@@ -203,7 +203,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 				"[{name: 'test', image: 'busybox:latest', command: ['sh', '-c', 'echo hello']}]");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-		log.info("Launching {}...", request.getDefinition().getName());
+		logger.info("Launching {}...", request.getDefinition().getName());
 
 		String launchId = kubernetesTaskLauncher.launch(request);
 		Timeout timeout = deploymentTimeout();
@@ -236,7 +236,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 
 		assertThat(commands).contains("sh", "-c", "echo hello");
 
-		log.info("Destroying {}...", taskName);
+		logger.info("Destroying {}...", taskName);
 
 		timeout = undeploymentTimeout();
 		kubernetesTaskLauncher.destroy(taskName);

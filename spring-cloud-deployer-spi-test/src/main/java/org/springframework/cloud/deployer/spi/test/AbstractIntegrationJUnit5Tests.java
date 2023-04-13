@@ -57,7 +57,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(classes = AbstractIntegrationTests.Config.class)
 public abstract class AbstractIntegrationJUnit5Tests {
 
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
     protected String testName;
 

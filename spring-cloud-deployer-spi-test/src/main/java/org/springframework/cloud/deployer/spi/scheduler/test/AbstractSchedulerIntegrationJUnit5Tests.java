@@ -67,6 +67,7 @@ import static org.awaitility.Awaitility.await;
  *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
+ * @author Corneil du Plessis
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)

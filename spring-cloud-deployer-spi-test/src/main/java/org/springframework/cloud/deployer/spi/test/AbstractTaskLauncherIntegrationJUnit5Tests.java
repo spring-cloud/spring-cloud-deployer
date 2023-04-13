@@ -93,16 +93,16 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 				launcherWrapper.wrapped.cleanup(id);
 			}
 			catch (Exception e) {
-				logger.warn("Exception caught while trying to cleanup '{}'. Moving on...", id);
+				log.warn("Exception caught while trying to cleanup '{}'. Moving on...", id);
 			}
 		}
 		for (String appName : launcherWrapper.deployedApps) {
 			try {
-				logger.warn("Test named '{}' left behind an app for ''. Trying to destroy.", this.testName, appName);
+				log.warn("Test named '{}' left behind an app for ''. Trying to destroy.", this.testName, appName);
 				launcherWrapper.wrapped.destroy(appName);
 			}
 			catch (Exception e) {
-				logger.warn("Exception caught while trying to destroy '{}'. Moving on...", appName);
+				log.warn("Exception caught while trying to destroy '{}'. Moving on...", appName);
 			}
 		}
 	}
@@ -121,7 +121,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		logger.info("Launching {}...", request.getDefinition().getName());
+		log.info("Launching {}...", request.getDefinition().getName());
 		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
@@ -143,7 +143,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		logger.info("Launching {}...", request.getDefinition().getName());
+		log.info("Launching {}...", request.getDefinition().getName());
 		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
@@ -153,7 +153,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.complete);
         });
 
-		logger.info("Re-Launching {}...", request.getDefinition().getName());
+		log.info("Re-Launching {}...", request.getDefinition().getName());
 		String newLaunchId = taskLauncher().launch(request);
 
 		assertThat(newLaunchId).isNotEqualTo(launchId);
@@ -177,7 +177,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		logger.info("Launching {}...", request.getDefinition().getName());
+		log.info("Launching {}...", request.getDefinition().getName());
 		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
@@ -199,7 +199,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		logger.info("Launching {}...", request.getDefinition().getName());
+		log.info("Launching {}...", request.getDefinition().getName());
 		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
@@ -209,7 +209,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running);
         });
 
-		logger.info("Cancelling {}...", request.getDefinition().getName());
+		log.info("Cancelling {}...", request.getDefinition().getName());
 		taskLauncher().cancel(launchId);
 
 		timeout = undeploymentTimeout();
@@ -233,7 +233,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, Collections.<String, String>emptyMap(),
 				Collections.singletonList("--exitCode=0"));
-		logger.info("Launching {}...", request.getDefinition().getName());
+		log.info("Launching {}...", request.getDefinition().getName());
 		String deploymentId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();

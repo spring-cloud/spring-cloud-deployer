@@ -55,7 +55,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(classes = AbstractIntegrationTests.Config.class)
 public abstract class AbstractIntegrationTests {
 
-	protected final Logger log = LoggerFactory.getLogger(this.getClass());
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Rule
 	public TestName name = new TestName();

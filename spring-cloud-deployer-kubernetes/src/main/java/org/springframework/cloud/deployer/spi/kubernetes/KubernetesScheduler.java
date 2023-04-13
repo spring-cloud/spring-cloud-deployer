@@ -26,10 +26,9 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.StatusCause;
-import io.fabric8.kubernetes.api.model.StatusDetails;
-import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
-import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.CronJobList;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 
@@ -157,7 +156,7 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 
 	@Override
 	public void unschedule(String scheduleName) {
-		boolean unscheduled = this.client.batch().v1().cronjobs().withName(scheduleName).delete();
+		boolean unscheduled = this.client.batch().cronjobs().withName(scheduleName).delete();
 
 		if (!unscheduled) {
 			throw new SchedulerException("Failed to unschedule schedule " + scheduleName + " does not exist.");
@@ -174,7 +173,7 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 
 	@Override
 	public List<ScheduleInfo> list() {
-		CronJobList cronJobList = this.client.batch().v1().cronjobs().list();
+		CronJobList cronJobList = this.client.batch().cronjobs().list();
 
 		List<CronJob> cronJobs = cronJobList.getItems();
 		List<ScheduleInfo> scheduleInfos = new ArrayList<>();
@@ -245,7 +244,7 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 
 		setImagePullSecret(scheduleRequest, cronJob);
 
-		return this.client.batch().v1().cronjobs().create(cronJob);
+		return this.client.batch().cronjobs().create(cronJob);
 	}
 
 	protected String getExceptionMessageForField(KubernetesClientException clientException,

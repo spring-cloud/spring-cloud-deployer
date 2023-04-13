@@ -75,10 +75,11 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Ilayaperumal Gopinathan
  * @author Donovan Muller
+ * @author Corneil du Plessis
  */
 class MavenArtifactResolver {
 
-	private static final Logger log = LoggerFactory.getLogger(MavenArtifactResolver.class);
+	private static final Logger logger = LoggerFactory.getLogger(MavenArtifactResolver.class);
 
 	private static final String DEFAULT_CONTENT_TYPE = "default";
 
@@ -98,9 +99,9 @@ class MavenArtifactResolver {
 	public MavenArtifactResolver(final MavenProperties properties) {
 		Assert.notNull(properties, "MavenProperties must not be null");
 		Assert.notNull(properties.getLocalRepository(), "Local repository path cannot be null");
-		if (log.isDebugEnabled()) {
-			log.debug("Local repository: " + properties.getLocalRepository());
-			log.debug("Remote repositories: " +
+		if (logger.isDebugEnabled()) {
+			logger.debug("Local repository: " + properties.getLocalRepository());
+			logger.debug("Remote repositories: " +
 					StringUtils.collectionToCommaDelimitedString(properties.getRemoteRepositories().keySet()));
 		}
 		this.properties = properties;

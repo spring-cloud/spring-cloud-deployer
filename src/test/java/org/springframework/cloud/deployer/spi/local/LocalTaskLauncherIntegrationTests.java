@@ -93,7 +93,7 @@ public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherInteg
 	@Override
 	protected Resource testApplication() {
 		if (useDocker) {
-			log.info("Using Docker image for tests");
+			logger.info("Using Docker image for tests");
 			return new DockerResource("springcloud/spring-cloud-deployer-spi-test-app:latest");
 		}
 		return super.testApplication();
@@ -290,7 +290,7 @@ public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherInteg
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, this.testApplication(), deploymentProperties, commandLineArgs);
 
 
-		this.log.info("Launching {}...", request.getDefinition().getName());
+		this.logger.info("Launching {}...", request.getDefinition().getName());
 
 		String launchId = this.taskLauncher().launch(request);
 		Timeout timeout = this.deploymentTimeout();

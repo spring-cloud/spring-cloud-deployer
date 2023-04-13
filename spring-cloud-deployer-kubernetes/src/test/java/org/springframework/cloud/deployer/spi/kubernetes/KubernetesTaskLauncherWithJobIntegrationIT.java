@@ -96,22 +96,22 @@ public class KubernetesTaskLauncherWithJobIntegrationIT extends AbstractKubernet
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProps);
 
-		logger.info("Launching {}...", taskName);
+		log.info("Launching {}...", taskName);
 		String launchId = taskLauncher().launch(request);
 		awaitWithPollAndTimeout(deploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.launching));
 
-		logger.info("Checking task Job for {}...", taskName);
+		log.info("Checking task Job for {}...", taskName);
 		List<Job> jobs = getJobsForTask(taskName);
 		assertThat(jobs).hasSize(1);
 		assertThat(jobs).singleElement().satisfies(assertingJobConsumer);
 
-		logger.info("Checking task Pod for {}...", taskName);
+		log.info("Checking task Pod for {}...", taskName);
 		List<Pod> pods = getPodsForTask(taskName);
 		assertThat(pods).hasSize(1);
 		assertThat(pods).singleElement().satisfies(assertingPodConsumer);
 
-		logger.info("Destroying {}...", taskName);
+		log.info("Destroying {}...", taskName);
 		taskLauncher().destroy(taskName);
 		awaitWithPollAndTimeout(undeploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));
@@ -127,7 +127,7 @@ public class KubernetesTaskLauncherWithJobIntegrationIT extends AbstractKubernet
 		deploymentProps.put("spring.cloud.deployer.kubernetes.backoffLimit", "5");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProps);
 
-		logger.info("Launching {}...", request.getDefinition().getName());
+		log.info("Launching {}...", request.getDefinition().getName());
 		assertThatThrownBy(() -> taskLauncher.launch(request))
 				.isInstanceOf(Exception.class)
 				.hasMessage("RestartPolicy should not be 'Always' when the JobSpec is used.");
@@ -141,7 +141,7 @@ public class KubernetesTaskLauncherWithJobIntegrationIT extends AbstractKubernet
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, null);
 		String taskName = request.getDefinition().getName();
 
-		logger.info("Launching {}...", taskName);
+		log.info("Launching {}...", taskName);
 		String launchId = taskLauncher().launch(request);
 		awaitWithPollAndTimeout(deploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.launching));
@@ -149,7 +149,7 @@ public class KubernetesTaskLauncherWithJobIntegrationIT extends AbstractKubernet
 		List<Job> jobs = getJobsForTask(taskName);
 		assertThat(jobs).hasSize(1);
 
-		logger.info("Cleaning up {}...", taskName);
+		log.info("Cleaning up {}...", taskName);
 		taskLauncher().cleanup(launchId);
 		awaitWithPollAndTimeout(undeploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));
@@ -182,7 +182,7 @@ public class KubernetesTaskLauncherWithJobIntegrationIT extends AbstractKubernet
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProps);
 		String taskName = request.getDefinition().getName();
 
-		logger.info("Launching {}...", taskName);
+		log.info("Launching {}...", taskName);
 		String launchId = taskLauncher().launch(request);
 		awaitWithPollAndTimeout(deploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.launching));
@@ -190,7 +190,7 @@ public class KubernetesTaskLauncherWithJobIntegrationIT extends AbstractKubernet
 		List<Job> jobs = getJobsForTask(taskName);
 		assertThat(jobs).hasSize(1);
 
-		logger.info("Waiting for deleting the job {}...", taskName);
+		log.info("Waiting for deleting the job {}...", taskName);
 
 		awaitWithPollAndTimeout(undeploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));

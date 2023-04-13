@@ -101,17 +101,17 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractKubernetesTaskL
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProps);
 
-		logger.info("Launching {}...", taskName);
+		log.info("Launching {}...", taskName);
 		String launchId = taskLauncher().launch(request);
 		awaitWithPollAndTimeout(deploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running));
 
-		logger.info("Checking task Pod for {}...", taskName);
+		log.info("Checking task Pod for {}...", taskName);
 		List<Pod> pods = getPodsForTask(taskName);
 		assertThat(pods).hasSize(1);
 		assertThat(pods).singleElement().satisfies(assertingConsumer);
 
-		logger.info("Destroying {}...", taskName);
+		log.info("Destroying {}...", taskName);
 		taskLauncher().destroy(taskName);
 		awaitWithPollAndTimeout(undeploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));
@@ -125,7 +125,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractKubernetesTaskL
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, null);
 		String taskName = request.getDefinition().getName();
 
-		logger.info("Launching {}...", taskName);
+		log.info("Launching {}...", taskName);
 		String launchId = taskLauncher().launch(request);
 		awaitWithPollAndTimeout(deploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running));
@@ -134,7 +134,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractKubernetesTaskL
 		assertThat(pods).hasSize(1);
 		assertThat(PodStatusUtil.isRunning(pods.get(0))).isTrue();
 
-		logger.info("Cleaning up {}...", taskName);
+		log.info("Cleaning up {}...", taskName);
 		taskLauncher().cleanup(launchId);
 		awaitWithPollAndTimeout(undeploymentTimeout())
 				.untilAsserted(() -> assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown));

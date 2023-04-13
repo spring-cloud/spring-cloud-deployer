@@ -79,13 +79,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.deployer.resource.docker.DockerResource;
 import org.springframework.cloud.deployer.spi.app.AppAdmin;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
-import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppScaleRequest;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.kubernetes.KubernetesDeployerProperties.InitContainer;
 import org.springframework.cloud.deployer.spi.test.AbstractAppDeployerIntegrationJUnit5Tests;
 import org.springframework.cloud.deployer.spi.test.Timeout;
 import org.springframework.core.ParameterizedTypeReference;
@@ -100,10 +98,8 @@ import org.springframework.web.client.RestTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 
 /**
  * Integration tests for {@link KubernetesAppDeployer}.
@@ -140,7 +136,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
     @Test
     public void testScaleStatefulSet() {
-        logger.info("Testing {}...", "ScaleStatefulSet");
+        log.info("Testing {}...", "ScaleStatefulSet");
         KubernetesAppDeployer appDeployer = kubernetesAppDeployer();
 
         AppDefinition definition = new AppDefinition(randomName(), null);
@@ -152,18 +148,22 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         Timeout timeout = deploymentTimeout();
         String deploymentId = appDeployer.deploy(request);
 
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         // assertThat(deploymentId, eventually(appInstanceCount(is(3))));
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(3));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(3);
+                });
 
         // Ensure that a StatefulSet is deployed
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
@@ -177,11 +177,13 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Assertions.assertThat(statefulSetSpec.getServiceName()).isEqualTo(deploymentId);
         Assertions.assertThat(statefulSet.getMetadata().getName()).isEqualTo(deploymentId);
 
-        logger.info("Scale Down {}...", request.getDefinition().getName());
+        log.info("Scale Down {}...", request.getDefinition().getName());
         appDeployer.scale(new AppScaleRequest(deploymentId, 1));
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(1));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(1);
+                });
 
         statefulSets = kubernetesClient.apps().statefulSets().withLabels(selector).list().getItems();
         assertThat(statefulSets).hasSize(1);
@@ -195,7 +197,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
     @Test
     public void testScaleDeployment() {
-        logger.info("Testing {}...", "ScaleDeployment");
+        log.info("Testing {}...", "ScaleDeployment");
         KubernetesAppDeployer appDeployer = kubernetesAppDeployer();
 
         AppDefinition definition = new AppDefinition(randomName(), null);
@@ -203,42 +205,50 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, Collections.emptyMap());
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         Timeout timeout = deploymentTimeout();
         String deploymentId = appDeployer.deploy(request);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(1));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(1);
+                });
 
-        logger.info("Scale Up {}...", request.getDefinition().getName());
+        log.info("Scale Up {}...", request.getDefinition().getName());
         appDeployer.scale(new AppScaleRequest(deploymentId, 3));
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(3));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(3);
+                });
 
-        logger.info("Scale Down {}...", request.getDefinition().getName());
+        log.info("Scale Down {}...", request.getDefinition().getName());
         appDeployer.scale(new AppScaleRequest(deploymentId, 1));
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(1));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(1);
+                });
 
         appDeployer.undeploy(deploymentId);
     }
 
     @Test
     public void testScaleWithNonExistingApps() {
-        assertThatThrownBy(() ->
-            appDeployer.scale(new AppScaleRequest("Fake App", 10))
-        ).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> {
+            appDeployer.scale(new AppScaleRequest("Fake App", 10));
+        }).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void testFailedDeploymentWithLoadBalancer() {
-        logger.info("Testing {}...", "FailedDeploymentWithLoadBalancer");
+        log.info("Testing {}...", "FailedDeploymentWithLoadBalancer");
         KubernetesDeployerProperties deployProperties = new KubernetesDeployerProperties();
         deployProperties.setCreateLoadBalancer(true);
         deployProperties.setLivenessHttpProbePeriod(10);
@@ -256,25 +266,29 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
 
         String deploymentId = lbAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.failed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.failed);
+                });
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         lbAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testGoodDeploymentWithLoadBalancer() {
-        logger.info("Testing {}...", "GoodDeploymentWithLoadBalancer");
+        log.info("Testing {}...", "GoodDeploymentWithLoadBalancer");
         KubernetesDeployerProperties deployProperties = new KubernetesDeployerProperties();
         deployProperties.setCreateLoadBalancer(true);
         deployProperties.setMinutesToWaitForLoadBalancer(1);
@@ -284,26 +298,30 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = lbAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         lbAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
     }
 
     @Test
     @Disabled("Disabled until we can test lbs")
     public void testDeploymentWithLoadBalancerHasUrlAndAnnotation() {
-        logger.info("Testing {}...", "DeploymentWithLoadBalancerShowsUrl");
+        log.info("Testing {}...", "DeploymentWithLoadBalancerShowsUrl");
         KubernetesDeployerProperties deployProperties = new KubernetesDeployerProperties();
         deployProperties.setCreateLoadBalancer(true);
         deployProperties.setMinutesToWaitForLoadBalancer(1);
@@ -314,23 +332,27 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource,
                 Collections.singletonMap("spring.cloud.deployer.kubernetes.serviceAnnotations", "foo:bar,fab:baz"));
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = lbAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
-        logger.info("Checking instance attributes of {}...", request.getDefinition().getName());
+        log.info("Checking instance attributes of {}...", request.getDefinition().getName());
         AppStatus status = lbAppDeployer.status(deploymentId);
         for (String inst : status.getInstances().keySet()) {
             appDeployer().status(deploymentId).getInstances().get(inst);
             await().pollInterval(Duration.ofMillis(timeout.pause))
-                    .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                    .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getInstances().get(inst).getAttributes()).containsKey("url"));
+                    .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                    .untilAsserted(() -> {
+                        assertThat(appDeployer().status(deploymentId).getInstances().get(inst).getAttributes()).containsKey("url");
+                    });
 
         }
-        logger.info("Checking service annotations of {}...", request.getDefinition().getName());
+        log.info("Checking service annotations of {}...", request.getDefinition().getName());
         Map<String, String> annotations = kubernetesClient.services().withName(request.getDefinition().getName()).get()
                 .getMetadata().getAnnotations();
         assertThat(annotations).isNotNull();
@@ -340,17 +362,19 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(annotations).containsKey("fab");
         assertThat(annotations.get("fab")).isEqualTo("baz");
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         lbAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testAttributes() {
-        logger.info("Testing {}...", "Attributes");
+        log.info("Testing {}...", "Attributes");
         KubernetesDeployerProperties properties = new KubernetesDeployerProperties();
         AppAdmin appAdmin = new AppAdmin();
         appAdmin.setUser("user");
@@ -362,36 +386,38 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = appDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
                 .untilAsserted(() -> {
                     assertThat(appDeployer.status(deploymentId).getInstances().values().stream()
-                            .map(AppInstanceStatus::getAttributes).filter(a ->
+                            .map(ais -> ais.getAttributes()).filter(a ->
                                     StringUtils.hasText(a.get("pod.ip")))
                             .findFirst()).isPresent();
                     assertThat(appDeployer.status(deploymentId).getInstances().values().stream()
-                            .map(AppInstanceStatus::getAttributes).filter(a ->
+                            .map(ais -> ais.getAttributes()).filter(a ->
                                     StringUtils.hasText(a.get("actuator.path")))
                             .map(a -> a.get("actuator.path"))
-                            .findFirst().orElse(null)).isEqualTo("/actuator");
+                            .findFirst().get()).isEqualTo("/actuator");
 
                     assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
                 });
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testDeploymentWithPodAnnotation() {
-        logger.info("Testing {}...", "DeploymentWithPodAnnotation");
+        log.info("Testing {}...", "DeploymentWithPodAnnotation");
         KubernetesAppDeployer appDeployer = kubernetesAppDeployer();
 
         AppDefinition definition = new AppDefinition(randomName(), null);
@@ -400,14 +426,16 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 Collections.singletonMap("spring.cloud.deployer.kubernetes.podAnnotations",
                         "iam.amazonaws.com/role:role-arn,foo:bar"));
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = appDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
-        logger.info("Checking pod spec annotations of {}...", request.getDefinition().getName());
+        log.info("Checking pod spec annotations of {}...", request.getDefinition().getName());
 
         List<Pod> pods = kubernetesClient.pods().withLabel("spring-deployment-id", request.getDefinition()
                 .getName()).list().getItems();
@@ -416,24 +444,26 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         Pod pod = pods.get(0);
         Map<String, String> annotations = pod.getMetadata().getAnnotations();
-        logger.info("Number of annotations found" + annotations.size());
+        log.info("Number of annotations found" + annotations.size());
         for (Map.Entry<String, String> annotationsEntry : annotations.entrySet()) {
-            logger.info("Annotation key: " + annotationsEntry.getKey());
+            log.info("Annotation key: " + annotationsEntry.getKey());
         }
         assertThat(annotations.get("iam.amazonaws.com/role")).isEqualTo("role-arn");
         assertThat(annotations.get("foo")).isEqualTo("bar");
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
-    public void testDeploymentWithMountedHostPathVolume() {
-        logger.info("Testing {}...", "DeploymentWithMountedVolume");
+    public void testDeploymentWithMountedHostPathVolume() throws IOException {
+        log.info("Testing {}...", "DeploymentWithMountedVolume");
         String containerPath = "/tmp/";
         String subPath = randomName();
         String mountName = "mount";
@@ -455,12 +485,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = lbAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
         PodSpec spec = kubernetesClient.pods().withLabels(selector).list().getItems().get(0).getSpec();
@@ -472,12 +504,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(volume.getHostPath()).isNotNull();
         assertThat(hostPathVolumeSource.getPath()).isEqualTo(volume.getHostPath().getPath());
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         lbAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     private void verifyAppEnv(String appId) {
@@ -528,14 +562,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                     svc = kubernetesClient.services().withName(appId).get();
                 }
             }
-            logger.debug(String.format("LoadBalancer Ingress: %s",
+            log.debug(String.format("LoadBalancer Ingress: %s",
                     svc.getStatus().getLoadBalancer().getIngress().toString()));
         }
 
         assertThat(success).as("cannot get service information for " + appId).isFalse();
 
         String url = String.format("http://%s:%d/actuator/env", ip, port);
-        logger.debug("getting app environment from " + url);
+        log.debug("getting app environment from " + url);
         restTemplate = new RestTemplate();
 
         ResponseEntity<LinkedHashMap<String, ArrayList<LinkedHashMap>>> response = restTemplate.exchange(url,
@@ -574,8 +608,8 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
     @Test
     @Disabled("Disabled until we can test lbs")
-    public void testDeploymentWithGroupAndIndex() {
-        logger.info("Testing {}...", "DeploymentWithWithGroupAndIndex");
+    public void testDeploymentWithGroupAndIndex() throws IOException {
+        log.info("Testing {}...", "DeploymentWithWithGroupAndIndex");
         KubernetesDeployerProperties deployProperties = new KubernetesDeployerProperties();
         deployProperties.setCreateLoadBalancer(true);
         deployProperties.setMinutesToWaitForLoadBalancer(1);
@@ -592,12 +626,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = testAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
         PodSpec spec = kubernetesClient.pods().withLabels(selector).list().getItems().get(0).getSpec();
@@ -609,17 +645,19 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(envVars).contains(entry("SPRING_CLOUD_APPLICATION_GROUP", "foo"));
         verifyAppEnv(deploymentId);
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         testAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testDeploymentServiceAccountName() {
-        logger.info("Testing {}...", "DeploymentServiceAccountName");
+        log.info("Testing {}...", "DeploymentServiceAccountName");
 
         ServiceAccount deploymentServiceAccount = new ServiceAccountBuilder().withNewMetadata().withName("appsa")
                 .endMetadata().build();
@@ -631,24 +669,29 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         KubernetesDeployerProperties deployProperties = new KubernetesDeployerProperties();
         deployProperties.setDeploymentServiceAccountName(serviceAccountName);
 
+        ContainerFactory containerFactory = new DefaultContainerFactory(deployProperties);
         KubernetesAppDeployer appDeployer = kubernetesAppDeployer(deployProperties);
 
         AppDefinition definition = new AppDefinition(randomName(), null);
         AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication());
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = appDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.serviceAccounts().delete(deploymentServiceAccount);
     }
@@ -664,14 +707,16 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         KubernetesAppDeployer deployer = kubernetesAppDeployer();
 
-        logger.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
+        log.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
         String deploymentId = deployer.deploy(appDeploymentRequest);
         Map<String, String> idMap = deployer.createIdMap(deploymentId, appDeploymentRequest);
 
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
 
@@ -723,12 +768,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Assertions.assertThat(pvcSpec.getResources().getLimits().get("storage").getFormat()).isEqualTo("Mi");
         Assertions.assertThat(pvcSpec.getResources().getRequests().get("storage").getFormat()).isEqualTo("Mi");
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
@@ -746,13 +793,15 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         KubernetesAppDeployer deployer = kubernetesAppDeployer();
 
-        logger.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
+        log.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
         String deploymentId = deployer.deploy(appDeploymentRequest);
 
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
 
@@ -769,12 +818,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Container statefulSetInitContainer = statefulSetInitContainers.get(0);
         assertThat(statefulSetInitContainer.getImage()).isEqualTo(imageName);
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
@@ -793,13 +844,15 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         KubernetesAppDeployer deployer = kubernetesAppDeployer(kubernetesDeployerProperties);
 
-        logger.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
+        log.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
         String deploymentId = deployer.deploy(appDeploymentRequest);
 
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
 
@@ -816,12 +869,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Container statefulSetInitContainer = statefulSetInitContainers.get(0);
         assertThat(statefulSetInitContainer.getImage()).isEqualTo(imageName);
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
@@ -837,14 +892,16 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         KubernetesAppDeployer deployer = kubernetesAppDeployer();
 
-        logger.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
+        log.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
         String deploymentId = deployer.deploy(appDeploymentRequest);
         Map<String, String> idMap = deployer.createIdMap(deploymentId, appDeploymentRequest);
 
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
 
@@ -883,16 +940,18 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Assertions.assertThat(pvcSpec.getResources().getLimits().get("storage").getFormat()).isEqualTo("Gi");
         Assertions.assertThat(pvcSpec.getResources().getRequests().get("storage").getFormat()).isEqualTo("Gi");
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
-    public void createStatefulSetWithPVCDefaultName() {
+    public void createStatefulSetWithPVCDefaultName() throws Exception {
         Map<String, String> props = new HashMap<>();
         props.put(AppDeployer.COUNT_PROPERTY_KEY, "3");
         props.put(AppDeployer.INDEXED_PROPERTY_KEY, "true");
@@ -901,12 +960,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         KubernetesAppDeployer deployer = kubernetesAppDeployer();
 
-        logger.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
+        log.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
         String deploymentId = deployer.deploy(appDeploymentRequest);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
 
@@ -919,17 +980,19 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         PersistentVolumeClaim pvc = statefulSetSpec.getVolumeClaimTemplates().get(0);
         Assertions.assertThat(pvc.getMetadata().getName()).isEqualTo(deploymentId);
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testStatefulSetPodAnnotations() {
-        logger.info("Testing {}...", "StatefulSetPodAnnotations");
+        log.info("Testing {}...", "StatefulSetPodAnnotations");
 
         KubernetesAppDeployer appDeployer = kubernetesAppDeployer();
 
@@ -943,16 +1006,20 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 "iam.amazonaws.com/role:role-arn,foo:bar");
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         Timeout timeout = deploymentTimeout();
         String deploymentId = appDeployer.deploy(request);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(3));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(3);
+                });
 
         // Ensure that a StatefulSet is deployed
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
@@ -978,14 +1045,16 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         KubernetesAppDeployer deployer = kubernetesAppDeployer();
 
-        logger.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
+        log.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
 
         String deploymentId = deployer.deploy(appDeploymentRequest);
 
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
 
@@ -998,17 +1067,19 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(specLabels).as("Label 'label2' not found in deployment spec").containsKey("label2");
         assertThat(specLabels.get("label2")).as("Unexpected value for label1").isEqualTo("value2");
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testDeploymentLabelsStatefulSet() {
-        logger.info("Testing {}...", "DeploymentLabelsForStatefulSet");
+        log.info("Testing {}...", "DeploymentLabelsForStatefulSet");
         Map<String, String> props = new HashMap<>();
         props.put(AppDeployer.COUNT_PROPERTY_KEY, "2");
         props.put(AppDeployer.INDEXED_PROPERTY_KEY, "true");
@@ -1019,14 +1090,16 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         KubernetesAppDeployer deployer = kubernetesAppDeployer();
 
-        logger.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
+        log.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
 
         String deploymentId = deployer.deploy(appDeploymentRequest);
 
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
         Map<String, String> idMap = deployer.createIdMap(deploymentId, appDeploymentRequest);
         Map<String, String> selector = Collections.singletonMap(AbstractKubernetesDeployer.SPRING_APP_KEY, deploymentId);
 
@@ -1049,16 +1122,18 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         assertThat(podLabels).contains(entry("stateful-label1", "stateful-value1"), entry("stateful-label2", "stateful-value2"));
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         appDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
-    public void testCleanupOnDeployFailure() {
+    public void testCleanupOnDeployFailure() throws InterruptedException {
         AppDefinition definition = new AppDefinition("app-test", null);
         AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, testApplication(), null);
 
@@ -1072,46 +1147,52 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         KubernetesAppDeployer deployer = kubernetesAppDeployer(kubernetesDeployerProperties);
 
-        logger.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
+        log.info("Deploying {}...", appDeploymentRequest.getDefinition().getName());
 
         String deploymentId = deployer.deploy(appDeploymentRequest);
 
         Timeout timeout = deploymentTimeout();
 
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         // attempt to undeploy the failed deployment
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
 
         try {
             appDeployer.undeploy(deploymentId);
         } catch (Exception e) {
-            logger.info("Got expected not not deployed exception on undeployment: " + e.getMessage());
+            log.info("Got expected not not deployed exception on undeployment: " + e.getMessage());
         }
 
         deployer = kubernetesAppDeployer();
 
-        logger.info("Deploying {}... again", deploymentId);
+        log.info("Deploying {}... again", deploymentId);
 
         // ensure a previous failed deployment with the same name was cleaned up and can be deployed again
         deployer.deploy(appDeploymentRequest);
 
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         appDeployer.undeploy(deploymentId);
 
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testMultipleContainersInPod() {
-        logger.info("Testing {}...", "MultipleContainersInPod");
+        log.info("Testing {}...", "MultipleContainersInPod");
 
         KubernetesAppDeployer kubernetesAppDeployer = Mockito.spy(kubernetesAppDeployer());
 		AppDefinition definition = new AppDefinition(randomName(), Collections.singletonMap("server.port", "9090"));
@@ -1130,37 +1211,43 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             return podSpec;
         }).when(kubernetesAppDeployer).createPodSpec(Mockito.any(AppDeploymentRequest.class));
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
 
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testDefaultServicePort() {
-        logger.info("Testing {}...", "DefaultServicePort");
+        log.info("Testing {}...", "DefaultServicePort");
         KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer();
 
         AppDefinition definition = new AppDefinition(randomName(), null);
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         List<ServicePort> servicePorts = kubernetesClient.services().withName(request.getDefinition().getName()).get()
                 .getSpec().getPorts();
@@ -1169,29 +1256,33 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(servicePorts.get(0).getPort()).isEqualTo(8080);
         assertThat(servicePorts.get(0).getName()).isEqualTo("port-8080");
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testDefaultServicePortOverride() {
-        logger.info("Testing {}...", "DefaultServicePortOverride");
+        log.info("Testing {}...", "DefaultServicePortOverride");
         KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer();
 
         AppDefinition definition = new AppDefinition(randomName(), Collections.singletonMap("server.port", "9090"));
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         List<ServicePort> servicePorts = kubernetesClient.services().withName(request.getDefinition().getName()).get()
                 .getSpec().getPorts();
@@ -1200,17 +1291,19 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(servicePorts.get(0).getPort()).isEqualTo(9090);
         assertThat(servicePorts.get(0).getName()).isEqualTo("port-9090");
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testServiceWithMultiplePorts() {
-        logger.info("Testing {}...", "ServiceWithMultiplePorts");
+        log.info("Testing {}...", "ServiceWithMultiplePorts");
         KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer();
 
         AppDefinition definition = new AppDefinition(randomName(), null);
@@ -1218,12 +1311,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource,
                 Collections.singletonMap("spring.cloud.deployer.kubernetes.servicePorts", "8080,9090"));
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         List<ServicePort> servicePorts = kubernetesClient.services().withName(request.getDefinition().getName()).get()
                 .getSpec().getPorts();
@@ -1234,106 +1329,108 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(servicePorts.stream().anyMatch(o -> o.getPort().equals(9090))).isTrue();
         assertThat(servicePorts.stream().anyMatch(o -> o.getName().equals("port-9090"))).isTrue();
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
-    public void initContainerFromGlobalProps() {
-        // Set up a global initContainer (it should be chosen)
-        InitContainer globalInitContainerProps = new InitContainer();
-        globalInitContainerProps.setContainerName("test-global");
-        globalInitContainerProps.setImageName("busybox:latest");
-        globalInitContainerProps.setCommands(Arrays.asList("sh", "-c", "echo hello-global"));
+    public void testCreateInitContainer() {
+        log.info("Testing {}...", "CreateInitContainer");
+        KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer();
 
-        KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-        kubernetesDeployerProperties.setInitContainer(globalInitContainerProps);
-        KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer(kubernetesDeployerProperties);
+        Map<String, String> props = Collections.singletonMap("spring.cloud.deployer.kubernetes.initContainer",
+                "{containerName: 'test', imageName: 'busybox:latest', commands: ['sh', '-c', 'echo hello']}");
+
         AppDefinition definition = new AppDefinition(randomName(), null);
-        AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), Collections.emptyMap());
+        AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), props);
 
-        String deploymentId = deploy(kubernetesAppDeployer, request);
+        log.info("Deploying {}...", request.getDefinition().getName());
+        String deploymentId = kubernetesAppDeployer.deploy(request);
+        Timeout timeout = deploymentTimeout();
+        await().pollInterval(Duration.ofMillis(timeout.pause))
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
         List<Container> initContainers = deployment.getSpec().getTemplate().getSpec().getInitContainers();
-        Optional<Container> initContainer = initContainers.stream().filter(i -> i.getName().equals("test-global")).findFirst();
-        assertThat(initContainer).isPresent();
-        Container testInitContainer = initContainer.get();
-        assertThat(testInitContainer.getName()).isEqualTo("test-global");
-        assertThat(testInitContainer.getImage()).isEqualTo("busybox:latest");
-        assertThat(testInitContainer.getCommand()).containsExactly("sh", "-c", "echo hello-global");
 
-        undeploy(kubernetesAppDeployer, deploymentId);
-    }
-
-    @Test
-    public void initContainerFromDeployerProps() {
-        // Set up a global mock initContainer (it should not be chosen)
-        InitContainer globalInitContainerProps = mock(InitContainer.class);
-        KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-        kubernetesDeployerProperties.setInitContainer(globalInitContainerProps);
-        KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer(kubernetesDeployerProperties);
-
-        // Set up a deployer props initContainer (it should be chosen)
-        Map<String, String> deployerProps = Collections.singletonMap("spring.cloud.deployer.kubernetes.initContainer",
-                "{containerName: 'test', imageName: 'busybox:latest', commands: ['sh', '-c', 'echo hello']" +
-                        ", environmentVariables: ['KEY1=VAL1', 'KEY2=VAL2']}");
-        AppDefinition definition = new AppDefinition(randomName(), null);
-        AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), deployerProps);
-
-        String deploymentId = deploy(kubernetesAppDeployer, request);
-
-        Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
-        List<Container> initContainers = deployment.getSpec().getTemplate().getSpec().getInitContainers();
         Optional<Container> initContainer = initContainers.stream().filter(i -> i.getName().equals("test")).findFirst();
-        assertThat(initContainer).isPresent();
-        Container testInitContainer = initContainer.get();
-        assertThat(testInitContainer.getName()).isEqualTo("test");
-        assertThat(testInitContainer.getImage()).isEqualTo("busybox:latest");
-        assertThat(testInitContainer.getEnv()).extracting("name", "value")
-                .containsExactlyInAnyOrder(tuple("KEY1", "VAL1"), tuple("KEY2", "VAL2"));
-        assertThat(testInitContainer.getCommand()).containsExactly("sh", "-c", "echo hello");
+        assertThat(initContainer.isPresent()).as("Init container not found").isTrue();
 
-        undeploy(kubernetesAppDeployer, deploymentId);
+        Container testInitContainer = initContainer.get();
+
+        assertThat(testInitContainer.getName()).as("Unexpected init container name").isEqualTo("test");
+        assertThat(testInitContainer.getImage()).as("Unexpected init container image").isEqualTo("busybox:latest");
+
+        List<String> commands = testInitContainer.getCommand();
+
+        assertThat(commands).contains("sh", "-c", "echo hello");
+
+        log.info("Undeploying {}...", deploymentId);
+        timeout = undeploymentTimeout();
+        kubernetesAppDeployer.undeploy(deploymentId);
+        await().pollInterval(Duration.ofMillis(timeout.pause))
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
-    public void initContainerPartialFromDeployerProps() {
-        // Set up a global mock initContainer (it should not be chosen)
-        InitContainer globalInitContainerProps = mock(InitContainer.class);
-        KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-        kubernetesDeployerProperties.setInitContainer(globalInitContainerProps);
-        KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer(kubernetesDeployerProperties);
+    public void testCreateInitContainerWithEnvVariables() {
+        log.info("Testing {}...", "CreateInitContainer");
+        KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer();
 
-        // Set up a deployer props initContainer partial (they should be used)
-        Map<String, String> deployerProps = new HashMap<>();
-        deployerProps.put("spring.cloud.deployer.kubernetes.initContainer.containerName", "test");
-        deployerProps.put("spring.cloud.deployer.kubernetes.initContainer.imageName", "busybox:latest");
-        deployerProps.put("spring.cloud.deployer.kubernetes.initContainer.commands", "sh,-c,echo hello");
+        Map<String, String> props = Collections.singletonMap("spring.cloud.deployer.kubernetes.initContainer",
+                "{containerName: 'test', imageName: 'busybox:latest', commands: ['sh', '-c', 'echo hello'], environmentVariables: ['KEY1=VAL1', 'KEY2=VAL2']}");
+
         AppDefinition definition = new AppDefinition(randomName(), null);
-        AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), deployerProps);
+        AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), props);
 
-        String deploymentId = deploy(kubernetesAppDeployer, request);
+        log.info("Deploying {}...", request.getDefinition().getName());
+        String deploymentId = kubernetesAppDeployer.deploy(request);
+        Timeout timeout = deploymentTimeout();
+        await().pollInterval(Duration.ofMillis(timeout.pause))
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
         List<Container> initContainers = deployment.getSpec().getTemplate().getSpec().getInitContainers();
-        Optional<Container> initContainer = initContainers.stream().filter(i -> i.getName().equals("test")).findFirst();
-        assertThat(initContainer).isPresent();
-        Container testInitContainer = initContainer.get();
-        assertThat(testInitContainer.getName()).isEqualTo("test");
-        assertThat(testInitContainer.getImage()).isEqualTo("busybox:latest");
-        assertThat(testInitContainer.getCommand()).containsExactly("sh", "-c", "echo hello");
 
-        undeploy(kubernetesAppDeployer, deploymentId);
+        Optional<Container> initContainer = initContainers.stream().filter(i -> i.getName().equals("test")).findFirst();
+        assertThat(initContainer.isPresent()).as("Init container not found").isTrue();
+
+        Container testInitContainer = initContainer.get();
+
+        List<EnvVar> containerEnvs = testInitContainer.getEnv();
+
+        assertThat(containerEnvs).hasSize(2);
+        assertThat(containerEnvs.stream().map(EnvVar::getName).collect(Collectors.toList())).contains("KEY1", "KEY2");
+        assertThat(containerEnvs.stream().map(EnvVar::getValue).collect(Collectors.toList())).contains("VAL1", "VAL2");
+
+        log.info("Undeploying {}...", deploymentId);
+        timeout = undeploymentTimeout();
+        kubernetesAppDeployer.undeploy(deploymentId);
+        await().pollInterval(Duration.ofMillis(timeout.pause))
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
-    public void initContainerFromDeployerPropsWithVolumeMounts() {
-        logger.info("Testing {}...", "CreateInitContainerWithVolumeMounts");
+    public void testCreateInitContainerWithVolumeMounts() {
+        log.info("Testing {}...", "CreateInitContainerWithVolumeMounts");
         KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer();
 
         Map<String, String> props = Stream.of(new String[][]{
@@ -1355,7 +1452,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         AppDefinition definition = new AppDefinition(randomName(), null);
         AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), props);
 
-        String deploymentId = deploy(kubernetesAppDeployer, request);
+        log.info("Deploying {}...", request.getDefinition().getName());
+        String deploymentId = kubernetesAppDeployer.deploy(request);
+        Timeout timeout = deploymentTimeout();
+        await().pollInterval(Duration.ofMillis(timeout.pause))
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
         List<Container> initContainers = deployment.getSpec().getTemplate().getSpec().getInitContainers();
@@ -1363,7 +1467,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Optional<Container> initContainer = initContainers.stream().filter(i -> i.getName().equals("test")).findFirst();
         assertThat(initContainer.isPresent()).as("Init container not found").isTrue();
 
-        Container testInitContainer = initContainer.orElseThrow(() -> new AssertionError("expected initContainer"));
+        Container testInitContainer = initContainer.get();
 
         assertThat(testInitContainer.getName()).as("Unexpected init container name").isEqualTo("test");
         assertThat(testInitContainer.getImage()).as("Unexpected init container image").isEqualTo("busybox:latest");
@@ -1383,33 +1487,19 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(vm.getMountPath()).as("Unexpected init container volume mount path").isEqualTo("/tmp");
         assertThat(vm.getReadOnly()).as("Expected read only volume mount").isTrue();
 
-        undeploy(kubernetesAppDeployer, deploymentId);
-    }
-
-    private String deploy(KubernetesAppDeployer kubernetesAppDeployer, AppDeploymentRequest deployRequest) {
-        logger.info("Deploying {}...", deployRequest.getDefinition().getName());
-        String deploymentId = kubernetesAppDeployer.deploy(deployRequest);
-        Timeout timeout = deploymentTimeout();
-        await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState())
-                        .isEqualTo(DeploymentState.deployed));
-        return deploymentId;
-    }
-
-    private void undeploy(KubernetesAppDeployer kubernetesAppDeployer, String deploymentId) {
-        logger.info("Undeploying {}...", deploymentId);
-        Timeout timeout = undeploymentTimeout();
+        log.info("Undeploying {}...", deploymentId);
+        timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState())
-                        .isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testCreateAdditionalContainers() {
-        logger.info("Testing {}...", "CreateAdditionalContainers");
+        log.info("Testing {}...", "CreateAdditionalContainers");
         KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer();
 
         Map<String, String> props = Stream.of(new String[][]{
@@ -1430,12 +1520,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         AppDefinition definition = new AppDefinition(randomName(), null);
         AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
         List<Container> containers = deployment.getSpec().getTemplate().getSpec().getContainers();
@@ -1464,7 +1556,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Optional<Container> additionalContainer2 = containers.stream().filter(i -> i.getName().equals("c2")).findFirst();
         assertThat(additionalContainer2.isPresent()).as("Additional container c2 not found").isTrue();
 
-        Container testAdditionalContainer2 = additionalContainer2.orElseThrow(() -> new AssertionError("expected additionalContainer2"));
+        Container testAdditionalContainer2 = additionalContainer2.get();
 
         assertThat(testAdditionalContainer2.getName()).as("Unexpected additional container name").isEqualTo("c2");
         assertThat(testAdditionalContainer2.getImage()).as("Unexpected additional container image").isEqualTo("busybox:1.26.1");
@@ -1473,17 +1565,19 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         assertThat(container2Commands).contains("sh", "-c", "echo hello2");
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testCreateAdditionalContainersOverride() {
-        logger.info("Testing {}...", "CreateAdditionalContainersOverride");
+        log.info("Testing {}...", "CreateAdditionalContainersOverride");
         KubernetesDeployerProperties.Container container1 = new KubernetesDeployerProperties.Container();
         container1.setName("c1");
         container1.setImage("busybox:1.31.0");
@@ -1515,12 +1609,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         AppDefinition definition = new AppDefinition(randomName(), null);
         AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
         List<Container> containers = deployment.getSpec().getTemplate().getSpec().getContainers();
@@ -1531,7 +1627,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Optional<Container> additionalContainer1 = containers.stream().filter(i -> i.getName().equals("c1")).findFirst();
         assertThat(additionalContainer1.isPresent()).as("Additional container c1 not found").isTrue();
 
-        Container testAdditionalContainer1 = additionalContainer1.orElseThrow(() -> new AssertionError("expected additionalContainer1"));
+        Container testAdditionalContainer1 = additionalContainer1.get();
 
         assertThat(testAdditionalContainer1.getName()).as("Unexpected additional container name").isEqualTo("c1");
         assertThat(testAdditionalContainer1.getImage()).as("Unexpected additional container image").isEqualTo("busybox:latest");
@@ -1550,7 +1646,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Optional<Container> additionalContainer2 = containers.stream().filter(i -> i.getName().equals("c2")).findFirst();
         assertThat(additionalContainer2.isPresent()).as("Additional container c2 not found").isTrue();
 
-        Container testAdditionalContainer2 = additionalContainer2.orElseThrow(() -> new AssertionError("expected additionalContainer2"));
+        Container testAdditionalContainer2 = additionalContainer2.get();
 
         assertThat(testAdditionalContainer2.getName()).as("Unexpected additional container name").isEqualTo("c2");
         assertThat(testAdditionalContainer2.getImage()).as("Unexpected additional container image").isEqualTo("busybox:1.26.1");
@@ -1563,7 +1659,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Optional<Container> additionalContainer3 = containers.stream().filter(i -> i.getName().equals("container2")).findFirst();
         assertThat(additionalContainer3.isPresent()).as("Additional container c2 not found").isTrue();
 
-        Container testAdditionalContainer3 = additionalContainer3.orElseThrow(() -> new AssertionError("expected additionalContainer3"));
+        Container testAdditionalContainer3 = additionalContainer3.get();
 
         assertThat(testAdditionalContainer3.getName()).as("Unexpected additional container name").isEqualTo("container2");
         assertThat(testAdditionalContainer3.getImage()).as("Unexpected additional container image").isEqualTo("busybox:1.31.0");
@@ -1572,12 +1668,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         assertThat(container3Commands).contains("sh", "-c", "echo hello-from-original-properties");
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
 	@Nested
@@ -1616,12 +1714,12 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 			deployProperties.setMinutesToWaitForLoadBalancer(1);
 			KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer(deployProperties);
 
-			logger.info("Deploying {}...", request.getDefinition().getName());
+			log.info("Deploying {}...", request.getDefinition().getName());
 			String deploymentId = kubernetesAppDeployer.deploy(request);
 
 			Timeout timeout = deploymentTimeout();
 			await().pollInterval(Duration.ofMillis(timeout.pause))
-					.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+					.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
 					.untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
 
 			PodSecurityContext expectedPodSecurityContext = new PodSecurityContextBuilder()
@@ -1653,11 +1751,11 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 			assertThatContainerExistsWithSecurityContext(deployment.getSpec().getTemplate().getSpec().getContainers(),
 					"extra-container-6160", expectedContainerSecurityContext);
 
-			logger.info("Undeploying {}...", deploymentId);
+			log.info("Undeploying {}...", deploymentId);
 			timeout = undeploymentTimeout();
 			kubernetesAppDeployer.undeploy(deploymentId);
 			await().pollInterval(Duration.ofMillis(timeout.pause))
-					.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+					.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
 					.untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 		}
 
@@ -1689,12 +1787,12 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 			kubernetesDeployerProperties.setStatefulSetInitContainerImageName(imageName);
 			KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer(kubernetesDeployerProperties);
 
-			logger.info("Deploying {}...", request.getDefinition().getName());
+			log.info("Deploying {}...", request.getDefinition().getName());
 			String deploymentId = kubernetesAppDeployer.deploy(request);
 
 			Timeout timeout = deploymentTimeout();
 			await().pollInterval(Duration.ofMillis(timeout.pause))
-					.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+					.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
 					.untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
 
 			PodSecurityContext expectedPodSecurityContext = new PodSecurityContextBuilder()
@@ -1725,11 +1823,11 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 								.extracting(Container::getSecurityContext).isEqualTo(expectedContainerSecurityContext);
 					});
 
-			logger.info("Undeploying {}...", deploymentId);
+			log.info("Undeploying {}...", deploymentId);
 			timeout = undeploymentTimeout();
 			kubernetesAppDeployer.undeploy(deploymentId);
 			await().pollInterval(Duration.ofMillis(timeout.pause))
-					.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+					.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
 					.untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 		}
 
@@ -1743,7 +1841,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
     @Test
     public void testUnknownStatusOnPendingResources() throws InterruptedException {
-        logger.info("Testing {}...", "UnknownStatusOnPendingResources");
+        log.info("Testing {}...", "UnknownStatusOnPendingResources");
         KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer();
 
         AppDefinition definition = new AppDefinition(randomName(), null);
@@ -1755,45 +1853,50 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
 
         while (kubernetesClient.pods().withLabel("spring-deployment-id", deploymentId).list().getItems().isEmpty()) {
-            logger.info("Waiting for deployed pod");
+            log.info("Waiting for deployed pod");
             Thread.sleep(500);
         }
 
         Pod pod = kubernetesClient.pods().withLabel("spring-deployment-id", deploymentId).list().getItems().get(0);
 
         while (pod.getStatus().getConditions().isEmpty()) {
-            logger.info("Waiting for pod conditions to be set");
+            log.info("Waiting for pod conditions to be set");
             Thread.sleep(500);
         }
 
         while (!"Unschedulable".equals(pod.getStatus().getConditions().get(0).getReason())) {
-            logger.info("Waiting for deployed pod to become Unschedulable");
+            log.info("Waiting for deployed pod to become Unschedulable");
         }
 
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
 
-        assertThatThrownBy(() -> kubernetesAppDeployer.undeploy(deploymentId))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("App '%s' is not deployed", deploymentId);
+        assertThatThrownBy(() -> {
+            kubernetesAppDeployer.undeploy(deploymentId);
+        }).isInstanceOf(IllegalStateException.class)
+                .hasMessage("App '%s' is not deployed", deploymentId);
 
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
     }
 
     @Test
     public void testSecretRef() throws InterruptedException {
-        logger.info("Testing {}...", "SecretRef");
+        log.info("Testing {}...", "SecretRef");
 
         Secret secret = randomSecret();
 
@@ -1806,12 +1909,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -1832,19 +1937,21 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).contains(secretData.getKey() + "=" + decodedValue);
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.secrets().delete(secret);
     }
 
     @Test
     public void testSecretRefFromDeployerProperty() throws InterruptedException {
-        logger.info("Testing {}...", "SecretRefFromDeployerProperty");
+        log.info("Testing {}...", "SecretRefFromDeployerProperty");
 
         Secret secret = randomSecret();
 
@@ -1857,12 +1964,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -1883,19 +1992,21 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).contains(secretData.getKey() + "=" + decodedValue);
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.secrets().delete(secret);
     }
 
     @Test
-    public void testSecretRefFromDeployerPropertyOverride() throws InterruptedException {
-        logger.info("Testing {}...", "SecretRefFromDeployerPropertyOverride");
+    public void testSecretRefFromDeployerPropertyOverride() throws IOException, InterruptedException {
+        log.info("Testing {}...", "SecretRefFromDeployerPropertyOverride");
 
         Secret propertySecret = randomSecret();
         Secret deployerPropertySecret = randomSecret();
@@ -1912,12 +2023,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -1941,12 +2054,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).doesNotContain(propertySecretData.getKey() + "=" + decodedValue);
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.secrets().delete(propertySecret);
         kubernetesClient.secrets().delete(deployerPropertySecret);
@@ -1954,7 +2069,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
     @Test
     public void testSecretRefFromPropertyMultiple() throws InterruptedException {
-        logger.info("Testing {}...", "SecretRefFromPropertyMultiple");
+        log.info("Testing {}...", "SecretRefFromPropertyMultiple");
 
         Secret secret1 = randomSecret();
         Secret secret2 = randomSecret();
@@ -1972,12 +2087,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, null);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -2005,12 +2122,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).contains(secretData.getKey() + "=" + decodedValue);
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.secrets().delete(secret1);
         kubernetesClient.secrets().delete(secret2);
@@ -2018,7 +2137,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
     @Test
     public void testSecretRefFromDeploymentPropertyMultiple() throws InterruptedException {
-        logger.info("Testing {}...", "SecretRefFromDeploymentPropertyMultiple");
+        log.info("Testing {}...", "SecretRefFromDeploymentPropertyMultiple");
 
         Secret secret1 = randomSecret();
         Secret secret2 = randomSecret();
@@ -2033,12 +2152,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -2066,12 +2187,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).contains(secretData.getKey() + "=" + decodedValue);
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.secrets().delete(secret1);
         kubernetesClient.secrets().delete(secret2);
@@ -2079,7 +2202,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
     @Test
     public void testConfigMapRef() throws InterruptedException {
-        logger.info("Testing {}...", "ConfigMapRef");
+        log.info("Testing {}...", "ConfigMapRef");
 
         ConfigMap configMap = randomConfigMap();
 
@@ -2092,12 +2215,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -2117,19 +2242,21 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).contains(configMapData.getKey() + "=" + configMapData.getValue());
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.configMaps().delete(configMap);
     }
 
     @Test
     public void testConfigMapRefFromDeployerProperty() throws InterruptedException {
-        logger.info("Testing {}...", "ConfigMapRefFromDeployerProperty");
+        log.info("Testing {}...", "ConfigMapRefFromDeployerProperty");
 
         ConfigMap configMap = randomConfigMap();
 
@@ -2142,12 +2269,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -2167,19 +2296,21 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).contains(configMapData.getKey() + "=" + configMapData.getValue());
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.configMaps().delete(configMap);
     }
 
     @Test
-    public void testConfigMapRefFromDeployerPropertyOverride() throws InterruptedException {
-        logger.info("Testing {}...", "ConfigMapRefFromDeployerPropertyOverride");
+    public void testConfigMapRefFromDeployerPropertyOverride() throws IOException, InterruptedException {
+        log.info("Testing {}...", "ConfigMapRefFromDeployerPropertyOverride");
 
         ConfigMap propertyConfigMap = randomConfigMap();
         ConfigMap deployerPropertyConfigMap = randomConfigMap();
@@ -2196,12 +2327,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -2224,12 +2357,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).doesNotContain(propertyConfigMapData.getKey() + "=" + propertyConfigMapData.getValue());
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.configMaps().delete(propertyConfigMap);
         kubernetesClient.configMaps().delete(deployerPropertyConfigMap);
@@ -2237,7 +2372,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
     @Test
     public void testConfigMapRefFromPropertyMultiple() throws InterruptedException {
-        logger.info("Testing {}...", "ConfigMapRefFromPropertyMultiple");
+        log.info("Testing {}...", "ConfigMapRefFromPropertyMultiple");
 
         ConfigMap configMap1 = randomConfigMap();
         ConfigMap configMap2 = randomConfigMap();
@@ -2255,12 +2390,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, null);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -2287,12 +2424,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).contains(configMapData.getKey() + "=" + configMapData.getValue());
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.configMaps().delete(configMap1);
         kubernetesClient.configMaps().delete(configMap2);
@@ -2300,7 +2439,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
     @Test
     public void testConfigMapRefFromDeploymentPropertyMultiple() throws InterruptedException {
-        logger.info("Testing {}...", "ConfigMapRefFromDeploymentPropertyMultiple");
+        log.info("Testing {}...", "ConfigMapRefFromDeploymentPropertyMultiple");
 
         ConfigMap configMap1 = randomConfigMap();
         ConfigMap configMap2 = randomConfigMap();
@@ -2315,12 +2454,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         Resource resource = testApplication();
         AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, props);
 
-        logger.info("Deploying {}...", request.getDefinition().getName());
+        log.info("Deploying {}...", request.getDefinition().getName());
         String deploymentId = kubernetesAppDeployer.deploy(request);
         Timeout timeout = deploymentTimeout();
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
+                });
 
         Container container = kubernetesClient.apps().deployments().withName(deploymentId).get().getSpec()
                 .getTemplate().getSpec().getContainers().get(0);
@@ -2348,12 +2489,14 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
             assertThat(podEnvironment).contains(configMapData.getKey() + "=" + configMapData.getValue());
         }
 
-        logger.info("Undeploying {}...", deploymentId);
+        log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .untilAsserted(() -> {
+                    assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
+                });
 
         kubernetesClient.configMaps().delete(configMap1);
         kubernetesClient.configMaps().delete(configMap2);
@@ -2403,7 +2546,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         watch.close();
 
-        return bytes.toString();
+        return new String(bytes);
     }
 
     // Creates a Secret with a name will be generated prefixed by "secret-" followed by random numbers.

@@ -21,7 +21,7 @@ package org.springframework.cloud.deployer.spi.kubernetes;
  * @author Chris Schaefer
  * @since 2.5
  */
-public enum ProbeType {
+enum ProbeType {
 	HTTP,
 	TCP,
 	COMMAND

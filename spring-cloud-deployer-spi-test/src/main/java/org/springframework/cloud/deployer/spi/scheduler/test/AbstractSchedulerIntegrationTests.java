@@ -91,7 +91,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 	 */
 	private Timeout unScheduleTimeout = new Timeout(12, 5000);
 
-	protected final Logger log = LoggerFactory.getLogger(this.getClass());
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Rule
 	public TestName name = new TestName();
@@ -281,7 +281,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 	}
 
 	private void unscheduleTestSchedule(String scheduleName) {
-		log.info("unscheduling {}...", scheduleName);
+		logger.info("unscheduling {}...", scheduleName);
 
 		taskScheduler().unschedule(scheduleName);
 

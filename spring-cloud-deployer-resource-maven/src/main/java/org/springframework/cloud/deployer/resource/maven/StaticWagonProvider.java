@@ -32,13 +32,13 @@ import org.slf4j.LoggerFactory;
  */
 public class StaticWagonProvider implements WagonProvider {
 
-	private static final Logger log = LoggerFactory.getLogger(StaticWagonProvider.class);
+	private static final Logger logger = LoggerFactory.getLogger(StaticWagonProvider.class);
 
 	public StaticWagonProvider() {
 	}
 
 	public Wagon lookup( String roleHint ) throws Exception {
-		log.debug("Looking up wagon for roleHint {}", roleHint);
+		logger.debug("Looking up wagon for roleHint {}", roleHint);
 		if ("https".equals(roleHint)) {
 			return new HttpWagon();
 		} else if ("http".equals(roleHint)) {

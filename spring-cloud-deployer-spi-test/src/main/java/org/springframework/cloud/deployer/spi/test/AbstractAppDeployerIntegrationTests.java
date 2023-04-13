@@ -103,11 +103,11 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 	public void cleanupLingeringApps() {
 		for (String id : deployerWrapper.deployments) {
 			try {
-				log.warn("Test named {} left behind an app for deploymentId '{}', trying to cleanup", name.getMethodName(), id);
+				logger.warn("Test named {} left behind an app for deploymentId '{}', trying to cleanup", name.getMethodName(), id);
 				deployerWrapper.wrapped.undeploy(id);
 			}
 			catch (Exception e) {
-				log.warn("Exception caught while trying to cleanup '{}'. Moving on...", id);
+				logger.warn("Exception caught while trying to cleanup '{}'. Moving on...", id);
 			}
 		}
 	}
@@ -131,14 +131,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(DeploymentState.deployed))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Deploying {} again...", request.getDefinition().getName());
+		logger.info("Deploying {} again...", request.getDefinition().getName());
 
 		try {
 			appDeployer().deploy(request);
@@ -147,7 +147,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		catch (IllegalStateException ok) {
 		}
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -171,14 +171,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(DeploymentState.deployed))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -193,7 +193,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 			Thread.currentThread().interrupt();
 		}
 
-		log.info("Deploying {} again...", request.getDefinition().getName());
+		logger.info("Deploying {} again...", request.getDefinition().getName());
 
 		// Attempt re-deploy of SAME request
 		deploymentId = appDeployer().deploy(request);
@@ -201,7 +201,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(DeploymentState.deployed))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -222,14 +222,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(DeploymentState.deploying))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -246,14 +246,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(DeploymentState.failed))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -276,14 +276,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), deploymentProperties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(DeploymentState.deployed))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -297,14 +297,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		request = new AppDeploymentRequest(definition, testApplication(), deploymentProperties);
 
-		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
+		logger.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
 		deploymentId = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(DeploymentState.failed))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -326,14 +326,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		AppDeploymentRequest request =
 				new AppDeploymentRequest(definition, testApplication(), deploymentProperties, cmdLineArgs);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(DeploymentState.deployed))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -349,14 +349,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		request =
 				new AppDeploymentRequest(definition, testApplication(), deploymentProperties, cmdLineArgs);
 
-		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
+		logger.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
 		deploymentId = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(DeploymentState.failed))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -381,7 +381,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		deploymentProperties.put(AppDeployer.INDEXED_PROPERTY_KEY, "true");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -400,7 +400,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 				is(DeploymentState.failed)
 		));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -442,7 +442,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
 
-		log.info("Deploying {} index={}...", request.getDefinition().getName(), indexed);
+		logger.info("Deploying {} index={}...", request.getDefinition().getName(), indexed);
 
 		String deploymentId = appDeployer().deploy(request);
 
@@ -451,7 +451,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
 			Matchers.<AppStatus>hasProperty("state", is(DeploymentState.deployed))), timeout.maxAttempts, timeout.pause));
 
-		log.info("Scaling {} to {} instances...", request.getDefinition().getName(), DESIRED_COUNT);
+		logger.info("Scaling {} to {} instances...", request.getDefinition().getName(), DESIRED_COUNT);
 
 		appDeployer().scale(new AppScaleRequest(deploymentId, DESIRED_COUNT));
 
@@ -467,7 +467,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		assertThat(individualStates, everyItem(is(DeploymentState.deployed)));
 
-		log.info("Scaling {} from {} to 1 instance...", request.getDefinition().getName(), DESIRED_COUNT);
+		logger.info("Scaling {} from {} to 1 instance...", request.getDefinition().getName(), DESIRED_COUNT);
 
 		appDeployer().scale(new AppScaleRequest(deploymentId, 1));
 
@@ -476,7 +476,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		assertThat(deploymentId, EventuallyMatcher.eventually(appInstanceCount(is(1)), timeout.maxAttempts, timeout.pause));
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);

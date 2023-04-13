@@ -83,8 +83,8 @@ class DeploymentPropertiesResolver {
 
 	private final Log logger = LogFactory.getLog(getClass().getName());
 
-	private final String propertyPrefix;
-	private final KubernetesDeployerProperties properties;
+	private String propertyPrefix;
+	private KubernetesDeployerProperties properties;
 
 	DeploymentPropertiesResolver(String propertyPrefix, KubernetesDeployerProperties properties) {
 		this.propertyPrefix = propertyPrefix;
@@ -117,11 +117,13 @@ class DeploymentPropertiesResolver {
 
 	/**
 	 * Volume deployment properties are specified in YAML format:
+	 *
 	 * <code>
 	 *     spring.cloud.deployer.kubernetes.volumes=[{name: testhostpath, hostPath: { path: '/test/override/hostPath' }},
 	 *     	{name: 'testpvc', persistentVolumeClaim: { claimName: 'testClaim', readOnly: 'true' }},
 	 *     	{name: 'testnfs', nfs: { server: '10.0.0.1:111', path: '/test/nfs' }}]
 	 * </code>
+	 *
 	 * Volumes can be specified as deployer properties as well as app deployment properties.
 	 * Deployment properties override deployer properties.
 	 *
@@ -185,7 +187,7 @@ class DeploymentPropertiesResolver {
 			gpuCount = properties.getLimits().getGpuCount();
 		}
 
-		Map<String,Quantity> limits = new HashMap<>();
+		Map<String,Quantity> limits = new HashMap<String,Quantity>();
 
 		if (StringUtils.hasText(memory)) {
 			limits.put("memory", new Quantity(memory));
@@ -255,7 +257,7 @@ class DeploymentPropertiesResolver {
 
 		logger.debug("Using requests - cpu: " + cpuOverride + " mem: " + memOverride);
 
-		Map<String,Quantity> requests = new HashMap<>();
+		Map<String,Quantity> requests = new HashMap<String, Quantity>();
 
 		if (memOverride != null) {
 			requests.put("memory", new Quantity(memOverride));
@@ -334,7 +336,7 @@ class DeploymentPropertiesResolver {
 			hostNetwork = properties.isHostNetwork();
 		}
 		else {
-			hostNetwork = Boolean.parseBoolean(hostNetworkOverride);
+			hostNetwork = Boolean.valueOf(hostNetworkOverride);
 		}
 
 		logger.debug("Using hostNetwork " + hostNetwork);
@@ -582,58 +584,50 @@ class DeploymentPropertiesResolver {
 	}
 
 	Container getInitContainer(Map<String, String> kubernetesDeployerProperties) {
+		Container container = null;
 		KubernetesDeployerProperties deployerProperties = bindProperties(kubernetesDeployerProperties,
 				this.propertyPrefix + ".initContainer", "initContainer");
 
-		// Deployment prop passed in for entire '.initContainer'
-		InitContainer initContainerProps = deployerProperties.getInitContainer();
-		if (initContainerProps != null) {
-			return containerFromProps(initContainerProps);
+		if (deployerProperties.getInitContainer() == null) {
+			String containerName = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
+					this.propertyPrefix + ".initContainer.containerName");
+
+			String imageName = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
+					this.propertyPrefix + ".initContainer.imageName");
+
+			String commands = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
+					this.propertyPrefix + ".initContainer.commands");
+
+			String envString = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
+					this.propertyPrefix + ".initContainer.environmentVariables");
+
+			List<VolumeMount> vms = this.getInitContainerVolumeMounts(kubernetesDeployerProperties);
+
+			if (StringUtils.hasText(containerName) && StringUtils.hasText(imageName)) {
+				container = new ContainerBuilder()
+						.withName(containerName)
+						.withImage(imageName)
+						.withCommand(commands)
+						.withEnv(toEnvironmentVariables((envString != null)? envString.split(","): new String[0]))
+						.addAllToVolumeMounts(vms)
+						.build();
+			}
+		}
+		else {
+			InitContainer initContainer = deployerProperties.getInitContainer();
+
+			if (initContainer != null) {
+				container = new ContainerBuilder()
+						.withName(initContainer.getContainerName())
+						.withImage(initContainer.getImageName())
+						.withCommand(initContainer.getCommands())
+						.withEnv(toEnvironmentVariables(initContainer.getEnvironmentVariables()))
+						.addAllToVolumeMounts(Optional.ofNullable(initContainer.getVolumeMounts()).orElse(Collections.emptyList()))
+						.build();
+			}
 		}
 
-		// Deployment props passed in for specific '.initContainer.<property>'
-		String containerName = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".initContainer.containerName");
-		String imageName = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".initContainer.imageName");
-		String commandsStr = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".initContainer.commands");
-		if(containerName == null) {
-			logger.warn(this.propertyPrefix + ".initContainer.containerName is not provided");
-		} else if(imageName == null) {
-			logger.warn(this.propertyPrefix + ".initContainer.imageName is not provided");
-		}
-		List<String> commands = commandsStr != null ? Arrays.stream(commandsStr.split(",")).collect(Collectors.toList()) : Collections.emptyList();
-		String envString = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".initContainer.environmentVariables");
-		List<VolumeMount> vms = this.getInitContainerVolumeMounts(kubernetesDeployerProperties);
-		if (StringUtils.hasText(containerName) && StringUtils.hasText(imageName)) {
-			return new ContainerBuilder()
-					.withName(containerName)
-					.withImage(imageName)
-					.withCommand(commands)
-					.withEnv(toEnvironmentVariables((envString != null)? envString.split(","): new String[0]))
-					.addAllToVolumeMounts(vms)
-					.build();
-		}
-
-		// Default is global initContainer
-		initContainerProps = this.properties.getInitContainer();
-		if (initContainerProps != null) {
-			return containerFromProps(initContainerProps);
-		}
-
-		return null;
-	}
-
-	private Container containerFromProps(InitContainer initContainerProps) {
-		return new ContainerBuilder()
-				.withName(initContainerProps.getContainerName())
-				.withImage(initContainerProps.getImageName())
-				.withCommand(initContainerProps.getCommands())
-				.withEnv(toEnvironmentVariables(initContainerProps.getEnvironmentVariables()))
-				.addAllToVolumeMounts(Optional.ofNullable(initContainerProps.getVolumeMounts()).orElse(Collections.emptyList()))
-				.build();
+		return container;
 	}
 
 	private List<EnvVar>  toEnvironmentVariables(String[] environmentVariables) {
@@ -660,7 +654,8 @@ class DeploymentPropertiesResolver {
 				this.propertyPrefix + ".additionalContainers", "additionalContainers" );
 
 		if (deployerProperties.getAdditionalContainers() != null) {
-			containers.addAll(deployerProperties.getAdditionalContainers());
+			deployerProperties.getAdditionalContainers().forEach(container ->
+					containers.add(container));
 		}
 
 		// Add the containers from the original properties excluding the containers with the matching names from the
@@ -668,7 +663,7 @@ class DeploymentPropertiesResolver {
 		if (this.properties.getAdditionalContainers() != null) {
 			this.properties.getAdditionalContainers().stream()
 					.filter(container -> containers.stream().noneMatch(existing -> existing.getName().equals(container.getName())))
-					.forEachOrdered(containers::add);
+					.forEachOrdered(container -> containers.add(container));
 		}
 
 		return containers;
@@ -704,8 +699,8 @@ class DeploymentPropertiesResolver {
 
 		// Add deployment labels set at the deployer level.
 		String updatedLabels = StringUtils.hasText(this.properties.getDeploymentLabels()) ?
-			deploymentLabels + (StringUtils.hasText(deploymentLabels) ? "," : "") +
-				this.properties.getDeploymentLabels() : deploymentLabels;
+				new StringBuilder().append(deploymentLabels).append(StringUtils.hasText(deploymentLabels) ? ",": "")
+						.append(this.properties.getDeploymentLabels()).toString() : deploymentLabels;
 
 		if (StringUtils.hasText(updatedLabels)) {
 			String[] deploymentLabel = updatedLabels.split(",");
@@ -713,7 +708,7 @@ class DeploymentPropertiesResolver {
 			for (String label : deploymentLabel) {
 				String[] labelPair = label.split(":");
 				Assert.isTrue(labelPair.length == 2,
-						String.format("Invalid label format, expected 'labelKey:labelValue', got: '%s'", Arrays.asList(labelPair)));
+						String.format("Invalid label format, expected 'labelKey:labelValue', got: '%s'", labelPair));
 				labels.put(labelPair[0].trim(), labelPair[1].trim());
 			}
 		}
@@ -937,7 +932,7 @@ class DeploymentPropertiesResolver {
 
 	/**
 	 * @param deploymentProperties the kubernetes deployer properties map
-	 * @return a Map of EnvVar objects for app specific environment settings
+	 * @return a List of EnvVar objects for app specific environment settings
 	 */
 	Map<String, String> getAppEnvironmentVariables(Map<String, String> deploymentProperties) {
 		Map<String, String> appEnvVarMap = new HashMap<>();

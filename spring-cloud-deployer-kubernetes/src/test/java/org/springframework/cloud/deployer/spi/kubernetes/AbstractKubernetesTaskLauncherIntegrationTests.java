@@ -81,7 +81,7 @@ abstract class AbstractKubernetesTaskLauncherIntegrationTests extends AbstractTa
 	}
 
 	protected void logTestInfo(TestInfo testInfo) {
-		logger.info("Testing {}...", testInfo.getTestMethod().map(Method::getName).orElse(testInfo.getDisplayName()));
+		log.info("Testing {}...", testInfo.getTestMethod().map(Method::getName).orElse(testInfo.getDisplayName()));
 	}
 
 	protected ConditionFactory awaitWithPollAndTimeout(Timeout timeout) {

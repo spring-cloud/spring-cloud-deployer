@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
 @Configuration
 public class SchedulerIntegrationTest {
 
-	protected final Logger log = LoggerFactory.getLogger(this.getClass());
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private SchedulerIntegrationTestProperties properties;
@@ -56,11 +56,11 @@ public class SchedulerIntegrationTest {
 		Assert.notNull(properties.getInstanceIndex(), "instanceIndex should have been set by deployer or runtime");
 
 		if (properties.getMatchInstances().isEmpty() || properties.getMatchInstances().contains(properties.getInstanceIndex())) {
-			log.info("Waiting for %dms before allowing further initialization and actuator startup...", properties.getInitDelay());
+			logger.info("Waiting for %dms before allowing further initialization and actuator startup...", properties.getInitDelay());
 			Thread.sleep(properties.getInitDelay());
-			log.info("... done");
+			logger.info("... done");
 			if (properties.getKillDelay() >= 0) {
-				log.info("Will kill this process in %dms%n", properties.getKillDelay());
+				logger.info("Will kill this process in %dms%n", properties.getKillDelay());
 				new Thread() {
 
 					@Override

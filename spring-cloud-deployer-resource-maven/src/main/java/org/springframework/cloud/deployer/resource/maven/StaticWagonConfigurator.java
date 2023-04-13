@@ -37,14 +37,16 @@ import org.springframework.cloud.deployer.resource.maven.MavenProperties.WagonHt
  * suit our needs as things get a bit crazy with it due to its use of Guice.
  *
  * @author Janne Valkealahti
+ * @autor Corneil du Plessis
+ *
  */
 public class StaticWagonConfigurator implements WagonConfigurator {
 
-	private static final Logger log = LoggerFactory.getLogger(StaticWagonConfigurator.class);
+	private static final Logger logger = LoggerFactory.getLogger(StaticWagonConfigurator.class);
 
 	@Override
 	public void configure(Wagon wagon, Object configuration) throws Exception {
-		log.debug("Configuring wagon {} with {}", wagon, configuration);
+		logger.debug("Configuring wagon {} with {}", wagon, configuration);
 		if (wagon instanceof HttpWagon && configuration instanceof MavenProperties.Wagon) {
 			HttpWagon httpWagon = (HttpWagon)wagon;
 			Map<WagonHttpMethod, WagonHttpMethodProperties> httpMethodProperties = ((MavenProperties.Wagon) configuration)

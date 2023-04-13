@@ -91,7 +91,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 	@Override
 	protected Resource testApplication() {
 		if (useDocker) {
-			log.info("Using Docker image for tests");
+			logger.info("Using Docker image for tests");
 			return new DockerResource(TESTAPP_DOCKER_IMAGE_NAME);
 		}
 		return super.testApplication();
@@ -121,7 +121,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -142,7 +142,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 			env = template.getForObject(url + "/actuator/env", String.class);
 		}
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -175,7 +175,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
@@ -207,7 +207,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
@@ -217,7 +217,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -367,7 +367,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 
 		List<Path> beforeDirs = getBeforePaths(customWorkDirRoot);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
@@ -376,7 +376,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -400,7 +400,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 
@@ -411,7 +411,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 			return appDeployer().status(deploymentId).getState() == DeploymentState.deploying;
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		Timeout timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -431,7 +431,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 
@@ -442,7 +442,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 			return appDeployer().status(deploymentId).getState() == DeploymentState.deployed;
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		Timeout timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -462,7 +462,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 
@@ -470,7 +470,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 			return appDeployer().status(deploymentId).getState() == DeploymentState.failed;
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		Timeout timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
@@ -490,7 +490,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
 
-		log.info("Deploying {}...", request.getDefinition().getName());
+		logger.info("Deploying {}...", request.getDefinition().getName());
 
 		String deploymentId = appDeployer().deploy(request);
 
@@ -502,7 +502,7 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 			return appDeployer().status(deploymentId).getState() == DeploymentState.deployed;
 		});
 
-		log.info("Undeploying {}...", deploymentId);
+		logger.info("Undeploying {}...", deploymentId);
 
 		Timeout timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
