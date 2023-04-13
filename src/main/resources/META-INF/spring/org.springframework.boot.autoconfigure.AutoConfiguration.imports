@@ -1,1 +1,2 @@
 org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeployerAutoConfiguration
+org.springframework.cloud.deployer.spi.kubernetes.KubernetesAutoConfiguration

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobSpecBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.ScalableResource;
@@ -283,16 +284,16 @@ public class KubernetesTaskLauncher extends AbstractKubernetesDeployer implement
 
 			this.client.pods().create(
 					new PodBuilder()
-							.withNewMetadata()
-							.withName(appId)
-							.withLabels(podLabelMap)
-							.addToLabels(deploymentLabels)
-							.withAnnotations(this.deploymentPropertiesResolver.getJobAnnotations(deploymentProperties))
-							.addToAnnotations(this.deploymentPropertiesResolver.getPodAnnotations(deploymentProperties))
-							.addToLabels(idMap)
-							.endMetadata()
-							.withSpec(podSpec)
-							.build()
+					.withNewMetadata()
+					.withName(appId)
+					.withLabels(podLabelMap)
+					.addToLabels(deploymentLabels)
+					.withAnnotations(this.deploymentPropertiesResolver.getJobAnnotations(deploymentProperties))
+					.addToAnnotations(this.deploymentPropertiesResolver.getPodAnnotations(deploymentProperties))
+					.addToLabels(idMap)
+					.endMetadata()
+					.withSpec(podSpec)
+					.build()
 			);
 		}
 	}
