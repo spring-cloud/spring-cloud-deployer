@@ -29,9 +29,10 @@ jobs:
       - name: 'Install minikube ${{ matrix.k8s_version }}'
         shell: bash
         run: |
-          curl -LO https://storage.googleapis.com/minikube/releases/${{ matrix.k8s_version }}/minikube-linux-amd64
+          MINIKUBE_VERSION=1.29.0
+          curl -LO "https://storage.googleapis.com/minikube/releases/$MINIKUBE_VERSION/minikube-linux-amd64"
           sudo install minikube-linux-amd64 /usr/local/bin/minikube
-
+          minikube start "--kubernetes-version=${{ matrix.k8s_version }}"
       # build
       - name: Build
         run: |
