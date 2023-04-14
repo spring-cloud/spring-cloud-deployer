@@ -208,7 +208,7 @@ public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherInteg
 		Timeout timeout = deploymentTimeout();
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId1).getState()).isEqualTo(LaunchState.complete);
         });
@@ -231,7 +231,7 @@ public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherInteg
 		Timeout timeout = deploymentTimeout();
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId1).getState()).isEqualTo(LaunchState.complete);
         });
@@ -243,13 +243,13 @@ public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherInteg
 		timeout = deploymentTimeout();
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId2).getState()).isEqualTo(LaunchState.complete);
         });
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId1).getState()).isEqualTo(LaunchState.unknown);
         });
@@ -262,19 +262,19 @@ public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherInteg
 		timeout = deploymentTimeout();
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId3).getState()).isEqualTo(LaunchState.complete);
         });
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId1).getState()).isEqualTo(LaunchState.unknown);
         });
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId2).getState()).isEqualTo(LaunchState.unknown);
         });
@@ -301,7 +301,7 @@ public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherInteg
         });
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.complete);
         });
@@ -309,7 +309,7 @@ public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherInteg
 		this.taskLauncher().destroy(definition.getName());
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher.getRunningTaskExecutionCount()).isEqualTo(0);
         });

@@ -126,7 +126,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.complete);
         });
@@ -148,7 +148,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.complete);
         });
@@ -160,7 +160,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 
 		timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(newLaunchId).getState()).isEqualTo(LaunchState.complete);
         });
@@ -182,7 +182,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.failed);
         });
@@ -204,7 +204,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running);
         });
@@ -214,7 +214,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 
 		timeout = undeploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.cancelled);
         });
@@ -238,7 +238,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(deploymentId).getState()).isEqualTo(LaunchState.complete);
         });

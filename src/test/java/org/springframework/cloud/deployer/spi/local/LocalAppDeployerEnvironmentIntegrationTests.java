@@ -126,7 +126,7 @@ public class LocalAppDeployerEnvironmentIntegrationTests extends AbstractAppDepl
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
@@ -147,7 +147,7 @@ public class LocalAppDeployerEnvironmentIntegrationTests extends AbstractAppDepl
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -181,7 +181,7 @@ public class LocalAppDeployerEnvironmentIntegrationTests extends AbstractAppDepl
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
@@ -191,7 +191,7 @@ public class LocalAppDeployerEnvironmentIntegrationTests extends AbstractAppDepl
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -263,7 +263,7 @@ public class LocalAppDeployerEnvironmentIntegrationTests extends AbstractAppDepl
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis(timeout.maxAttempts * timeout.pause))
+				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
 				.untilAsserted(() -> {
 					assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 				});
