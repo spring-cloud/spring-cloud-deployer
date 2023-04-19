@@ -258,6 +258,10 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 			undeploy(deploymentId);
 		}
 	}
+	
+	public void foo() {
+		// temp PR to trigger GTrivy scan
+	}
 
 	private AppInstance deployApp(AppDeploymentRequest request, Path workDir, String group, String deploymentId,
 			int index, Map<String, String> deploymentProperties) throws IOException {
