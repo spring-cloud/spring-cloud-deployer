@@ -1660,6 +1660,40 @@ public class KubernetesAppDeployerTests {
                 .containsExactlyInAnyOrder("echo", "postStart");
     }
 
+    @Test
+    public void terminationGracePeriodFromDeployerProp() {
+        Map<String, String> props = new HashMap<>();
+        props.put("spring.cloud.deployer.kubernetes.terminationGracePeriodSeconds", "5150");
+        AppDefinition definition = new AppDefinition("app-test", null);
+        AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
+        KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+        kubernetesDeployerProperties.setTerminiationGracePeriodSeconds(6160L);
+        deployer = k8sAppDeployer(kubernetesDeployerProperties);
+        PodSpec podSpec = deployer.createPodSpec(appDeploymentRequest);
+        assertThat(podSpec.getTerminationGracePeriodSeconds()).isEqualTo(5150L);
+    }
+
+    @Test
+    public void terminationGracePeriodFromGlobalProp() {
+        AppDefinition definition = new AppDefinition("app-test", null);
+        AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), Collections.emptyMap());
+        KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+        kubernetesDeployerProperties.setTerminiationGracePeriodSeconds(6160L);
+        deployer = k8sAppDeployer(kubernetesDeployerProperties);
+        PodSpec podSpec = deployer.createPodSpec(appDeploymentRequest);
+        assertThat(podSpec.getTerminationGracePeriodSeconds()).isEqualTo(6160L);
+    }
+
+    @Test
+    public void terminationGracePeriodNotSpecified() {
+        AppDefinition definition = new AppDefinition("app-test", null);
+        AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), Collections.emptyMap());
+        KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+        deployer = k8sAppDeployer(kubernetesDeployerProperties);
+        PodSpec podSpec = deployer.createPodSpec(appDeploymentRequest);
+        assertThat(podSpec.getTerminationGracePeriodSeconds()).isNull();
+    }
+
     private Resource getResource() {
         return new DockerResource("springcloud/spring-cloud-deployer-spi-test-app:latest");
     }

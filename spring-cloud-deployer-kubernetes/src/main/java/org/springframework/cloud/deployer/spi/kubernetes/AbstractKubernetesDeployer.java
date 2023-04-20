@@ -237,6 +237,11 @@ public class AbstractKubernetesDeployer {
 			container.setLifecycle(f8Lifecycle);
 		}
 
+		Long termGracePeriod = this.deploymentPropertiesResolver.determineTerminationGracePeriodSeconds(deploymentProperties);
+		if (termGracePeriod != null) {
+			podSpec.withTerminationGracePeriodSeconds(termGracePeriod);
+		}
+
 		Map<String, String> nodeSelectors = this.deploymentPropertiesResolver.getNodeSelectors(deploymentProperties);
 		if (nodeSelectors.size() > 0) {
 			podSpec.withNodeSelector(nodeSelectors);

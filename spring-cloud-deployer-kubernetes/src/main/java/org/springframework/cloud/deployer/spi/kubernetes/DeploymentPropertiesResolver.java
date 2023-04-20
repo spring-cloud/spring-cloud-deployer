@@ -910,6 +910,20 @@ class DeploymentPropertiesResolver {
 	}
 
 	/**
+	 * Determine the pod-level termination grace period seconds.
+	 * @param deploymentProperties the deployer properties
+	 * @return the termination grace period seconds to use for the pod's containers or null to use the default
+	 */
+	Long determineTerminationGracePeriodSeconds(Map<String, String> deploymentProperties) {
+		String gracePeriodStr = PropertyParserUtils.getDeploymentPropertyValue(deploymentProperties,
+				this.propertyPrefix + ".terminationGracePeriodSeconds", null);
+		if (gracePeriodStr != null) {
+			return Long.parseLong(gracePeriodStr);
+		}
+		return this.properties.getTerminiationGracePeriodSeconds();
+	}
+
+	/**
 	 * @param deploymentProperties the kubernetes deployer properties map
 	 * @return a list of Integers to add to the container
 	 */

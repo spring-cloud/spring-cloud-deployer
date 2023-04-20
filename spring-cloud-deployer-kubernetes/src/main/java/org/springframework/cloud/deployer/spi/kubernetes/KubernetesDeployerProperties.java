@@ -58,6 +58,11 @@ public class KubernetesDeployerProperties {
      */
     private int maximumConcurrentTasks = 20;
 
+	/**
+	 * The number of seconds to wait before terminating the container.
+	 */
+	private Long terminiationGracePeriodSeconds;
+
     @NestedConfigurationProperty
     private Config fabric8 = Config.autoConfigure(null);
 
@@ -1440,6 +1445,7 @@ public class KubernetesDeployerProperties {
      */
     private Lifecycle lifecycle = new Lifecycle();
 
+
     /**
      * The additional containers one can add to the main application container.
      */
@@ -2376,7 +2382,15 @@ public class KubernetesDeployerProperties {
         this.maximumConcurrentTasks = maximumConcurrentTasks;
     }
 
-    public void setNodeSelector(String nodeSelector) {
+	public Long getTerminiationGracePeriodSeconds() {
+		return terminiationGracePeriodSeconds;
+	}
+
+	public void setTerminiationGracePeriodSeconds(Long terminiationGracePeriodSeconds) {
+		this.terminiationGracePeriodSeconds = terminiationGracePeriodSeconds;
+	}
+
+	public void setNodeSelector(String nodeSelector) {
         this.nodeSelector = nodeSelector;
     }
 
