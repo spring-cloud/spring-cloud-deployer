@@ -12,7 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
     - uses: actions/checkout@v2
     - uses: actions/setup-java@v1
       with:
@@ -61,7 +60,18 @@ jobs:
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout) >> $GITHUB_ENV
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-main >> $GITHUB_ENV
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildnumber=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
-
+    - name: Run Trivy vulnerability scanner in repo mode
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        ignore-unfixed: true
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
     # zoo success
     - name: Notify Build Success Zoo Handler Controller
       uses: jvalkeal/build-zoo-handler@v0.0.4
