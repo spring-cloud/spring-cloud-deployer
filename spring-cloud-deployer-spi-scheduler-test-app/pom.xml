@@ -8,13 +8,13 @@
 	</parent>
 	<artifactId>spring-cloud-deployer-spi-scheduler-test-app</artifactId>
 	<properties>
-		<spring-boot.version>2.7.10</spring-boot.version>
 		<start-class>org.springframework.cloud.deployer.spi.scheduler.test.app.SchedulerIntegrationTestApplication</start-class>
 		<java.version>1.8</java.version>
 		<docker.image.prefix>springcloud</docker.image.prefix>
 		<dockerfile-maven-plugin.version>1.3.6</dockerfile-maven-plugin.version>
 	</properties>
 	<dependencies>
+		<!--suppress VulnerableLibrariesLocal -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
