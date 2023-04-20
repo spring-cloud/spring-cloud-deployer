@@ -27,21 +27,6 @@ jobs:
     - name: Build
       run: |
         mvn -U -B clean package -T 0.5C
-        
-    # trivy scan
-    - name: Run Trivy vulnerability scanner in repo mode
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        ignore-unfixed: true
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        severity: 'LOW,MEDIUM,HIGH,CRITICAL'
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: 'trivy-results.sarif'        
-        
     # clean m2 cache
     - name: Clean cache
       run: |
