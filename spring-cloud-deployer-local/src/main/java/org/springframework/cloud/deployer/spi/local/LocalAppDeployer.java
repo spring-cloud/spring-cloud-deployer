@@ -259,6 +259,10 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 		}
 	}
 
+	public void tempMethodToTestTrivyScanInPR() {
+		// hello my friend...
+	}
+
 	private AppInstance deployApp(AppDeploymentRequest request, Path workDir, String group, String deploymentId,
 			int index, Map<String, String> deploymentProperties) throws IOException {
 
