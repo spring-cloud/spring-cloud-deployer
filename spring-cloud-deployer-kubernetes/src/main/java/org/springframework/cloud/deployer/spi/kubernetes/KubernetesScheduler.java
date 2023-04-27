@@ -57,6 +57,8 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 
 	static final String KUBERNETES_DEPLOYER_CRON_TTL_SECONDS_AFTER_FINISHED = KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".cron.ttlSecondsAfterFinished";
 
+	static final String KUBERNETES_DEPLOYER_CRON_BACKOFF_LIMIT = KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".cron.backoffLimit";
+
 	public KubernetesScheduler(KubernetesClient client,
 			KubernetesDeployerProperties properties) {
 		Assert.notNull(client, "KubernetesClient must not be null");
@@ -212,7 +214,7 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 		if (!StringUtils.hasText(concurrencyPolicy)) {
 			concurrencyPolicy = this.properties.getCron().getConcurrencyPolicy();
 		}
-		if(concurrencyPolicy==null) {
+		if (concurrencyPolicy == null) {
 			concurrencyPolicy = "Allow";
 		}
 
@@ -225,6 +227,15 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 			ttlSecondsAfterFinished = this.properties.getCron().getTtlSecondsAfterFinished();
 		}
 
+		final Integer backoffLimit;
+		String backoffLimitString = schedulerProperties.get(KUBERNETES_DEPLOYER_CRON_BACKOFF_LIMIT);
+		if (StringUtils.hasText(backoffLimitString)) {
+			backoffLimit = Integer.parseInt(backoffLimitString);
+		}
+		else {
+			backoffLimit = this.properties.getCron().getBackoffLimit();
+		}
+
 		PodSpec podSpec = createPodSpec(new ScheduleRequest(scheduleRequest.getDefinition(),schedulerProperties, scheduleRequest.getCommandlineArguments(), scheduleRequest.getScheduleName(),scheduleRequest.getResource()));
 		String taskServiceAccountName = this.deploymentPropertiesResolver.getTaskServiceAccountName(schedulerProperties);
 		taskServiceAccountName = taskServiceAccountName != null ? taskServiceAccountName : KubernetesDeployerProperties.DEFAULT_TASK_SERVICE_ACCOUNT_NAME;
@@ -234,13 +245,29 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 		Map<String, String> annotations = this.deploymentPropertiesResolver.getPodAnnotations(schedulerProperties);
 		labels.putAll(this.deploymentPropertiesResolver.getDeploymentLabels(schedulerProperties));
 
-		CronJob cronJob = new CronJobBuilder().withNewMetadata().withName(scheduleRequest.getScheduleName())
-				.withLabels(labels).withAnnotations(this.deploymentPropertiesResolver.getJobAnnotations(schedulerProperties)).endMetadata()
-				.withNewSpec().withSchedule(schedule).withConcurrencyPolicy(concurrencyPolicy).withNewJobTemplate()
-				.withNewSpec().withTtlSecondsAfterFinished(ttlSecondsAfterFinished)
-				.withNewTemplate().withNewMetadata().addToAnnotations(annotations).addToLabels(labels)
-				.endMetadata().withSpec(podSpec).endTemplate().endSpec()
-				.endJobTemplate().endSpec().build();
+		CronJob cronJob = new CronJobBuilder()
+				.withNewMetadata()
+					.withName(scheduleRequest.getScheduleName())
+					.withLabels(labels)
+					.withAnnotations(this.deploymentPropertiesResolver.getJobAnnotations(schedulerProperties))
+				.endMetadata()
+				.withNewSpec()
+					.withSchedule(schedule)
+						.withConcurrencyPolicy(concurrencyPolicy)
+						.withNewJobTemplate()
+							.withNewSpec()
+								.withBackoffLimit(backoffLimit)
+								.withTtlSecondsAfterFinished(ttlSecondsAfterFinished)
+								.withNewTemplate()
+									.withNewMetadata()
+										.addToAnnotations(annotations).addToLabels(labels)
+									.endMetadata()
+									.withSpec(podSpec)
+								.endTemplate()
+							.endSpec()
+						.endJobTemplate()
+				.endSpec()
+				.build();
 
 		setImagePullSecret(scheduleRequest, cronJob);
 

@@ -49,6 +49,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -82,6 +84,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 @ContextConfiguration(classes = {KubernetesSchedulerIT.Config.class})
 public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tests {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(KubernetesSchedulerIT.class);
 
 	@Autowired
 	private Scheduler scheduler;
@@ -1146,6 +1150,68 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
 	}
 
+	@Test
+	public void testBackoffLimit() {
+		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+		if (kubernetesDeployerProperties.getNamespace() == null) {
+			kubernetesDeployerProperties.setNamespace("default");
+		}
+		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
+				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient, kubernetesDeployerProperties);
+
+		AppDefinition appDefinition = new AppDefinition(randomName(), getAppProperties());
+
+		Map<String, String> schedulerProperties = new HashMap<>(getSchedulerProperties());
+		schedulerProperties.put(KubernetesScheduler.KUBERNETES_DEPLOYER_CRON_BACKOFF_LIMIT, "5");
+
+		ScheduleRequest scheduleRequest = new ScheduleRequest(appDefinition, schedulerProperties,
+				getCommandLineArgs(), randomName(), testApplication());
+		CronJob cronJob = kubernetesScheduler.createCronJob(scheduleRequest);
+		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getBackoffLimit()).isEqualTo(5);
+
+		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+	}
+
+	@Test
+	public void testBackoffLimitDefault() {
+		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+		if (kubernetesDeployerProperties.getNamespace() == null) {
+			kubernetesDeployerProperties.setNamespace("default");
+		}
+		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
+				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient, kubernetesDeployerProperties);
+
+		AppDefinition appDefinition = new AppDefinition(randomName(), getAppProperties());
+		ScheduleRequest scheduleRequest = new ScheduleRequest(appDefinition, getSchedulerProperties(),
+				getCommandLineArgs(), randomName(), testApplication());
+		CronJob cronJob = kubernetesScheduler.createCronJob(scheduleRequest);
+		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getBackoffLimit()).isNull();
+
+		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+	}
+
+	@Test
+	public void testBackoffLimitFromServerProperties() {
+		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+		if (kubernetesDeployerProperties.getNamespace() == null) {
+			kubernetesDeployerProperties.setNamespace("default");
+		}
+		kubernetesDeployerProperties.getCron().setBackoffLimit(7);
+		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
+				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient, kubernetesDeployerProperties);
+
+		AppDefinition appDefinition = new AppDefinition(randomName(), getAppProperties());
+		ScheduleRequest scheduleRequest = new ScheduleRequest(appDefinition, getSchedulerProperties(),
+				getCommandLineArgs(), randomName(), testApplication());
+		CronJob cronJob = kubernetesScheduler.createCronJob(scheduleRequest);
+		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getBackoffLimit()).isEqualTo(7);
+
+		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+	}
+
 	@AfterAll
 	public static void cleanup() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
@@ -1160,11 +1226,20 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		List<ScheduleInfo> scheduleInfos = kubernetesScheduler.list();
 
 		for (ScheduleInfo scheduleInfo : scheduleInfos) {
-			kubernetesScheduler.unschedule(scheduleInfo.getScheduleName());
+			safeUnschedule(kubernetesScheduler, scheduleInfo.getScheduleName());
 		}
 		// Cleanup the schedules that aren't part of the list() - created from listScheduleWithExternalCronJobs test
-		kubernetesScheduler.unschedule("job2");
-		kubernetesScheduler.unschedule("job3");
+		safeUnschedule(kubernetesScheduler, "job2");
+		safeUnschedule(kubernetesScheduler, "job3");
+	}
+
+	private static void safeUnschedule(KubernetesScheduler scheduler, String scheduleName) {
+		try {
+			scheduler.unschedule(scheduleName);
+		}
+		catch (Exception ex) {
+			LOGGER.warn("Failed to unschedule '" + scheduleName + "'", ex);
+		}
 	}
 
 	@Configuration
