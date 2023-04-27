@@ -319,7 +319,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(container.getEnv()).as("Environment variables should only have SPRING_CLOUD_APPLICATION_GUID")
 				.hasSize(1);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -352,7 +352,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(container.getEnv()).as("Environment variables should not be null").isNotNull();
 		assertThat(container.getEnv()).as("Invalid number of environment variables").hasSizeGreaterThan(1);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -393,7 +393,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(springApplicationJsonValues).as("SPRING_APPLICATION_JSON should not be null").isNotNull();
 		assertThat(springApplicationJsonValues).as("Invalid number of SPRING_APPLICATION_JSON entries").hasSize(2);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@Test
@@ -472,7 +472,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(springApplicationJsonValues).as("SPRING_APPLICATION_JSON should not be null").isNotNull();
 		assertThat(springApplicationJsonValues).as("Invalid number of SPRING_APPLICATION_JSON entries").hasSize(2);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -502,7 +502,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 				.hasSize(1);
 		assertThat(container.getArgs()).as("Command line arguments should not be empty").isNotEmpty();
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -535,7 +535,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 
 		assertThat(container.getImagePullPolicy()).as("Unexpected image pull policy").isEqualTo("Always");
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -570,7 +570,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTemplate().getMetadata().getLabels()
 				.get("label2")).as("Pod Label2 is not set").isEqualTo("value2");
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@Test
@@ -596,7 +596,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 				.size()).as("Should have one label").isEqualTo(1);
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTemplate().getMetadata().getLabels().get(
 				KubernetesScheduler.SPRING_CRONJOB_ID_KEY)).as("Default label is not set").isNotNull();
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -646,7 +646,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTemplate().getMetadata().getLabels()
 				.get("label2")).as("Pod Label2 is not set").isEqualTo("value2");
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -677,7 +677,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(cronJob.getMetadata().getAnnotations().get("test1")).as("Job annotation is not set")
 				.isEqualTo("value2");
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -705,7 +705,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(ImagePullPolicy.relaxedValueOf(container.getImagePullPolicy())).as("Unexpected default image pull policy")
 				.isEqualTo(ImagePullPolicy.IfNotPresent);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -738,7 +738,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 				.getImagePullSecrets();
 		assertThat(secrets.get(0).getName()).as("Unexpected image pull secret").isEqualTo(secretName);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -766,7 +766,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 				.getImagePullSecrets();
 		assertThat(secrets).as("There should be no secrets").isEmpty();
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -797,7 +797,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 				.getImagePullSecrets();
 		assertThat(secrets.get(0).getName()).as("Unexpected image pull secret").isEqualTo(secretName);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -915,7 +915,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 
 		assertThat(container.getEnv()).contains(expectedVars);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -949,7 +949,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 				.getServiceAccountName();
 		assertThat(serviceAccountName).as("Unexpected service account name").isEqualTo(taskServiceAccountName);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -980,7 +980,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(serviceAccountName).as("Unexpected service account name")
 				.isEqualTo(KubernetesSchedulerProperties.DEFAULT_TASK_SERVICE_ACCOUNT_NAME);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -1005,7 +1005,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(cronJob.getSpec().getConcurrencyPolicy()).isEqualTo(concurrencyPolicy);
 
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@Test
@@ -1029,7 +1029,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(cronJob.getSpec().getConcurrencyPolicy()).isEqualTo("Allow");
 
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@Test
@@ -1054,7 +1054,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(cronJob.getSpec().getConcurrencyPolicy()).isEqualTo("Forbid");
 
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -1082,7 +1082,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTtlSecondsAfterFinished())
 				.isEqualTo(Integer.parseInt(ttlSecondsAfterFinished));
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@ParameterizedTest
@@ -1122,7 +1122,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTtlSecondsAfterFinished())
 				.isNull();
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@Test
@@ -1147,7 +1147,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTtlSecondsAfterFinished()).isEqualTo(86400);
 
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@Test
@@ -1170,7 +1170,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		CronJob cronJob = kubernetesScheduler.createCronJob(scheduleRequest);
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getBackoffLimit()).isEqualTo(5);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@Test
@@ -1189,7 +1189,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		CronJob cronJob = kubernetesScheduler.createCronJob(scheduleRequest);
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getBackoffLimit()).isNull();
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@Test
@@ -1209,7 +1209,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		CronJob cronJob = kubernetesScheduler.createCronJob(scheduleRequest);
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getBackoffLimit()).isEqualTo(7);
 
-		kubernetesScheduler.unschedule(cronJob.getMetadata().getName());
+		safeUnschedule(kubernetesScheduler, cronJob.getMetadata().getName());
 	}
 
 	@AfterAll
