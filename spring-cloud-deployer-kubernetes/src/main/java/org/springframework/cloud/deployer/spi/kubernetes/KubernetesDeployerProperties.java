@@ -1492,6 +1492,8 @@ public class KubernetesDeployerProperties {
 
 		private Integer ttlSecondsAfterFinished;
 
+		private Integer backoffLimit;
+
 		public String getConcurrencyPolicy() {
 			return concurrencyPolicy;
 		}
@@ -1506,6 +1508,14 @@ public class KubernetesDeployerProperties {
 
 		public void setTtlSecondsAfterFinished(Integer ttlSecondsAfterFinished) {
 			this.ttlSecondsAfterFinished = ttlSecondsAfterFinished;
+		}
+
+		public Integer getBackoffLimit() {
+			return backoffLimit;
+		}
+
+		public void setBackoffLimit(Integer backoffLimit) {
+			this.backoffLimit = backoffLimit;
 		}
 	}
 
