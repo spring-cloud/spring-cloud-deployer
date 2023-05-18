@@ -1667,7 +1667,7 @@ public class KubernetesAppDeployerTests {
         AppDefinition definition = new AppDefinition("app-test", null);
         AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
         KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-        kubernetesDeployerProperties.setTerminiationGracePeriodSeconds(6160L);
+        kubernetesDeployerProperties.setTerminationGracePeriodSeconds(6160L);
         deployer = k8sAppDeployer(kubernetesDeployerProperties);
         PodSpec podSpec = deployer.createPodSpec(appDeploymentRequest);
         assertThat(podSpec.getTerminationGracePeriodSeconds()).isEqualTo(5150L);
@@ -1678,7 +1678,7 @@ public class KubernetesAppDeployerTests {
         AppDefinition definition = new AppDefinition("app-test", null);
         AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), Collections.emptyMap());
         KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-        kubernetesDeployerProperties.setTerminiationGracePeriodSeconds(6160L);
+        kubernetesDeployerProperties.setTerminationGracePeriodSeconds(6160L);
         deployer = k8sAppDeployer(kubernetesDeployerProperties);
         PodSpec podSpec = deployer.createPodSpec(appDeploymentRequest);
         assertThat(podSpec.getTerminationGracePeriodSeconds()).isEqualTo(6160L);
