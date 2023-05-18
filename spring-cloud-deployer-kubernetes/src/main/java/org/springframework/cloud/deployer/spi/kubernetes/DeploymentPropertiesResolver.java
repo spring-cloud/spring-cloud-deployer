@@ -920,7 +920,7 @@ class DeploymentPropertiesResolver {
 		if (gracePeriodStr != null) {
 			return Long.parseLong(gracePeriodStr);
 		}
-		return this.properties.getTerminiationGracePeriodSeconds();
+		return this.properties.getTerminationGracePeriodSeconds();
 	}
 
 	/**
