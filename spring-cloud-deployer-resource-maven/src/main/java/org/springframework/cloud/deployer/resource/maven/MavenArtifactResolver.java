@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 package org.springframework.cloud.deployer.resource.maven;
 
 import java.io.File;
-import java.text.ChoiceFormat;
-import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.ConfigurationProperties;
@@ -63,12 +64,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Resolves a {@link MavenResource} using <a href="https://www.eclipse.org/aether/>aether</a> to
  * locate the artifact (uber jar) in a local Maven repository, downloading the latest update from a
  * remote repository if necessary.
+ * <p>A set of default remote repos (Maven Central, Spring Snapshots, Spring Milestones) will be automatically added to
+ * the head of the list of remote repos. If the default repo is already explicitly configured (exact match on the repo url)
+ * then that particular default will be omitted. To skip the automatic default repos behavior altogether, set the
+ * {@link MavenProperties#isIncludeDefaultRemoteRepos()} property to {@code false}.
  *
  * @author David Turanski
  * @author Mark Fisher
@@ -76,6 +80,7 @@ import org.springframework.util.StringUtils;
  * @author Ilayaperumal Gopinathan
  * @author Donovan Muller
  * @author Corneil du Plessis
+ * @author Chris Bono
  */
 class MavenArtifactResolver {
 
@@ -89,6 +94,8 @@ class MavenArtifactResolver {
 
 	private final List<RemoteRepository> remoteRepositories = new LinkedList<>();
 
+	private final Map<String, String> defaultRepoUrlsToIds = new LinkedHashMap<>();
+
 	private final Authentication proxyAuthentication;
 
 	/**
@@ -96,15 +103,14 @@ class MavenArtifactResolver {
 	 *
 	 * @param properties the properties for the maven repositories, proxies, and authentication
 	 */
-	public MavenArtifactResolver(final MavenProperties properties) {
+	public MavenArtifactResolver(MavenProperties properties) {
 		Assert.notNull(properties, "MavenProperties must not be null");
 		Assert.notNull(properties.getLocalRepository(), "Local repository path cannot be null");
-		if (logger.isDebugEnabled()) {
-			logger.debug("Local repository: " + properties.getLocalRepository());
-			logger.debug("Remote repositories: " +
-					StringUtils.collectionToCommaDelimitedString(properties.getRemoteRepositories().keySet()));
-		}
 		this.properties = properties;
+		if (logger.isDebugEnabled()) {
+			logger.debug("Configured local repository: " + properties.getLocalRepository());
+			logger.debug("Configured remote repositories: " + configuredRemoteRepositoriesDescription());
+		}
 		if (isProxyEnabled() && proxyHasCredentials()) {
 			final String username = this.properties.getProxy().getAuth().getUsername();
 			final String password = this.properties.getProxy().getAuth().getPassword();
@@ -120,6 +126,11 @@ class MavenArtifactResolver {
 			Assert.isTrue(created || localRepository.exists(),
 					"Unable to create directory for local repository: " + localRepository);
 		}
+
+		defaultRepoUrlsToIds.put("https://repo.maven.apache.org/maven2", "mavenCentral-default");
+		defaultRepoUrlsToIds.put("https://repo.spring.io/snapshot", "springSnapshot-default");
+		defaultRepoUrlsToIds.put("https://repo.spring.io/milestone", "springMilestone-default");
+
 		for (Map.Entry<String, MavenProperties.RemoteRepository> entry : this.properties.getRemoteRepositories()
 				.entrySet()) {
 			MavenProperties.RemoteRepository remoteRepository = entry.getValue();
@@ -148,37 +159,57 @@ class MavenArtifactResolver {
 				final String password = remoteRepository.getAuth().getPassword();
 				remoteRepositoryBuilder.setAuthentication(newAuthentication(username, password));
 			}
+			// do not add default repo if explicitly configured
+			defaultRepoUrlsToIds.remove(remoteRepository.getUrl());
 
-			RemoteRepository repo = remoteRepositoryBuilder.build();
-			Proxy proxy = null;
-			if (isProxyEnabled()) {
-				MavenProperties.Proxy proxyProperties = this.properties.getProxy();
-				if (this.proxyAuthentication != null) {
-					proxy = new Proxy(
-							proxyProperties.getProtocol(),
-							proxyProperties.getHost(),
-							proxyProperties.getPort(),
-							this.proxyAuthentication);
+			RemoteRepository repo = proxyRepoIfProxyEnabled(remoteRepositoryBuilder.build());
+			this.remoteRepositories.add(repo);
+		}
+
+		if (!defaultRepoUrlsToIds.isEmpty() && this.properties.isIncludeDefaultRemoteRepos()) {
+			List<RemoteRepository> defaultRepos = new ArrayList<>();
+			defaultRepoUrlsToIds.forEach((url, id) -> {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Adding {} ({}) to remote repositories list", id, url);
 				}
-				else {
-					// if proxy does not require authentication
-					proxy = new Proxy(
-							proxyProperties.getProtocol(),
-							proxyProperties.getHost(),
-							proxyProperties.getPort());
-				}
-
-				DefaultProxySelector proxySelector = new DefaultProxySelector();
-				proxySelector.add(proxy, this.properties.getProxy().getNonProxyHosts());
-
-				proxy = proxySelector.getProxy(repo);
-			}
-
-			remoteRepositoryBuilder = new RemoteRepository.Builder(repo);
-			remoteRepositoryBuilder.setProxy(proxy);
-			this.remoteRepositories.add(remoteRepositoryBuilder.build());
+				RemoteRepository defaultRepo = proxyRepoIfProxyEnabled(new RemoteRepository.Builder(id, DEFAULT_CONTENT_TYPE, url).build());
+				defaultRepos.add(defaultRepo);
+			});
+			this.remoteRepositories.addAll(0, defaultRepos);
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Using remote repositories: {}", actualRemoteRepositoriesDescription());
 		}
 		this.repositorySystem = newRepositorySystem();
+	}
+
+	private RemoteRepository proxyRepoIfProxyEnabled(RemoteRepository remoteRepo) {
+		if (!isProxyEnabled()) {
+			return remoteRepo;
+		}
+		Proxy proxy;
+		MavenProperties.Proxy proxyProperties = this.properties.getProxy();
+		if (this.proxyAuthentication != null) {
+			proxy = new Proxy(
+					proxyProperties.getProtocol(),
+					proxyProperties.getHost(),
+					proxyProperties.getPort(),
+					this.proxyAuthentication);
+		}
+		else {
+			// if proxy does not require authentication
+			proxy = new Proxy(
+					proxyProperties.getProtocol(),
+					proxyProperties.getHost(),
+					proxyProperties.getPort());
+		}
+		DefaultProxySelector proxySelector = new DefaultProxySelector();
+		proxySelector.add(proxy, this.properties.getProxy().getNonProxyHosts());
+		proxy = proxySelector.getProxy(remoteRepo);
+
+		RemoteRepository.Builder remoteRepositoryBuilder = new RemoteRepository.Builder(remoteRepo);
+		remoteRepositoryBuilder.setProxy(proxy);
+		return remoteRepositoryBuilder.build();
 	}
 
 	/**
@@ -240,10 +271,10 @@ class MavenArtifactResolver {
 		};
 	}
 
-
 	DefaultRepositorySystemSession newRepositorySystemSession() {
 		return this.newRepositorySystemSession(this.repositorySystem, this.properties.getLocalRepository());
 	}
+
 	/*
 	 * Create a session to manage remote and local synchronization.
 	 */
@@ -306,6 +337,25 @@ class MavenArtifactResolver {
 		return locator.getService(RepositorySystem.class);
 	}
 
+	/**
+	 * Gets the list of configured remote repositories
+	 * @return unmodifiable list of configured remote repositories
+	 */
+	List<RemoteRepository> remoteRepositories() {
+		return Collections.unmodifiableList(this.remoteRepositories);
+	}
+
+	private String actualRemoteRepositoriesDescription() {
+		return this.remoteRepositories.stream().map((repo) -> String.format("%s (%s)", repo.getId(), repo.getUrl()))
+				.collect(Collectors.joining(", ", "[", "]"));
+	}
+
+	private String configuredRemoteRepositoriesDescription() {
+		return this.properties.getRemoteRepositories().entrySet().stream()
+				.map((e) -> String.format("%s (%s)", e.getKey(), e.getValue().getUrl()))
+				.collect(Collectors.joining(", ", "[", "]"));
+	}
+
 	List<String> getVersions(String coordinates) {
 		Artifact artifact = new DefaultArtifact(coordinates);
 		VersionRangeRequest rangeRequest = new VersionRangeRequest();
@@ -327,7 +377,7 @@ class MavenArtifactResolver {
 	/**
 	 * Resolve an artifact and return its location in the local repository. Aether performs the normal
 	 * Maven resolution process ensuring that the latest update is cached to the local repository.
-	 * In addition, if the {@link MavenProperties#resolvePom} flag is <code>true</code>,
+	 * In addition, if the {@code MavenProperties.resolvePom} flag is <code>true</code>,
 	 * the POM is also resolved and cached.
 	 * @param resource the {@link MavenResource} representing the artifact
 	 * @return a {@link FileSystemResource} representing the resolved artifact in the local repository
@@ -336,39 +386,21 @@ class MavenArtifactResolver {
 	Resource resolve(MavenResource resource) {
 		Assert.notNull(resource, "MavenResource must not be null");
 		validateCoordinates(resource);
-		RepositorySystemSession session = newRepositorySystemSession(this.repositorySystem,
-				this.properties.getLocalRepository());
-		ArtifactResult resolvedArtifact;
+		RepositorySystemSession session = newRepositorySystemSession(this.repositorySystem, this.properties.getLocalRepository());
 		try {
 			List<ArtifactRequest> artifactRequests = new ArrayList<>(2);
 			if (properties.isResolvePom()) {
-				artifactRequests.add(new ArtifactRequest(toPomArtifact(resource),
-						this.remoteRepositories,
-						JavaScopes.RUNTIME));
+				artifactRequests.add(new ArtifactRequest(toPomArtifact(resource), this.remoteRepositories, JavaScopes.RUNTIME));
 			}
-			artifactRequests.add(new ArtifactRequest(toJarArtifact(resource),
-					this.remoteRepositories,
-					JavaScopes.RUNTIME));
-
+			artifactRequests.add(new ArtifactRequest(toJarArtifact(resource), this.remoteRepositories, JavaScopes.RUNTIME));
 			List<ArtifactResult> results = this.repositorySystem.resolveArtifacts(session, artifactRequests);
-			resolvedArtifact = results.get(results.size() - 1);
+			return toResource(results.get(results.size() - 1));
 		}
-		catch (ArtifactResolutionException e) {
-
-			ChoiceFormat pluralizer = new ChoiceFormat(
-					new double[] { 0d, 1d, ChoiceFormat.nextDouble(1d) },
-					new String[] { "repositories: ", "repository: ", "repositories: " });
-			MessageFormat messageFormat = new MessageFormat(
-					"Failed to resolve MavenResource: {0}. Configured remote {1}: {2}");
-			messageFormat.setFormat(1, pluralizer);
-			String repos = properties.getRemoteRepositories().isEmpty()
-					? "none"
-					: StringUtils.collectionToDelimitedString(properties.getRemoteRepositories().keySet(), ",", "[", "]");
-			throw new IllegalStateException(
-					messageFormat.format(new Object[] { resource, properties.getRemoteRepositories().size(), repos }),
-					e);
+		catch (ArtifactResolutionException ex) {
+			String errorMsg = String.format("Failed to resolve %s using remote repo(s): %s",
+					resource, actualRemoteRepositoriesDescription());
+			throw new IllegalStateException(errorMsg, ex);
 		}
-		return toResource(resolvedArtifact);
 	}
 
 	private void validateCoordinates(MavenResource resource) {
