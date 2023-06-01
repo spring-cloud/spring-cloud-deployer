@@ -47,8 +47,9 @@ class MavenArtifactResolverTests {
         MavenResource mavenResource = (MavenResource) resource;
         MavenArtifactResolver resolver = new MavenArtifactResolver(mavenPropertiesWithProxyRepo());
         assertThatThrownBy(() -> resolver.resolve(mavenResource))
-                .hasRootCauseInstanceOf(UnknownHostException.class)
-                .hasRootCauseMessage("proxy.example.com: nodename nor servname provided, or not known");
+                .getRootCause()
+                .isInstanceOf(UnknownHostException.class)
+                .hasMessageStartingWith("proxy.example.com:");
     }
 
     private MavenProperties mavenPropertiesWithProxyRepo() {

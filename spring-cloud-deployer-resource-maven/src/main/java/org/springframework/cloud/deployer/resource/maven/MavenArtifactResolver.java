@@ -94,8 +94,6 @@ class MavenArtifactResolver {
 
 	private final List<RemoteRepository> remoteRepositories = new LinkedList<>();
 
-	private final Map<String, String> defaultRepoUrlsToIds = new LinkedHashMap<>();
-
 	private final Authentication proxyAuthentication;
 
 	/**
@@ -127,9 +125,7 @@ class MavenArtifactResolver {
 					"Unable to create directory for local repository: " + localRepository);
 		}
 
-		defaultRepoUrlsToIds.put("https://repo.maven.apache.org/maven2", "mavenCentral-default");
-		defaultRepoUrlsToIds.put("https://repo.spring.io/snapshot", "springSnapshot-default");
-		defaultRepoUrlsToIds.put("https://repo.spring.io/milestone", "springMilestone-default");
+		Map<String, String> defaultRepoUrlsToIds = defaultRemoteRepos();
 
 		for (Map.Entry<String, MavenProperties.RemoteRepository> entry : this.properties.getRemoteRepositories()
 				.entrySet()) {
@@ -181,6 +177,18 @@ class MavenArtifactResolver {
 			logger.debug("Using remote repositories: {}", actualRemoteRepositoriesDescription());
 		}
 		this.repositorySystem = newRepositorySystem();
+	}
+
+	/**
+	 * Gets the default repos to automatically add.
+	 * @return map of default repos (repo url to repo id)
+	 */
+	protected Map<String, String> defaultRemoteRepos() {
+		Map<String, String> defaultRepos = new LinkedHashMap<>();
+		defaultRepos.put("https://repo.maven.apache.org/maven2", "mavenCentral-default");
+		defaultRepos.put("https://repo.spring.io/snapshot", "springSnapshot-default");
+		defaultRepos.put("https://repo.spring.io/milestone", "springMilestone-default");
+		return defaultRepos;
 	}
 
 	private RemoteRepository proxyRepoIfProxyEnabled(RemoteRepository remoteRepo) {
