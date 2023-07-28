@@ -38,6 +38,11 @@ public class MavenProperties {
 			File.separator + ".m2" + File.separator + "repository";
 
 	/**
+	 * Whether default remote repositories should be automatically included in the list of remote repositories.
+	 */
+	private boolean includeDefaultRemoteRepos = true;
+
+	/**
 	 * File path to a locally available maven repository, where artifacts will be downloaded.
 	 */
 	private String localRepository = DEFAULT_LOCAL_REPO;
@@ -79,6 +84,14 @@ public class MavenProperties {
 	 * Add the ConsoleRepositoryListener to the session for debugging of artifact resolution.
 	 */
 	private boolean enableRepositoryListener = false;
+
+	boolean isIncludeDefaultRemoteRepos() {
+		return includeDefaultRemoteRepos;
+	}
+
+	void setIncludeDefaultRemoteRepos(boolean includeDefaultRemoteRepos) {
+		this.includeDefaultRemoteRepos = includeDefaultRemoteRepos;
+	}
 
 	/**
 	 * Use maven wagon based transport for http based artifacts.
