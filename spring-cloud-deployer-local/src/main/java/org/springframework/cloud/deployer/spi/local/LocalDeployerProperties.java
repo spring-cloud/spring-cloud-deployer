@@ -166,8 +166,6 @@ public class LocalDeployerProperties {
 
 	public enum DebugSuspendType {y, n}
 
-	;
-
 	/**
 	 * Suspend defines whether the JVM should suspend and wait for a debugger to attach or not
 	 */
@@ -277,10 +275,7 @@ public class LocalDeployerProperties {
 			if (high != other.high) {
 				return false;
 			}
-			if (low != other.low) {
-				return false;
-			}
-			return true;
+			return low == other.low;
 		}
 	}
 
