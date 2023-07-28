@@ -20,6 +20,9 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.Min;
 
@@ -30,6 +33,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.deployer.spi.app.AppAdmin;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -65,6 +69,7 @@ public class LocalDeployerProperties {
 	 * Remote debugging property allowing one to specify port for the remote debug
 	 * session. Must be set per individual application (<em>i.e.</em>
 	 * {@literal deployer.<app-name>.local.debugPort=9999}).
+	 *
 	 * @deprecated This is only JDK 8 compatible. Use the {@link #DEBUG_ADDRESS} instead for supporting all JDKs.
 	 */
 	public static final String DEBUG_PORT = PREFIX + ".debug-port";
@@ -90,11 +95,11 @@ public class LocalDeployerProperties {
 	private static final String JAVA_COMMAND = LocalDeployerUtils.isWindows() ? "java.exe" : "java";
 
 	// looks like some windows systems uses 'Path' but process builder give it as 'PATH'
-	private static final String[] ENV_VARS_TO_INHERIT_DEFAULTS_WIN = { "TMP", "TEMP", "PATH", "Path",
-			AbstractLocalDeployerSupport.SPRING_APPLICATION_JSON };
+	private static final String[] ENV_VARS_TO_INHERIT_DEFAULTS_WIN = {"TMP", "TEMP", "PATH", "Path",
+		AbstractLocalDeployerSupport.SPRING_APPLICATION_JSON};
 
-	private static final String[] ENV_VARS_TO_INHERIT_DEFAULTS_OTHER = { "TMP", "LANG", "LANGUAGE", "LC_.*", "PATH",
-			AbstractLocalDeployerSupport.SPRING_APPLICATION_JSON };
+	private static final String[] ENV_VARS_TO_INHERIT_DEFAULTS_OTHER = {"TMP", "LANG", "LANGUAGE", "LC_.*", "PATH",
+		AbstractLocalDeployerSupport.SPRING_APPLICATION_JSON};
 
 	/**
 	 * Directory in which all created processes will run and create log files.
@@ -111,12 +116,8 @@ public class LocalDeployerProperties {
 	 * passed to launched applications.
 	 */
 	private String[] envVarsToInherit = LocalDeployerUtils.isWindows() ? ENV_VARS_TO_INHERIT_DEFAULTS_WIN
-			: ENV_VARS_TO_INHERIT_DEFAULTS_OTHER;
+		: ENV_VARS_TO_INHERIT_DEFAULTS_OTHER;
 
-	/**
-	 * The command to run java.
-	 */
-	private String javaCmd = deduceJavaCommand();
 
 	/**
 	 * Maximum number of seconds to wait for application shutdown. via the
@@ -149,6 +150,7 @@ public class LocalDeployerProperties {
 
 	/**
 	 * Set remote debugging port for JDK 8 runtimes.
+	 *
 	 * @deprecated Use the {@link #debugAddress} instead!
 	 */
 	private Integer debugPort;
@@ -162,7 +164,10 @@ public class LocalDeployerProperties {
 	 */
 	private String debugAddress;
 
-	public enum DebugSuspendType {y, n};
+	public enum DebugSuspendType {y, n}
+
+	;
+
 	/**
 	 * Suspend defines whether the JVM should suspend and wait for a debugger to attach or not
 	 */
@@ -178,9 +183,16 @@ public class LocalDeployerProperties {
 	 */
 	private String hostname;
 
+	private Map<String, String> javaHomePath = new HashMap<>();
+
 	private AppAdmin appAdmin = new AppAdmin();
 
 	public LocalDeployerProperties() {
+		String javaHome = System.getProperty("java.home");
+		if (javaHome != null) {
+			javaHomePath.put("2", javaHome);
+			javaHomePath.put("3", javaHome);
+		}
 	}
 
 	public LocalDeployerProperties(LocalDeployerProperties from) {
@@ -194,7 +206,6 @@ public class LocalDeployerProperties {
 		this.envVarsToInherit = new String[from.getEnvVarsToInherit().length];
 		System.arraycopy(from.getEnvVarsToInherit(), 0, this.envVarsToInherit, 0, from.getEnvVarsToInherit().length);
 		this.inheritLogging = from.isInheritLogging();
-		this.javaCmd = from.getJavaCmd();
 		this.javaOpts = from.getJavaOpts();
 		this.maximumConcurrentTasks = from.getMaximumConcurrentTasks();
 		this.portRange.high = from.getPortRange().getHigh();
@@ -202,8 +213,11 @@ public class LocalDeployerProperties {
 		this.shutdownTimeout = from.getShutdownTimeout();
 		this.useSpringApplicationJson = from.isUseSpringApplicationJson();
 		this.workingDirectoriesRoot = Paths.get(from.getWorkingDirectoriesRoot().toUri());
-		this.hostname =from.getHostname();
-		this.appAdmin = from.appAdmin;
+		this.hostname = from.getHostname();
+		this.appAdmin = from.getAppAdmin();
+		this.javaHomePath = from.getJavaHomePath().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		this.startupProbe = from.getStartupProbe();
+		this.healthProbe = from.getHealthProbe();
 	}
 
 	public static class PortRange {
@@ -282,7 +296,7 @@ public class LocalDeployerProperties {
 		private boolean deleteContainerOnExit = true;
 
 		/**
-		 *  Allow the Docker command builder use its own port range.
+		 * Allow the Docker command builder use its own port range.
 		 */
 		private PortRange portRange = new PortRange();
 
@@ -354,8 +368,7 @@ public class LocalDeployerProperties {
 			Docker other = (Docker) obj;
 			if (network == null) {
 				return other.network == null;
-			}
-			else return network.equals(other.network);
+			} else return network.equals(other.network);
 		}
 	}
 
@@ -385,7 +398,7 @@ public class LocalDeployerProperties {
 
 	public void setDebugPort(Integer debugPort) {
 		logger.warn("The debugPort is deprecated! It supports only pre Java 9 environments. " +
-				"Please use the debugAddress property instead!");
+			"Please use the debugAddress property instead!");
 		this.debugPort = debugPort;
 	}
 
@@ -405,12 +418,16 @@ public class LocalDeployerProperties {
 		this.inheritLogging = inheritLogging;
 	}
 
-	public String getJavaCmd() {
-		return javaCmd;
+	public String getJavaCmd(String bootVersion) {
+		return deduceJavaCommand(bootVersion);
 	}
 
-	public void setJavaCmd(String javaCmd) {
-		this.javaCmd = javaCmd;
+	public Map<String, String> getJavaHomePath() {
+		return javaHomePath;
+	}
+
+	public void setJavaHomePath(Map<String, String> javaHomePath) {
+		this.javaHomePath = javaHomePath;
 	}
 
 	public Path getWorkingDirectoriesRoot() {
@@ -479,6 +496,7 @@ public class LocalDeployerProperties {
 	}
 
 	private HttpProbe startupProbe = new HttpProbe();
+
 	private HttpProbe healthProbe = new HttpProbe();
 
 	public HttpProbe getStartupProbe() {
@@ -507,7 +525,9 @@ public class LocalDeployerProperties {
 
 	public static class HttpProbe {
 
-		/** Path to check as a probe */
+		/**
+		 * Path to check as a probe
+		 */
 		private String path;
 
 		public String getPath() {
@@ -519,47 +539,54 @@ public class LocalDeployerProperties {
 		}
 	}
 
-	private String deduceJavaCommand() {
+	private String deduceJavaCommand(String bootVersion) {
 		String javaExecutablePath = JAVA_COMMAND;
-		String javaHome = System.getProperty("java.home");
-		if (javaHome != null) {
-			File javaExecutable = new File(javaHome, "bin" + File.separator + javaExecutablePath);
-			Assert.isTrue(javaExecutable.canExecute(),
-					"Java executable'" + javaExecutable + "'discovered via 'java.home' system property '" + javaHome
-							+ "' is not executable or does not exist.");
-			javaExecutablePath = javaExecutable.getAbsolutePath();
-		}
-		else {
-			logger.warn("System property 'java.home' is not set. Defaulting to the java executable path as "
-					+ JAVA_COMMAND + " assuming it's in PATH.");
-		}
 
+		String javaHome = getJavaHome(bootVersion);
+		if (StringUtils.hasText(javaHome)) {
+			File javaExecutable = new File(javaHome, "bin" + File.separator + javaExecutablePath);
+			Assert.isTrue(javaExecutable.exists(), () ->
+				"Java executable'" + javaExecutable + "'discovered via 'java.home' system property '" + this.javaHomePath
+					+ "' does not exist.");
+			Assert.isTrue(javaExecutable.canExecute(), () ->
+				"Java executable'" + javaExecutable + "'discovered via 'java.home' system property '" + this.javaHomePath
+					+ "' is not executable.");
+			javaExecutablePath = javaExecutable.getAbsolutePath();
+		} else {
+			logger.warn("System property 'java.home' and 'spring.cloud.deployer.local.{}.javaHomePath' is not set. " +
+				"Defaulting to the java executable path as " + JAVA_COMMAND + " assuming it's in PATH.", bootVersion);
+		}
 		return javaExecutablePath;
+	}
+
+	private String getJavaHome(String bootVersion) {
+		String path = javaHomePath.get(bootVersion);
+		return path == null ? System.getProperty("java.home") : path;
 	}
 
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("workingDirectoriesRoot", this.workingDirectoriesRoot)
-				.append("javaOpts", this.javaOpts).append("envVarsToInherit", this.envVarsToInherit).toString();
+			.append("javaOpts", this.javaOpts).append("envVarsToInherit", this.envVarsToInherit).toString();
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((debugPort == null) ? 0 : debugPort.hashCode());
-		result = prime * result + ((debugSuspend == null) ? 0 : debugSuspend.hashCode());
+		result = prime * result + debugPort.hashCode();
+		result = prime * result + debugSuspend.hashCode();
 		result = prime * result + (deleteFilesOnExit ? 1231 : 1237);
-		result = prime * result + ((docker == null) ? 0 : docker.hashCode());
+		result = prime * result + docker.hashCode();
 		result = prime * result + Arrays.hashCode(envVarsToInherit);
 		result = prime * result + (inheritLogging ? 1231 : 1237);
-		result = prime * result + ((javaCmd == null) ? 0 : javaCmd.hashCode());
-		result = prime * result + ((javaOpts == null) ? 0 : javaOpts.hashCode());
+		result = prime * result + javaHomePath.hashCode();
+		result = prime * result + javaOpts.hashCode();
 		result = prime * result + maximumConcurrentTasks;
-		result = prime * result + ((portRange == null) ? 0 : portRange.hashCode());
+		result = prime * result + portRange.hashCode();
 		result = prime * result + shutdownTimeout;
 		result = prime * result + (useSpringApplicationJson ? 1231 : 1237);
-		result = prime * result + ((workingDirectoriesRoot == null) ? 0 : workingDirectoriesRoot.hashCode());
+		result = prime * result + workingDirectoriesRoot.hashCode();
 		return result;
 	}
 
@@ -579,35 +606,27 @@ public class LocalDeployerProperties {
 			if (other.debugPort != null) {
 				return false;
 			}
-		}
-		else if (!debugPort.equals(other.debugPort)) {
+		} else if (!debugPort.equals(other.debugPort)) {
 			return false;
 		}
 		if (debugAddress == null) {
 			if (other.debugAddress != null) {
 				return false;
 			}
-		}
-		else if (!debugAddress.equals(other.debugAddress)) {
+		} else if (!debugAddress.equals(other.debugAddress)) {
 			return false;
 		}
 		if (debugSuspend == null) {
 			if (other.debugSuspend != null) {
 				return false;
 			}
-		}
-		else if (!debugSuspend.equals(other.debugSuspend)) {
+		} else if (!debugSuspend.equals(other.debugSuspend)) {
 			return false;
 		}
 		if (deleteFilesOnExit != other.deleteFilesOnExit) {
 			return false;
 		}
-		if (docker == null) {
-			if (other.docker != null) {
-				return false;
-			}
-		}
-		else if (!docker.equals(other.docker)) {
+		if (!docker.equals(other.docker)) {
 			return false;
 		}
 		if (!Arrays.equals(envVarsToInherit, other.envVarsToInherit)) {
@@ -616,31 +635,24 @@ public class LocalDeployerProperties {
 		if (inheritLogging != other.inheritLogging) {
 			return false;
 		}
-		if (javaCmd == null) {
-			if (other.javaCmd != null) {
+		if (javaHomePath == null) {
+			if (other.javaHomePath != null) {
 				return false;
 			}
-		}
-		else if (!javaCmd.equals(other.javaCmd)) {
+		} else if (!javaHomePath.equals(other.javaHomePath)) {
 			return false;
 		}
 		if (javaOpts == null) {
 			if (other.javaOpts != null) {
 				return false;
 			}
-		}
-		else if (!javaOpts.equals(other.javaOpts)) {
+		} else if (!javaOpts.equals(other.javaOpts)) {
 			return false;
 		}
 		if (maximumConcurrentTasks != other.maximumConcurrentTasks) {
 			return false;
 		}
-		if (portRange == null) {
-			if (other.portRange != null) {
-				return false;
-			}
-		}
-		else if (!portRange.equals(other.portRange)) {
+		if (!portRange.equals(other.portRange)) {
 			return false;
 		}
 		if (shutdownTimeout != other.shutdownTimeout) {
@@ -650,13 +662,7 @@ public class LocalDeployerProperties {
 			return false;
 		}
 		if (workingDirectoriesRoot == null) {
-			if (other.workingDirectoriesRoot != null) {
-				return false;
-			}
-		}
-		else if (!workingDirectoriesRoot.equals(other.workingDirectoriesRoot)) {
-			return false;
-		}
-		return true;
+			return other.workingDirectoriesRoot == null;
+		} else return workingDirectoriesRoot.equals(other.workingDirectoriesRoot);
 	}
 }

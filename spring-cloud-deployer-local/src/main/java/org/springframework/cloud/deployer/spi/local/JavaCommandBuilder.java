@@ -40,6 +40,7 @@ import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.util.ByteSizeUtils;
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -61,26 +62,43 @@ public class JavaCommandBuilder implements CommandBuilder {
 	@Override
 	public int getPortSuggestion(LocalDeployerProperties localDeployerProperties) {
 		return ThreadLocalRandom.current().nextInt(localDeployerProperties.getPortRange().getLow(),
-				localDeployerProperties.getPortRange().getHigh());
+			localDeployerProperties.getPortRange().getHigh());
 	}
 
 	@Override
 	public URL getBaseUrl(String deploymentId, int index, int port) {
 		try {
 			return new URL("http", Inet4Address.getLocalHost().getHostAddress(), port, "");
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
 
 	@Override
-	public ProcessBuilder buildExecutionCommand(AppDeploymentRequest request, Map<String, String> appInstanceEnv,
-			String deployerId, Optional<Integer> appInstanceNumber, LocalDeployerProperties localDeployerProperties,
-			Optional<DebugAddress> debugAddressOption) {
+	public ProcessBuilder buildExecutionCommand(
+		AppDeploymentRequest request, Map<String, String> appInstanceEnv,
+		String deployerId, Optional<Integer> appInstanceNumber, LocalDeployerProperties localDeployerProperties,
+		Optional<DebugAddress> debugAddressOption
+	) {
 		ArrayList<String> commands = new ArrayList<>();
 		Map<String, String> deploymentProperties = request.getDeploymentProperties();
-		commands.add(bindDeploymentProperties(deploymentProperties).getJavaCmd());
+		String bootVersion = deploymentProperties.get("spring.cloud.deployer.bootVersion");
+		if (bootVersion == null) {
+			Optional<String> bootArg = request.getCommandlineArguments()
+				.stream()
+				.filter(s ->
+					s.startsWith("--spring.cloud.deployer.bootVersion=") || s.startsWith("--spring.cloud.deployer.boot-version="))
+				.findFirst();
+			if (bootArg.isPresent()) {
+				int indexEq = bootArg.get().indexOf('=');
+				Assert.isTrue(indexEq > 0, () -> "Expected = in argument:" + bootArg.get());
+				bootVersion = bootArg.get().substring(indexEq + 1).trim();
+			}
+		}
+		if (bootVersion == null) {
+			bootVersion = "3"; // safe to launch boot 2 with Java 17
+		}
+		commands.add(bindDeploymentProperties(deploymentProperties).getJavaCmd(bootVersion));
 
 		debugAddressOption.ifPresent(debugAddress -> {
 			commands.add(getJdwpOptions(debugAddress.getSuspend(), debugAddress.getAddress()));
@@ -90,7 +108,7 @@ public class JavaCommandBuilder implements CommandBuilder {
 		addJavaOptions(commands, deploymentProperties, properties);
 		addJavaExecutionOptions(commands, request);
 		commands.addAll(request.getCommandlineArguments());
-		logger.debug("Java Command = " + commands);
+		logger.debug("Java Command = {}", commands);
 
 		ProcessBuilder builder = new ProcessBuilder(AbstractLocalDeployerSupport.windowsSupport(commands.toArray(new String[0])));
 
@@ -106,12 +124,12 @@ public class JavaCommandBuilder implements CommandBuilder {
 	 * {@link LocalDeployerProperties#getEnvVarsToInherit}.
 	 * This assumes that the provided set can be modified.
 	 *
-	 * @param vars set of environment variable strings
+	 * @param vars                    set of environment variable strings
 	 * @param localDeployerProperties local deployer properties
 	 */
 	protected void retainEnvVars(Map<String, String> vars, LocalDeployerProperties localDeployerProperties) {
 		List<String> patterns = new ArrayList<>(Arrays.asList(localDeployerProperties.getEnvVarsToInherit()));
-		for (Iterator<Entry<String, String>> iterator = vars.entrySet().iterator(); iterator.hasNext();) {
+		for (Iterator<Entry<String, String>> iterator = vars.entrySet().iterator(); iterator.hasNext(); ) {
 			Entry<String, String> entry = iterator.next();
 			String var = entry.getKey();
 			boolean retain = false;
@@ -127,12 +145,14 @@ public class JavaCommandBuilder implements CommandBuilder {
 		}
 	}
 
-	protected void addJavaOptions(List<String> commands, Map<String, String> deploymentProperties,
-			LocalDeployerProperties localDeployerProperties) {
+	protected void addJavaOptions(
+		List<String> commands, Map<String, String> deploymentProperties,
+		LocalDeployerProperties localDeployerProperties
+	) {
 		String memory = null;
 		if (deploymentProperties.containsKey(AppDeployer.MEMORY_PROPERTY_KEY)) {
 			memory = "-Xmx" +
-					ByteSizeUtils.parseToMebibytes(deploymentProperties.get(AppDeployer.MEMORY_PROPERTY_KEY)) + "m";
+				ByteSizeUtils.parseToMebibytes(deploymentProperties.get(AppDeployer.MEMORY_PROPERTY_KEY)) + "m";
 		}
 
 		String javaOptsString = bindDeploymentProperties(deploymentProperties).getJavaOpts();
@@ -147,8 +167,7 @@ public class JavaCommandBuilder implements CommandBuilder {
 				commands.add(memory);
 			}
 			commands.addAll(Arrays.asList(javaOpts));
-		}
-		else {
+		} else {
 			if (localDeployerProperties.getJavaOpts() != null) {
 				String[] javaOpts = StringUtils.tokenizeToStringArray(localDeployerProperties.getJavaOpts(), " ");
 				commands.addAll(Arrays.asList(javaOpts));
@@ -161,8 +180,7 @@ public class JavaCommandBuilder implements CommandBuilder {
 		Resource resource = request.getResource();
 		try {
 			commands.add(resource.getFile().getAbsolutePath());
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
 	}
@@ -170,14 +188,15 @@ public class JavaCommandBuilder implements CommandBuilder {
 	/**
 	 * This will merge the deployment properties that were passed in at runtime with the deployment properties
 	 * of the Deployer instance.
+	 *
 	 * @param runtimeDeploymentProperties deployment properties passed in at runtime
 	 * @return merged deployer properties
 	 */
 	protected LocalDeployerProperties bindDeploymentProperties(Map<String, String> runtimeDeploymentProperties) {
 		LocalDeployerProperties copyOfDefaultProperties = new LocalDeployerProperties(this.properties);
 		return new Binder(new MapConfigurationPropertySource(runtimeDeploymentProperties))
-				.bind(LocalDeployerProperties.PREFIX, Bindable.ofInstance(copyOfDefaultProperties))
-				.orElse(copyOfDefaultProperties);
+			.bind(LocalDeployerProperties.PREFIX, Bindable.ofInstance(copyOfDefaultProperties))
+			.orElse(copyOfDefaultProperties);
 	}
 
 }
