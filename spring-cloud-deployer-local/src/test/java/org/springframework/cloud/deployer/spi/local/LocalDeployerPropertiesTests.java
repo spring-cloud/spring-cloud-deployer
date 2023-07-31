@@ -25,7 +25,6 @@ import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.deployer.spi.app.AppAdmin;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.env.SystemEnvironmentPropertySource;
 
@@ -48,7 +47,7 @@ public class LocalDeployerPropertiesTests {
 				assertThat(properties.getEnvVarsToInherit()).containsExactlyInAnyOrder("TMP", "LANG", "LANGUAGE", "LC_.*",
 					"PATH", "SPRING_APPLICATION_JSON");
 				assertThat(properties.isInheritLogging()).isFalse();
-				assertThat(properties.getJavaCmd("2")).contains("java");
+				assertThat(properties.getJavaCommand("2")).contains("java");
 				assertThat(properties.getJavaOpts()).isNull();
 				assertThat(properties.getMaximumConcurrentTasks()).isEqualTo(20);
 				assertThat(properties.getPortRange()).isNotNull();
@@ -123,9 +122,6 @@ public class LocalDeployerPropertiesTests {
 	public void setAllPropertiesCamelCase() {
 		this.contextRunner
 			.withInitializer(context -> {
-				AppAdmin appAdmin = new AppAdmin();
-				appAdmin.setUser("user");
-				appAdmin.setPassword("password");
 
 				Map<String, Object> map = new HashMap<>();
 				map.put("spring.cloud.deployer.local.debugPort", "8888");

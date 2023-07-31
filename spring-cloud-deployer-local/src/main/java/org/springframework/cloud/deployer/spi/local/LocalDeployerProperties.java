@@ -118,6 +118,10 @@ public class LocalDeployerProperties {
 	private String[] envVarsToInherit = LocalDeployerUtils.isWindows() ? ENV_VARS_TO_INHERIT_DEFAULTS_WIN
 		: ENV_VARS_TO_INHERIT_DEFAULTS_OTHER;
 
+	/**
+	 * The command to run java.
+	 */
+	private String javaCmd = JAVA_COMMAND;
 
 	/**
 	 * Maximum number of seconds to wait for application shutdown. via the
@@ -204,6 +208,7 @@ public class LocalDeployerProperties {
 		this.envVarsToInherit = new String[from.getEnvVarsToInherit().length];
 		System.arraycopy(from.getEnvVarsToInherit(), 0, this.envVarsToInherit, 0, from.getEnvVarsToInherit().length);
 		this.inheritLogging = from.isInheritLogging();
+		this.javaCmd = from.getJavaCmd();
 		this.javaOpts = from.getJavaOpts();
 		this.maximumConcurrentTasks = from.getMaximumConcurrentTasks();
 		this.portRange.high = from.getPortRange().getHigh();
@@ -413,8 +418,11 @@ public class LocalDeployerProperties {
 		this.inheritLogging = inheritLogging;
 	}
 
-	public String getJavaCmd(String bootVersion) {
-		return deduceJavaCommand(bootVersion);
+	public String getJavaCommand(String bootVersion) {
+		if (!StringUtils.hasText(javaCmd) || this.javaCmd.equals(JAVA_COMMAND)) {
+			return deduceJavaCommand(bootVersion);
+		}
+		return javaCmd;
 	}
 
 	public Map<String, String> getJavaHomePath() {
@@ -423,6 +431,14 @@ public class LocalDeployerProperties {
 
 	public void setJavaHomePath(Map<String, String> javaHomePath) {
 		this.javaHomePath = javaHomePath;
+	}
+
+	public String getJavaCmd() {
+		return javaCmd;
+	}
+
+	public void setJavaCmd(String javaCmd) {
+		this.javaCmd = javaCmd;
 	}
 
 	public Path getWorkingDirectoriesRoot() {

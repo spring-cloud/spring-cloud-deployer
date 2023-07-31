@@ -98,7 +98,7 @@ public class JavaCommandBuilder implements CommandBuilder {
 		if (bootVersion == null) {
 			bootVersion = "3"; // safe to launch boot 2 with Java 17
 		}
-		commands.add(bindDeploymentProperties(deploymentProperties).getJavaCmd(bootVersion));
+		commands.add(bindDeploymentProperties(deploymentProperties).getJavaCommand(bootVersion));
 
 		debugAddressOption.ifPresent(debugAddress -> commands.add(getJdwpOptions(debugAddress.getSuspend(), debugAddress.getAddress())));
 
