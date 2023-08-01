@@ -62,11 +62,11 @@ public class HttpProbeExecutor {
     public boolean probe() {
         try {
             logger.info("Probing for {}", this.uri);
-            ResponseEntity<Void> response = restTemplate.getForEntity(uri, Void.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
             HttpStatus statusCode = response.getStatusCode();
             boolean ok = statusCode.is2xxSuccessful();
             if (!ok) {
-                logger.info("Probe for {} returned {}", this.uri, statusCode);
+                logger.info("Probe for {} returned {}:{}", this.uri, statusCode, response.getBody());
             }
             return ok;
         } catch (Exception e) {

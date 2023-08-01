@@ -106,7 +106,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 		Timeout timeout = deploymentTimeout();
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+                .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running);
         });
@@ -133,7 +133,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 		kubernetesTaskLauncher.destroy(taskName);
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+                .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown);
         });
@@ -157,7 +157,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 		Timeout timeout = deploymentTimeout();
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+                .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running);
         });
@@ -184,7 +184,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 		kubernetesTaskLauncher.destroy(taskName);
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+                .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown);
         });
@@ -209,7 +209,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 		Timeout timeout = deploymentTimeout();
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+                .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.running);
         });
@@ -242,7 +242,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 		kubernetesTaskLauncher.destroy(taskName);
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+                .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> {
 			assertThat(taskLauncher().status(launchId).getState()).isEqualTo(LaunchState.unknown);
         });

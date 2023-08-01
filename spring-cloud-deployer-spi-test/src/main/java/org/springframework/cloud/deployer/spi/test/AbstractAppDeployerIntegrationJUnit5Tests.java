@@ -131,7 +131,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
@@ -148,7 +148,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -173,7 +173,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
@@ -183,7 +183,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -202,7 +202,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId2 = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId2).getState()).isEqualTo(DeploymentState.deployed);
 		});
@@ -212,7 +212,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId2);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId2).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -235,7 +235,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deploying);
 		});
@@ -245,7 +245,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -264,7 +264,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.failed);
 		});
@@ -274,7 +274,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -300,7 +300,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
@@ -310,7 +310,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -328,7 +328,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId2 = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId2).getState()).isEqualTo(DeploymentState.failed);
 		});
@@ -338,7 +338,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId2);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId2).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -363,7 +363,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
@@ -373,7 +373,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -392,7 +392,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId2 = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId2).getState()).isEqualTo(DeploymentState.failed);
 		});
@@ -402,7 +402,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId2);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId2).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -430,7 +430,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.partial);
 		});
@@ -450,7 +450,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});
@@ -497,7 +497,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		Timeout timeout = deploymentTimeout();
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
@@ -507,13 +507,13 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		appDeployer().scale(new AppScaleRequest(deploymentId, DESIRED_COUNT));
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(DESIRED_COUNT);
 		});
@@ -530,13 +530,13 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		appDeployer().scale(new AppScaleRequest(deploymentId, 1));
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed);
 		});
 
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getInstances()).hasSize(1);
 		});
@@ -546,7 +546,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+				.atMost(Duration.ofMillis(timeout.totalTime))
 				.untilAsserted(() -> {
 			assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown);
 		});

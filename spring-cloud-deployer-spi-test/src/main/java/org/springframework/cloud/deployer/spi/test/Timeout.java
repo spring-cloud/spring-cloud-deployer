@@ -27,8 +27,11 @@ public class Timeout {
 
 	public final int pause;
 
+	public final long totalTime;
+
 	public Timeout(int maxAttempts, int pause) {
 		this.maxAttempts = maxAttempts;
 		this.pause = pause;
+		this.totalTime = (long) this.maxAttempts * (long) this.pause;
 	}
 }

@@ -91,7 +91,7 @@ public class AppStatus {
 		for (Map.Entry<String, AppInstanceStatus> entry : instances.entrySet()) {
 			states.add(entry.getValue().getState());
 		}
-		if (states.size() == 0) {
+		if (states.isEmpty()) {
 			return DeploymentState.unknown;
 		}
 		if (states.size() == 1) {

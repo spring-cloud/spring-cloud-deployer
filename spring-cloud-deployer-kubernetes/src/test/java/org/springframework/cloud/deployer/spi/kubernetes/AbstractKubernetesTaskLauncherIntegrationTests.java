@@ -86,7 +86,7 @@ abstract class AbstractKubernetesTaskLauncherIntegrationTests extends AbstractTa
 
 	protected ConditionFactory awaitWithPollAndTimeout(Timeout timeout) {
 		return await().pollInterval(Duration.ofMillis(timeout.pause))
-				.atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause));
+				.atMost(Duration.ofMillis(timeout.totalTime));
 	}
 
 	protected List<Pod> getPodsForTask(String taskName) {

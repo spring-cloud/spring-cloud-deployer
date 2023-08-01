@@ -83,7 +83,7 @@ public class JavaCommandBuilder implements CommandBuilder {
 		ArrayList<String> commands = new ArrayList<>();
 		Map<String, String> deploymentProperties = request.getDeploymentProperties();
 		String bootVersion = deploymentProperties.get("spring.cloud.deployer.bootVersion");
-		if (bootVersion == null) {
+		if (!StringUtils.hasLength(bootVersion)) {
 			Optional<String> bootArg = request.getCommandlineArguments()
 				.stream()
 				.filter(s ->

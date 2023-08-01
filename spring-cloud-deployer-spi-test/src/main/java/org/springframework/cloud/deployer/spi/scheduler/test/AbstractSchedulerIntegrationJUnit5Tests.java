@@ -232,7 +232,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 		scheduleInfo.setScheduleName(scheduleName + 0);
 		scheduleInfo.setTaskDefinitionName(definitionName + 0);
         await().pollInterval(Duration.ofMillis(this.scheduleTimeout.pause))
-                .atMost(Duration.ofMillis(this.scheduleTimeout.maxAttempts * this.scheduleTimeout.pause))
+                .atMost(Duration.ofMillis(this.scheduleTimeout.totalTime))
                 .untilAsserted(() -> {
                     ListScheduleInfoAssert.assertThat(taskScheduler().list(definitionName + 0))
                             .hasExpectedScheduleCount(definitionName + 0, 2);
@@ -277,7 +277,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 
 	private void verifySchedule(ScheduleInfo scheduleInfo) {
         await().pollInterval(Duration.ofMillis(this.scheduleTimeout.pause))
-                .atMost(Duration.ofMillis(this.scheduleTimeout.maxAttempts * this.scheduleTimeout.pause))
+                .atMost(Duration.ofMillis(this.scheduleTimeout.totalTime))
                 .untilAsserted(() -> {
             ListScheduleInfoAssert.assertThat(taskScheduler().list()).hasSchedule(scheduleInfo.getScheduleName());
         });
@@ -291,7 +291,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 		ScheduleInfo scheduleInfo = new ScheduleInfo();
 		scheduleInfo.setScheduleName(scheduleName);
         await().pollInterval(Duration.ofMillis(this.unScheduleTimeout.pause))
-                .atMost(Duration.ofMillis(this.unScheduleTimeout.maxAttempts * this.unScheduleTimeout.pause))
+                .atMost(Duration.ofMillis(this.unScheduleTimeout.totalTime))
                 .untilAsserted(() -> {
             ListScheduleInfoAssert.assertThat(taskScheduler().list()).hasNotSchedule(scheduleName);
         });
