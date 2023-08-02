@@ -53,6 +53,7 @@ import org.springframework.cloud.deployer.spi.test.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,6 +78,7 @@ import static org.awaitility.Awaitility.await;
 }, properties = {
 	"maven.remoteRepositories.springRepo.url=https://repo.spring.io/snapshot"
 })
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegrationJUnit5Tests {
 
 	private static final String TESTAPP_DOCKER_IMAGE_NAME = "springcloud/spring-cloud-deployer-spi-test-app:latest";
