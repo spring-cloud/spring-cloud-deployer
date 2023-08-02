@@ -31,11 +31,9 @@ There is also an implementation of the SPI for running apps locally. That link i
 
 This deployer SPI has been implemented for several runtime environments. Here are the github locations:
 
-* https://github.com/spring-cloud/spring-cloud-deployer-local[Local]
-* https://github.com/spring-cloud/spring-cloud-deployer-cloudfoundry[Cloud Foundry]
-* https://github.com/spring-cloud/spring-cloud-deployer-yarn[YARN]
-* https://github.com/spring-cloud/spring-cloud-deployer-kubernetes[Kubernetes]
-* https://github.com/spring-cloud/spring-cloud-deployer-mesos[Mesos]
+* https://github.com/spring-cloud/spring-cloud-deployer/spring-cloud-deployer-local[Local]
+* https://github.com/spring-cloud/spring-cloud-deployer/spring-cloud-deployer-cloudfoundry[Cloud Foundry]
+* https://github.com/spring-cloud/spring-cloud-deployer/spring-cloud-deployer-kubernetes[Kubernetes]
 
 === Building
 

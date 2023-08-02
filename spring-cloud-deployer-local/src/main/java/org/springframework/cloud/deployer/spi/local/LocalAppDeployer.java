@@ -348,7 +348,7 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 
 	private void validateStatus(String deploymentId, DeploymentState expectedState) {
 		DeploymentState state = status(deploymentId).getState();
-		Assert.state(state == expectedState,
+		Assert.state(expectedState.equals(state),
 				String.format("App with deploymentId [%s] with state [%s] doesn't match expected state [%s]",
 						deploymentId, state, expectedState));
 	}
@@ -450,7 +450,7 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 
 		public String getStdOut() {
 			try {
-				return FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream(this.stdout)));
+				return FileCopyUtils.copyToString(new InputStreamReader(Files.newInputStream(this.stdout.toPath())));
 			}
 			catch (IOException e) {
 				return "Log retrieval returned " + e.getMessage();
@@ -459,7 +459,7 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 
 		public String getStdErr() {
 			try {
-				return FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream(this.stderr)));
+				return FileCopyUtils.copyToString(new InputStreamReader(Files.newInputStream(this.stderr.toPath())));
 			}
 			catch (IOException e) {
 				return "Log retrieval returned " + e.getMessage();

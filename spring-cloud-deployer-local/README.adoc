@@ -16,16 +16,22 @@ ways to meet them.
 === Building
 
 Build and skip all tests:
-```
+
+[source,shell]
+----
 ./mvnw clean package -DskipTests
-```
+----
 
 Or build project and run tests:
-```
+
+[source,shell]
+----
 ./mvnw clean package
-```
+----
 
 Run the integration tests in Docker mode:
-```
-./mvnw clean install -Dspring-cloud-deployer-spi-test-use-docker=true -Dspring.cloud.deployer.local.hostname=localhost
-```
+
+[source,shell]
+----
+./mvnw clean install -pl :spring-cloud-deployer-local -Dspring-cloud-deployer-spi-test-use-docker=true -Dspring.cloud.deployer.local.hostname=localhost
+----
