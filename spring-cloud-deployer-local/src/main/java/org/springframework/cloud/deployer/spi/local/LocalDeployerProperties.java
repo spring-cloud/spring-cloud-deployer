@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.Min;
@@ -582,98 +583,55 @@ public class LocalDeployerProperties {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + debugPort.hashCode();
-		result = prime * result + debugSuspend.hashCode();
-		result = prime * result + (deleteFilesOnExit ? 1231 : 1237);
-		result = prime * result + docker.hashCode();
-		result = prime * result + Arrays.hashCode(envVarsToInherit);
-		result = prime * result + (inheritLogging ? 1231 : 1237);
-		result = prime * result + javaHomePath.hashCode();
-		result = prime * result + javaOpts.hashCode();
-		result = prime * result + maximumConcurrentTasks;
-		result = prime * result + portRange.hashCode();
-		result = prime * result + shutdownTimeout;
-		result = prime * result + (useSpringApplicationJson ? 1231 : 1237);
-		result = prime * result + workingDirectoriesRoot.hashCode();
-		return result;
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		LocalDeployerProperties that = (LocalDeployerProperties) o;
+
+		if (deleteFilesOnExit != that.deleteFilesOnExit) return false;
+		if (shutdownTimeout != that.shutdownTimeout) return false;
+		if (useSpringApplicationJson != that.useSpringApplicationJson) return false;
+		if (maximumConcurrentTasks != that.maximumConcurrentTasks) return false;
+		if (inheritLogging != that.inheritLogging) return false;
+		if (!Objects.equals(workingDirectoriesRoot, that.workingDirectoriesRoot)) return false;
+		// Probably incorrect - comparing Object[] arrays with Arrays.equals
+		if (!Arrays.equals(envVarsToInherit, that.envVarsToInherit)) return false;
+		if (!Objects.equals(javaCmd, that.javaCmd)) return false;
+		if (!Objects.equals(javaOpts, that.javaOpts)) return false;
+		if (!portRange.equals(that.portRange)) return false;
+		if (!Objects.equals(debugPort, that.debugPort)) return false;
+		if (!Objects.equals(debugAddress, that.debugAddress)) return false;
+		if (debugSuspend != that.debugSuspend) return false;
+		if (!docker.equals(that.docker)) return false;
+		if (!Objects.equals(hostname, that.hostname)) return false;
+		if (!Objects.equals(javaHomePath, that.javaHomePath)) return false;
+		if (!Objects.equals(appAdmin, that.appAdmin)) return false;
+		if (!Objects.equals(startupProbe, that.startupProbe)) return false;
+		return Objects.equals(healthProbe, that.healthProbe);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		LocalDeployerProperties other = (LocalDeployerProperties) obj;
-		if (debugPort == null) {
-			if (other.debugPort != null) {
-				return false;
-			}
-		} else if (!debugPort.equals(other.debugPort)) {
-			return false;
-		}
-		if (debugAddress == null) {
-			if (other.debugAddress != null) {
-				return false;
-			}
-		} else if (!debugAddress.equals(other.debugAddress)) {
-			return false;
-		}
-		if (debugSuspend == null) {
-			if (other.debugSuspend != null) {
-				return false;
-			}
-		} else if (!debugSuspend.equals(other.debugSuspend)) {
-			return false;
-		}
-		if (deleteFilesOnExit != other.deleteFilesOnExit) {
-			return false;
-		}
-		if (!docker.equals(other.docker)) {
-			return false;
-		}
-		if (!Arrays.equals(envVarsToInherit, other.envVarsToInherit)) {
-			return false;
-		}
-		if (inheritLogging != other.inheritLogging) {
-			return false;
-		}
-		if (javaHomePath == null) {
-			if (other.javaHomePath != null) {
-				return false;
-			}
-		} else if (!javaHomePath.equals(other.javaHomePath)) {
-			return false;
-		}
-		if (javaOpts == null) {
-			if (other.javaOpts != null) {
-				return false;
-			}
-		} else if (!javaOpts.equals(other.javaOpts)) {
-			return false;
-		}
-		if (maximumConcurrentTasks != other.maximumConcurrentTasks) {
-			return false;
-		}
-		if (!portRange.equals(other.portRange)) {
-			return false;
-		}
-		if (shutdownTimeout != other.shutdownTimeout) {
-			return false;
-		}
-		if (useSpringApplicationJson != other.useSpringApplicationJson) {
-			return false;
-		}
-		if (workingDirectoriesRoot == null) {
-			return other.workingDirectoriesRoot == null;
-		} else return workingDirectoriesRoot.equals(other.workingDirectoriesRoot);
+	public int hashCode() {
+		int result = workingDirectoriesRoot != null ? workingDirectoriesRoot.hashCode() : 0;
+		result = 31 * result + (deleteFilesOnExit ? 1 : 0);
+		result = 31 * result + Arrays.hashCode(envVarsToInherit);
+		result = 31 * result + (javaCmd != null ? javaCmd.hashCode() : 0);
+		result = 31 * result + shutdownTimeout;
+		result = 31 * result + (javaOpts != null ? javaOpts.hashCode() : 0);
+		result = 31 * result + (useSpringApplicationJson ? 1 : 0);
+		result = 31 * result + portRange.hashCode();
+		result = 31 * result + maximumConcurrentTasks;
+		result = 31 * result + (debugPort != null ? debugPort.hashCode() : 0);
+		result = 31 * result + (debugAddress != null ? debugAddress.hashCode() : 0);
+		result = 31 * result + (debugSuspend != null ? debugSuspend.hashCode() : 0);
+		result = 31 * result + (inheritLogging ? 1 : 0);
+		result = 31 * result + docker.hashCode();
+		result = 31 * result + (hostname != null ? hostname.hashCode() : 0);
+		result = 31 * result + (javaHomePath != null ? javaHomePath.hashCode() : 0);
+		result = 31 * result + (appAdmin != null ? appAdmin.hashCode() : 0);
+		result = 31 * result + (startupProbe != null ? startupProbe.hashCode() : 0);
+		result = 31 * result + (healthProbe != null ? healthProbe.hashCode() : 0);
+		return result;
 	}
 }
