@@ -227,7 +227,7 @@ public class KubernetesTaskLauncher extends AbstractKubernetesDeployer implement
 	protected String createDeploymentId(AppDeploymentRequest request) {
 		String name = request.getDefinition().getName();
 		Hashids hashids = new Hashids(name, 0, "abcdefghijklmnopqrstuvwxyz1234567890");
-		long idToEncode = System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(100);
+		long idToEncode = System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(1000);
 		String hashid = hashids.encode(idToEncode);
 		String deploymentId = name + "-" + hashid;
 		// Kubernetes does not allow . in the name and does not allow uppercase in the name
