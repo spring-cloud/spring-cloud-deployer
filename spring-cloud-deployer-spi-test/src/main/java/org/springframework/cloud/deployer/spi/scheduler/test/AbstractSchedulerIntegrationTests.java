@@ -113,6 +113,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 	 * Subclasses should call this method to interact with the Scheduler under test.
 	 * Returns a wrapper around the scheduler returned by {@link #provideScheduler()}, that keeps
 	 * track of which tasks have been scheduled and unscheduled.
+	 * @return the scheduler.
 	 */
 	protected Scheduler taskScheduler() {
 		return this.schedulerWrapper;
@@ -121,18 +122,21 @@ public abstract class AbstractSchedulerIntegrationTests {
 	/**
 	 * To be implemented by subclasses, which should return the instance of Scheduler that needs
 	 * to be tested. Can be used if subclasses decide to add additional implementation-specific tests.
+	 * @return the scheduler.
 	 */
 	protected abstract Scheduler provideScheduler();
 
 	/**
 	 * To be implemented by subclasses, which should return the commandLineArgs that
 	 * will be used for the tests.
+	 * @return the command line
 	 */
 	protected abstract List<String> getCommandLineArgs();
 
 	/**
 	 * To be implemented by subclasses, which should return the schedulerProperties that
 	 * will be used for the tests.
+	 * @return scheduler properties
 	 */
 	@Deprecated
 	protected abstract Map<String, String> getSchedulerProperties();
@@ -140,12 +144,14 @@ public abstract class AbstractSchedulerIntegrationTests {
 	/**
 	 * To be implemented by subclasses, which should return the deploymentProperties that
 	 * will be used for the tests.
+	 * @return the deployment properties
 	 */
 	protected abstract Map<String, String> getDeploymentProperties();
 
 	/**
 	 * To be implemented by subclasses, which should return the appProperties that
 	 * will be used for the tests.
+	 * @return the application properties
 	 */
 	protected abstract Map<String, String> getAppProperties();
 
@@ -303,7 +309,9 @@ public abstract class AbstractSchedulerIntegrationTests {
 
 	/**
 	 * A Hamcrest Matcher that queries the schedule list for a schedule name.
-	 *
+	 * @param schedules the schedules
+	 * @param scheduleName the name of the schedule
+	 * @return The matcher of schedule info
 	 * @author Glenn Renfro
 	 */
 	protected Matcher<ScheduleInfo> hasSpecifiedSchedule(final List<ScheduleInfo> schedules, String scheduleName) {
@@ -336,7 +344,9 @@ public abstract class AbstractSchedulerIntegrationTests {
 
 	/**
 	 * A Hamcrest Matcher that queries the schedule list for a task definition name.
-	 *
+	 * @param schedules the schedules.
+	 * @param taskDefinitionName the name of the task definition.
+	 * @param expectedScheduleCount the expected schedule count.
 	 * @author Glenn Renfro
 	 */
 	protected Matcher<ScheduleInfo> hasSpecifiedSchedulesByTaskDefinitionName(final List<ScheduleInfo> schedules, String taskDefinitionName, int expectedScheduleCount) {

@@ -45,7 +45,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * {@link org.springframework.cloud.deployer.spi.task.TaskLauncher} tests.
  *
  * <p>Subclasses should explicitly declare additional config that should be used via the use of
- * {@linkg ContextConfiguration}.</p>
+ * {@link ContextConfiguration}.</p>
  *
  * @author Eric Bottard
  */
@@ -70,6 +70,7 @@ public abstract class AbstractIntegrationTests {
 	/**
 	 * Return the timeout to use for repeatedly querying app status while it is being deployed.
 	 * Default value is one minute, being queried every 5 seconds.
+	 * @return the deployment timeout value
 	 */
 	protected Timeout deploymentTimeout() {
 		return new Timeout(12, 5000);
@@ -78,6 +79,7 @@ public abstract class AbstractIntegrationTests {
 	/**
 	 * Return the timeout to use for repeatedly querying app status while it is being un-deployed.
 	 * Default value is one minute, being queried every 5 seconds.
+	 * @return the undeployment timeout value
 	 */
 	protected Timeout undeploymentTimeout() {
 		return new Timeout(20, 5000);
@@ -86,6 +88,7 @@ public abstract class AbstractIntegrationTests {
 	/**
 	 * Return the time to wait between reusing deployment requests. This could be necessary to give
 	 * some platforms time to clean up after undeployment.
+	 * @return the redeployment pause
 	 */
 	protected int redeploymentPause() {
 		return 0;
@@ -95,6 +98,7 @@ public abstract class AbstractIntegrationTests {
 	 * Return a resource corresponding to the spring-cloud-deployer-spi-test-app app suitable for the target runtime.
 	 *
 	 * The default implementation returns an uber-jar fetched via Maven. Subclasses may override.
+	 * @return the resource for the application
 	 */
 	protected Resource testApplication() {
 		Properties properties = new Properties();

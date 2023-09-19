@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  */
 public class DockerResource extends AbstractResource {
 
-	public static String URI_SCHEME = "docker";
+	public final static String URI_SCHEME = "docker";
 
 	private URI uri;
 

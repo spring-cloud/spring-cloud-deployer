@@ -1536,7 +1536,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getLivenessHttpProbeDelay()}}
+     * @deprecated
+	 * @see #getLivenessHttpProbeDelay()
      */
     @Deprecated
     public int getLivenessProbeDelay() {
@@ -1544,7 +1545,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setLivenessHttpProbeDelay(int)}}
+     * @deprecated
+	 * @see #setLivenessHttpProbeDelay(int)
      */
     @Deprecated
     public void setLivenessProbeDelay(int livenessProbeDelay) {
@@ -1552,7 +1554,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getLivenessHttpProbePeriod()}}
+     * @deprecated
+	 * @see #getLivenessHttpProbePeriod()
      */
     @Deprecated
     public int getLivenessProbePeriod() {
@@ -1560,7 +1563,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setLivenessHttpProbePeriod(int)}}
+     * @deprecated
+	 * @see #setLivenessHttpProbePeriod(int)
      */
     @Deprecated
     public void setLivenessProbePeriod(int livenessProbePeriod) {
@@ -1568,7 +1572,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getLivenessHttpProbeTimeout()}}
+     * @deprecated
+	 * @see #getLivenessHttpProbeTimeout()
      */
     @Deprecated
     public int getLivenessProbeTimeout() {
@@ -1576,7 +1581,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setLivenessHttpProbeTimeout(int)}}
+     * @deprecated
+	 * @see #setLivenessHttpProbeTimeout(int)
      */
     @Deprecated
     public void setLivenessProbeTimeout(int livenessProbeTimeout) {
@@ -1584,7 +1590,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getLivenessHttpProbePath()}}
+     * @deprecated
+	 * @see #getLivenessHttpProbePath()
      */
     @Deprecated
     public String getLivenessProbePath() {
@@ -1592,7 +1599,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setLivenessHttpProbePath(String)}}
+     * @deprecated
+	 * @see #setLivenessHttpProbePath(String)
      */
     @Deprecated
     public void setLivenessProbePath(String livenessProbePath) {
@@ -1600,7 +1608,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getLivenessHttpProbePort()}}
+     * @deprecated
+	 * @see #getLivenessHttpProbePort()
      */
     @Deprecated
     public Integer getLivenessProbePort() {
@@ -1608,7 +1617,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setLivenessHttpProbePort(Integer)}}
+     * @deprecated
+	 * @see #setLivenessHttpProbePort(Integer)
      */
     @Deprecated
     public void setLivenessProbePort(Integer livenessProbePort) {
@@ -1907,7 +1917,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getReadinessHttpProbeDelay()}}
+     * @deprecated
+	 * @see #getReadinessHttpProbeDelay()
+	 * @return the probe delay
      */
     @Deprecated
     public int getReadinessProbeDelay() {
@@ -1915,7 +1927,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setReadinessHttpProbeDelay(int)}}
+     * @deprecated
+	 * @param readinessProbeDelay the probe delay
+	 * @see #setReadinessHttpProbeDelay(int)
      */
     @Deprecated
     public void setReadinessProbeDelay(int readinessProbeDelay) {
@@ -1923,7 +1937,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getReadinessHttpProbePeriod()}}
+     * @deprecated
+	 * @see #getReadinessHttpProbePeriod()
+	 * @return the probe period
      */
     @Deprecated
     public int getReadinessProbePeriod() {
@@ -1984,7 +2000,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setReadinessHttpProbePeriod(int)}}
+     * @deprecated
+	 * @param readinessProbePeriod the period
+	 * @see #setReadinessHttpProbePeriod(int)
      */
     @Deprecated
     public void setReadinessProbePeriod(int readinessProbePeriod) {
@@ -1992,7 +2010,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getReadinessHttpProbeTimeout()}}
+     * @deprecated
+	 * @see #getReadinessHttpProbeTimeout()
+	 * @return the timeout
      */
     @Deprecated
     public int getReadinessProbeTimeout() {
@@ -2000,7 +2020,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setReadinessHttpProbeTimeout(int)}}
+     * @deprecated
+	 * @param readinessProbeTimeout the timeout of the probe
+	 * @see #setReadinessHttpProbeTimeout(int)
      */
     @Deprecated
     public void setReadinessProbeTimeout(int readinessProbeTimeout) {
@@ -2008,7 +2030,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getReadinessHttpProbePath()}}
+     * @deprecated
+	 * @see #getReadinessHttpProbePath()
+	 * @return the path
      */
     @Deprecated
     public String getReadinessProbePath() {
@@ -2016,7 +2040,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setReadinessHttpProbePath(String)}}
+     * @deprecated
+	 * @param readinessProbePath the path to use for http request
+	 * @see #setReadinessHttpProbePath(String)
      */
     @Deprecated
     public void setReadinessProbePath(String readinessProbePath) {
@@ -2024,7 +2050,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #getReadinessHttpProbePort()}}
+     * @deprecated
+	 * @see #getReadinessHttpProbePort()
+	 * @return the port of the probe
      */
     @Deprecated
     public Integer getReadinessProbePort() {
@@ -2032,7 +2060,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
-     * @deprecated @{see {@link #setReadinessHttpProbePort(Integer)}}
+     * @deprecated
+	 * @param readinessProbePort the port number use by the probe
+	 * @see #setReadinessHttpProbePort(Integer)
      */
     @Deprecated
     public void setReadinessProbePort(Integer readinessProbePort) {

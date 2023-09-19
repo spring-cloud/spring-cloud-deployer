@@ -77,6 +77,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 	 * to be tested. If subclasses decide to add additional implementation-specific tests, they should
 	 * interact with the deployer through {@link #appDeployer()}, and not directly via a field or a call
 	 * to this method.
+	 * @return the app deployer
 	 */
 	protected abstract AppDeployer provideAppDeployer();
 
@@ -84,6 +85,7 @@ public abstract class AbstractAppDeployerIntegrationJUnit5Tests extends Abstract
 	 * Subclasses should call this method to interact with the AppDeployer under test.
 	 * Returns a wrapper around the deployer returned by {@link #provideAppDeployer()}, that keeps
 	 * track of which apps have been deployed and undeployed.
+	 * @return the app deployer
 	 */
 	protected AppDeployer appDeployer() {
 		return deployerWrapper;

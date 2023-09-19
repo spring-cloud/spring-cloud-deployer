@@ -121,6 +121,7 @@ public class ScheduleRequest extends AppDeploymentRequest{
 
 	/**
 	 * @see #scheduleName
+	 * @return the schedule name
 	 */
 	public String getScheduleName() {
 		return scheduleName;

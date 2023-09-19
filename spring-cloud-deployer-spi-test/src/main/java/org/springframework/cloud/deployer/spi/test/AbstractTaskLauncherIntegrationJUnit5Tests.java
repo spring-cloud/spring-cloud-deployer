@@ -68,6 +68,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 	 * to be tested. If subclasses decide to add additional implementation-specific tests, they should
 	 * interact with the task launcher through {@link #taskLauncher()}, and not directly via a field or a call
 	 * to this method.
+	 * @return the task launcher
 	 */
 	protected abstract TaskLauncher provideTaskLauncher();
 
@@ -75,6 +76,7 @@ public abstract class AbstractTaskLauncherIntegrationJUnit5Tests extends Abstrac
 	 * Subclasses should call this method to interact with the AppDeployer under test.
 	 * Returns a wrapper around the deployer returned by {@link #provideTaskLauncher()}, that keeps
 	 * track of which apps have been deployed and undeployed.
+	 * @return the task launcher
 	 */
 	protected TaskLauncher taskLauncher() {
 		return launcherWrapper;

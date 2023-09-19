@@ -133,6 +133,7 @@ public abstract class AbstractExternalResourceTestSupport<R> implements TestRule
 	 * Try to obtain and validate a resource. Implementors should either set the
 	 * {@link #resource} field with a valid resource and return normally, or throw an
 	 * exception.
+	 * @throws Exception when resource is invalid
 	 */
 	protected abstract void obtainResource() throws Exception;
 

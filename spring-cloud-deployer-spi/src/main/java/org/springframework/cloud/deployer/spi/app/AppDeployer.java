@@ -155,7 +155,7 @@ public interface AppDeployer {
 	/**
 	 * Return the {@link AppStatus}s for an app represented by a deployment ids.
 	 *
-	 * @param id the app deployment ids, as returned by {@link #deploy}
+	 * @param ids the app deployment ids, as returned by {@link #deploy}
 	 * @return the app deployment statuses
 	 */
 	default Flux<AppStatus> statusesReactive(String... ids) {
@@ -171,7 +171,7 @@ public interface AppDeployer {
 
 	/**
 	 * Return the log of the application identified by the deployment id.
-	 *
+	 * @param id the id of the deployment.
 	 * @return the application log
 	 */
 	default String getLog(String id) {

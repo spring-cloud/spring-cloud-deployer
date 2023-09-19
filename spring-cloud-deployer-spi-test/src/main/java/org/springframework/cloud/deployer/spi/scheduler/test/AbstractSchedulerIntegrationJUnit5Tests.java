@@ -117,30 +117,35 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 	/**
 	 * To be implemented by subclasses, which should return the instance of Scheduler that needs
 	 * to be tested. Can be used if subclasses decide to add additional implementation-specific tests.
+	 * @return the scheduler
 	 */
 	protected abstract Scheduler provideScheduler();
 
 	/**
 	 * To be implemented by subclasses, which should return the commandLineArgs that
 	 * will be used for the tests.
+	 * @return the command line arguments
 	 */
 	protected abstract List<String> getCommandLineArgs();
 
 	/**
 	 * To be implemented by subclasses, which should return the schedulerProperties that
 	 * will be used for the tests.
+	 * @return the scheduler properties
 	 */
 	protected abstract Map<String, String> getSchedulerProperties();
 
 	/**
 	 * To be implemented by subclasses, which should return the deploymentProperties that
 	 * will be used for the tests.
+	 * @return the deployment properties
 	 */
 	protected abstract Map<String, String> getDeploymentProperties();
 
 	/**
 	 * To be implemented by subclasses, which should return the appProperties that
 	 * will be used for the tests.
+	 * @return the application properties
 	 */
 	protected abstract Map<String, String> getAppProperties();
 
@@ -348,6 +353,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 	 * Return a resource corresponding to the spring-cloud-deployer-spi-scheduler-test-app app suitable for the target runtime.
 	 *
 	 * The default implementation returns an uber-jar fetched via Maven. Subclasses may override.
+	 * @return the resource of the test application.
 	 */
 	protected Resource testApplication() {
 		Properties properties = new Properties();

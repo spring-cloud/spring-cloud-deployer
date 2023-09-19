@@ -126,7 +126,7 @@ public interface TaskLauncher {
 	/**
 	 * Return the log of the application identified by the task ID.
 	 * The ID can be specific to the platform where the task is launched.
-	 *
+	 * @param id the id of the task.
 	 * @return the task application log
 	 */
 	default String getLog(String id) {

@@ -34,7 +34,7 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * A {@link Resource} implementation that will download a {@link UrlResource} to a temp file when
- * the {@method getFile} is invoked.
+ * the {@link DownloadingUrlResource#getFile()} is invoked.
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Pollack

@@ -114,6 +114,7 @@ public class AppDeploymentRequest {
 
 	/**
 	 * @see #definition
+	 * @return application definition
 	 */
 	public AppDefinition getDefinition() {
 		return definition;
@@ -121,6 +122,7 @@ public class AppDeploymentRequest {
 
 	/**
 	 * @see #resource
+	 * @return the resource
 	 */
 	public Resource getResource() {
 		return resource;
@@ -128,6 +130,7 @@ public class AppDeploymentRequest {
 
 	/**
 	 * @see #deploymentProperties
+	 * @return the deployment properties
 	 */
 	public Map<String, String> getDeploymentProperties() {
 		return deploymentProperties;
@@ -135,6 +138,7 @@ public class AppDeploymentRequest {
 
 	/**
 	 * @see #commandlineArguments
+	 * @return the commandline arguments
 	 */
 	public List<String> getCommandlineArguments() {
 		return commandlineArguments;

@@ -29,75 +29,87 @@ public interface ActuatorOperations {
 
 	/**
 	 * Get a resource from an actuator path.
-	 * @param deploymentId the deployment ID of the deployed app.
-	 * @param guid unique id for the app instance.
-	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
-	 * @param responseType the expected response type.
+	 *
+	 * @param deploymentId   the deployment ID of the deployed app.
+	 * @param guid           unique id for the app instance.
+	 * @param endpoint       the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 * @param responseType   the expected response type.
 	 * @param requestHeaders optional request headers.
+	 * @param <T>            type of the response.
 	 * @return the contents as the given type.
 	 */
-	<T> T getFromActuator(String deploymentId, String guid, String endpoint, Class<T> responseType,
-			Optional<HttpHeaders> requestHeaders);
+	<T> T getFromActuator(String deploymentId, String guid, String endpoint, Class<T> responseType, Optional<HttpHeaders> requestHeaders);
 
 	/**
 	 * Get a resource from an actuator path.
+	 *
 	 * @param deploymentId the deployment ID of the deployed app.
-	 * @param guid unique id for the app instance.
-	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 * @param guid         unique id for the app instance.
+	 * @param endpoint     the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
 	 * @param responseType the expected response type.
+	 * @param <T>          type of the response
 	 * @return the contents as the given type.
 	 */
-	default <T> T getFromActuator (String deploymentId, String guid, String endpoint, Class<T> responseType) {
+	default <T> T getFromActuator(String deploymentId, String guid, String endpoint, Class<T> responseType) {
 		return getFromActuator(deploymentId, guid, endpoint, responseType, Optional.empty());
 	}
 
 	/**
 	 * Get a resource from an actuator path.
-	 * @param deploymentId the deployment ID of the deployed app.
-	 * @param guid unique id for the app instance.
-	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 *
+	 * @param deploymentId   the deployment ID of the deployed app.
+	 * @param guid           unique id for the app instance.
+	 * @param endpoint       the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
 	 * @param requestHeaders optional request headers.
 	 * @return the contents as a {@code String}.
 	 */
-	default String getFromActuator(String deploymentId, String guid, String endpoint,
-			Optional<HttpHeaders> requestHeaders){
+	default String getFromActuator(
+		String deploymentId, String guid, String endpoint,
+		Optional<HttpHeaders> requestHeaders
+	) {
 		return getFromActuator(deploymentId, guid, endpoint, String.class, requestHeaders);
 	}
 
 	/**
 	 * Get a resource from an actuator path.
+	 *
 	 * @param deploymentId the deployment ID of the deployed app.
-	 * @param guid unique id for the app instance.
-	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 * @param guid         unique id for the app instance.
+	 * @param endpoint     the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
 	 * @return the contents as a {@code String}.
 	 */
-	default String getFromActuator(String deploymentId, String guid, String endpoint){
+	default String getFromActuator(String deploymentId, String guid, String endpoint) {
 		return getFromActuator(deploymentId, guid, endpoint, String.class, Optional.empty());
 	}
 
 	/**
 	 * Post to resource on actuator path.
-	 * @param deploymentId the deployment ID of the deployed app.
-	 * @param guid unique id for the app instance.
-	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
-	 * @param body the request body.
-	 * @param responseType the expected response type.
+	 *
+	 * @param deploymentId   the deployment ID of the deployed app.
+	 * @param guid           unique id for the app instance.
+	 * @param endpoint       the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 * @param body           the request body.
+	 * @param responseType   the expected response type.
 	 * @param requestHeaders optional request headers.
+	 * @param <T>            type of the body.
+	 * @param <R>            type of the response.
 	 * @return the result (response body).
 	 */
-	<T,R> R postToActuator(String deploymentId, String guid, String endpoint, T body, Class<R> responseType,
-			Optional<HttpHeaders> requestHeaders);
+	<T, R> R postToActuator(String deploymentId, String guid, String endpoint, T body, Class<R> responseType, Optional<HttpHeaders> requestHeaders);
 
 	/**
 	 * Post to resource on actuator path.
+	 *
 	 * @param deploymentId the deployment ID of the deployed app.
-	 * @param guid unique id for the app instance.
-	 * @param endpoint the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
-	 * @param body the request body.
+	 * @param guid         unique id for the app instance.
+	 * @param endpoint     the endpoint path relative to the base actuator URL for the instance, with or without preceding '/'.
+	 * @param body         the request body.
 	 * @param responseType the expected response type.
+	 * @param <R>          the type of the response.
+	 * @param <T>          the type of the body.
 	 * @return the result (response body).
 	 */
-	default <T,R> R postToActuator(String deploymentId, String guid, String endpoint, T body, Class<R> responseType) {
+	default <T, R> R postToActuator(String deploymentId, String guid, String endpoint, T body, Class<R> responseType) {
 		return postToActuator(deploymentId, guid, endpoint, body, responseType, Optional.empty());
 	}
 }

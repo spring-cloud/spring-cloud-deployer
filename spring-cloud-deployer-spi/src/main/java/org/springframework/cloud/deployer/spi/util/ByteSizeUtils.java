@@ -34,6 +34,8 @@ public class ByteSizeUtils {
 	/**
 	 * Return the number of mebibytes (1024*1024) denoted by the given text, where an optional case-insensitive unit of
 	 * 'm' or 'g' can be used to mean mebi- or gebi- bytes, respectively. Lack of unit assumes mebibytes.
+	 * @param text The text to parse
+	 * @return mebibytes
 	 */
 	public  static long parseToMebibytes(String text) {
 		Matcher matcher = SIZE_PATTERN.matcher(text);

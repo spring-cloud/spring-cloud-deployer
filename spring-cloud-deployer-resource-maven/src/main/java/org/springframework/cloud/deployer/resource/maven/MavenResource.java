@@ -51,7 +51,6 @@ import org.springframework.util.StringUtils;
  * MavenResource.parse("org.springframework.sample:some-app:2.0.0);
  * MavenResource.parse("org.springframework.sample:some-app:jar:exec:2.0.0);
  * </pre>
- * </p>
  * @author David Turanski
  * @author Mark Fisher
  * @author Patrick Peralta
@@ -126,6 +125,7 @@ public class MavenResource extends AbstractResource {
 
 	/**
 	 * @see #groupId
+	 * @return the group id of the maven resource
 	 */
 	public String getGroupId() {
 		return groupId;
@@ -133,6 +133,7 @@ public class MavenResource extends AbstractResource {
 
 	/**
 	 * @see #artifactId
+	 * @return the artifact id of the maven resource
 	 */
 	public String getArtifactId() {
 		return artifactId;
@@ -140,6 +141,7 @@ public class MavenResource extends AbstractResource {
 
 	/**
 	 * @see #extension
+	 * @return the extension of the maven resource
 	 */
 	public String getExtension() {
 		return extension;
@@ -147,6 +149,7 @@ public class MavenResource extends AbstractResource {
 
 	/**
 	 * @see #version
+	 * @return the classifier of the maven resource
 	 */
 	public String getClassifier() {
 		return classifier;
@@ -154,6 +157,7 @@ public class MavenResource extends AbstractResource {
 
 	/**
 	 * @see #version
+	 * @return the version of the maven resource
 	 */
 	public String getVersion() {
 		return version;

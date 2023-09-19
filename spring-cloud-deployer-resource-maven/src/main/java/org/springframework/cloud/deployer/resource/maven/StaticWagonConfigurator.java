@@ -37,7 +37,7 @@ import org.springframework.cloud.deployer.resource.maven.MavenProperties.WagonHt
  * suit our needs as things get a bit crazy with it due to its use of Guice.
  *
  * @author Janne Valkealahti
- * @autor Corneil du Plessis
+ * @author Corneil du Plessis
  *
  */
 public class StaticWagonConfigurator implements WagonConfigurator {

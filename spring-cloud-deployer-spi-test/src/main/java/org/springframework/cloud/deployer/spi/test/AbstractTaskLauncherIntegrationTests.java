@@ -72,6 +72,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 	 * to be tested. If subclasses decide to add additional implementation-specific tests, they should
 	 * interact with the task launcher through {@link #taskLauncher()}, and not directly via a field or a call
 	 * to this method.
+	 * @return the task launcher
 	 */
 	protected abstract TaskLauncher provideTaskLauncher();
 
@@ -79,6 +80,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 	 * Subclasses should call this method to interact with the AppDeployer under test.
 	 * Returns a wrapper around the deployer returned by {@link #provideTaskLauncher()}, that keeps
 	 * track of which apps have been deployed and undeployed.
+	 * @return the task launcher
 	 */
 	protected TaskLauncher taskLauncher() {
 		return launcherWrapper;
@@ -243,6 +245,8 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 
 	/**
 	 * A Hamcrest Matcher that queries the deployment status for some task id.
+	 * @param statusMatcher the matcher of the query
+	 * @return the matcher
 	 */
 	protected Matcher<String> hasStatusThat(final Matcher<TaskStatus> statusMatcher) {
 		return new BaseMatcher<String>() {
