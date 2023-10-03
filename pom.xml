@@ -58,7 +58,7 @@
 		<maven-wagon.version>3.5.2</maven-wagon.version>
 		<commons-io.version>2.7</commons-io.version>
 		<kubernetes-fabric8-client.version>5.12.4</kubernetes-fabric8-client.version>
-		<spring-boot.version>2.7.14</spring-boot.version>
+		<spring-boot.version>2.7.16</spring-boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 	</properties>
