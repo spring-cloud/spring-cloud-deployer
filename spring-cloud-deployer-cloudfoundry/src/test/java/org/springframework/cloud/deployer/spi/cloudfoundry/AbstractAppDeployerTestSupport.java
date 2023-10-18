@@ -19,6 +19,7 @@ package org.springframework.cloud.deployer.spi.cloudfoundry;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cloudfoundry.logcache.v1.LogCacheClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.Applications;
@@ -27,6 +28,7 @@ import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.ScaleApplicationRequest;
 import org.cloudfoundry.operations.services.Services;
+import org.cloudfoundry.reactor.logcache.v1.ReactorLogCacheClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Answers;
 import org.mockito.Mock;
@@ -61,13 +63,16 @@ public abstract class AbstractAppDeployerTestSupport {
 	@Mock(answer = Answers.RETURNS_SMART_NULLS)
 	protected RuntimeEnvironmentInfo runtimeEnvironmentInfo;
 
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
+	protected LogCacheClient reactorLogCacheClient;
+
 	@BeforeEach
 	public void setUp() {
 		MockitoAnnotations.openMocks(this);
 		given(this.operations.applications()).willReturn(this.applications);
 		given(this.operations.services()).willReturn(this.services);
 		this.deployer = new CloudFoundryAppDeployer(this.applicationNameGenerator, this.deploymentProperties,
-				this.operations, this.runtimeEnvironmentInfo);
+				this.operations, this.runtimeEnvironmentInfo, this.reactorLogCacheClient);
 		postSetUp();
 	}
 

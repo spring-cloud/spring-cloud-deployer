@@ -21,12 +21,14 @@ import java.time.Duration;
 import com.github.zafarkhaja.semver.Version;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.info.GetInfoRequest;
+import org.cloudfoundry.logcache.v1.LogCacheClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.ConnectionContext;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
+import org.cloudfoundry.reactor.logcache.v1.ReactorLogCacheClient;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider.Builder;
 import org.slf4j.Logger;
@@ -76,16 +78,16 @@ public class CloudFoundryDeployerAutoConfiguration {
 			.build();
 	}
 
-	private RuntimeEnvironmentInfo runtimeEnvironmentInfo(Class spiClass, Class implementationClass) {
+	private RuntimeEnvironmentInfo runtimeEnvironmentInfo(Class spiClass, Class implementationClass, CloudFoundryConnectionProperties cloudFoundryConnectionProperties) {
 		CloudFoundryClient client = connectionConfiguration.cloudFoundryClient(
-			connectionConfiguration.connectionContext(connectionConfiguration.cloudFoundryConnectionProperties()),
-			connectionConfiguration.tokenProvider(connectionConfiguration.cloudFoundryConnectionProperties()));
+			connectionConfiguration.connectionContext(cloudFoundryConnectionProperties),
+			connectionConfiguration.tokenProvider(cloudFoundryConnectionProperties));
 		Version version = connectionConfiguration.version(client);
 
 		return new CloudFoundryPlatformSpecificInfo(new RuntimeEnvironmentInfo.Builder())
-			.apiEndpoint(connectionConfiguration.cloudFoundryConnectionProperties().getUrl().toString())
-			.org(connectionConfiguration.cloudFoundryConnectionProperties().getOrg())
-			.space(connectionConfiguration.cloudFoundryConnectionProperties().getSpace())
+			.apiEndpoint(cloudFoundryConnectionProperties.getUrl().toString())
+			.org(cloudFoundryConnectionProperties.getOrg())
+			.space(cloudFoundryConnectionProperties.getSpace())
 			.builder()
 				.implementationName(implementationClass.getSimpleName())
 				.spiClass(spiClass)
@@ -99,14 +101,17 @@ public class CloudFoundryDeployerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(AppDeployer.class)
-	public AppDeployer appDeployer(CloudFoundryOperations operations,
-		AppNameGenerator applicationNameGenerator) {
+	public AppDeployer appDeployer(
+		CloudFoundryOperations operations,
+		AppNameGenerator applicationNameGenerator,
+		ReactorLogCacheClient reactorLogCacheClient
+	) {
 		return new CloudFoundryAppDeployer(
 			applicationNameGenerator,
 			connectionConfiguration.appDeploymentProperties(),
 			operations,
-			runtimeEnvironmentInfo(AppDeployer.class, CloudFoundryAppDeployer.class)
-		);
+			runtimeEnvironmentInfo(AppDeployer.class, CloudFoundryAppDeployer.class, connectionConfiguration.cloudFoundryConnectionProperties()),
+			reactorLogCacheClient);
 	}
 
 	@Bean
@@ -128,19 +133,23 @@ public class CloudFoundryDeployerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(TaskLauncher.class)
-	public TaskLauncher taskLauncher(CloudFoundryClient client,
+	public TaskLauncher taskLauncher(
+		CloudFoundryClient client,
 		CloudFoundryOperations operations,
-		Version version) {
+		Version version
+	) {
 
 		if (version.greaterThanOrEqualTo(UnsupportedVersionTaskLauncher.MINIMUM_SUPPORTED_VERSION)) {
-			RuntimeEnvironmentInfo runtimeEnvironmentInfo = runtimeEnvironmentInfo(TaskLauncher.class, CloudFoundryTaskLauncher.class);
+			RuntimeEnvironmentInfo runtimeEnvironmentInfo = runtimeEnvironmentInfo(TaskLauncher.class, CloudFoundryTaskLauncher.class,
+				connectionConfiguration.cloudFoundryConnectionProperties());
 			return new CloudFoundryTaskLauncher(
 				client,
 				connectionConfiguration.taskDeploymentProperties(),
 				operations,
 				runtimeEnvironmentInfo);
 		} else {
-			RuntimeEnvironmentInfo runtimeEnvironmentInfo = runtimeEnvironmentInfo(TaskLauncher.class, UnsupportedVersionTaskLauncher.class);
+			RuntimeEnvironmentInfo runtimeEnvironmentInfo = runtimeEnvironmentInfo(TaskLauncher.class, UnsupportedVersionTaskLauncher.class,
+				connectionConfiguration.cloudFoundryConnectionProperties());
 			return new UnsupportedVersionTaskLauncher(version, runtimeEnvironmentInfo);
 		}
 	}
@@ -199,6 +208,15 @@ public class CloudFoundryDeployerAutoConfiguration {
 		@ConditionalOnMissingBean
 		public CloudFoundryClient cloudFoundryClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
 			return ReactorCloudFoundryClient.builder()
+				.connectionContext(connectionContext)
+				.tokenProvider(tokenProvider)
+				.build();
+		}
+
+		@Bean
+		@ConditionalOnMissingBean
+		public LogCacheClient logCacheClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+			return ReactorLogCacheClient.builder()
 				.connectionContext(connectionContext)
 				.tokenProvider(tokenProvider)
 				.build();

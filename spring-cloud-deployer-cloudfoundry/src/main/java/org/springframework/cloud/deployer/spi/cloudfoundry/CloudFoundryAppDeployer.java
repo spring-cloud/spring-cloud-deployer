@@ -17,10 +17,12 @@
 package org.springframework.cloud.deployer.spi.cloudfoundry;
 
 import java.time.Duration;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +31,11 @@ import java.util.stream.Collectors;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.cloudfoundry.client.v2.ClientV2Exception;
-import org.cloudfoundry.doppler.LogMessage;
+import org.cloudfoundry.logcache.v1.Envelope;
+import org.cloudfoundry.logcache.v1.Log;
+import org.cloudfoundry.logcache.v1.LogCacheClient;
+import org.cloudfoundry.logcache.v1.ReadRequest;
+import org.cloudfoundry.logcache.v1.ReadResponse;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
@@ -39,7 +45,6 @@ import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.InstanceDetail;
-import org.cloudfoundry.operations.applications.LogsRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.applications.ScaleApplicationRequest;
@@ -61,6 +66,7 @@ import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.app.MultiStateAppDeployer;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -80,17 +86,22 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	private final CloudFoundryOperations operations;
 
-	private final Cache<String, ApplicationDetail> cache = Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS)
-			.build();
+	private final LogCacheClient reactorLogCacheClient;
 
-	public CloudFoundryAppDeployer(AppNameGenerator applicationNameGenerator,
+	private final Cache<String, ApplicationDetail> cache = Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS)
+		.build();
+
+	public CloudFoundryAppDeployer(
+		AppNameGenerator applicationNameGenerator,
 		CloudFoundryDeploymentProperties deploymentProperties,
 		CloudFoundryOperations operations,
-		RuntimeEnvironmentInfo runtimeEnvironmentInfo
+		RuntimeEnvironmentInfo runtimeEnvironmentInfo,
+		LogCacheClient reactorLogCacheClient
 	) {
 		super(deploymentProperties, runtimeEnvironmentInfo);
 		this.operations = operations;
 		this.applicationNameGenerator = applicationNameGenerator;
+		this.reactorLogCacheClient = reactorLogCacheClient;
 	}
 
 	@Override
@@ -115,8 +126,7 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 			.doOnError(error -> {
 				if (isNotFoundError().test(error)) {
 					logger.warn("Unable to deploy application. It may have been destroyed before start completed: " + error.getMessage());
-				}
-				else {
+				} else {
 					logError(String.format("Failed to deploy %s", deploymentId)).accept(error);
 				}
 			})
@@ -145,8 +155,7 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 	private DeploymentState mapShallowAppState(ApplicationSummary applicationSummary) {
 		if (applicationSummary.getRunningInstances().equals(applicationSummary.getInstances())) {
 			return DeploymentState.deployed;
-		}
-		else if (applicationSummary.getInstances() > 0) {
+		} else if (applicationSummary.getInstances() > 0) {
 			return DeploymentState.partial;
 		} else {
 			return DeploymentState.undeployed;
@@ -173,7 +182,7 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 		}
 
 		String argumentsAsString = request.getCommandlineArguments().stream()
-				.collect(Collectors.joining(" "));
+			.collect(Collectors.joining(" "));
 		String yaml = new Yaml().dump(Collections.singletonMap("arguments", argumentsAsString));
 
 		return Collections.singletonMap("JBP_CONFIG_JAVA_MAIN", yaml);
@@ -186,8 +195,7 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 				.doOnSuccess(v -> logger.info("Successfully computed status [{}] for {}", v, id))
 				.doOnError(logError(String.format("Failed to compute status for %s", id)))
 				.block(Duration.ofMillis(this.deploymentProperties.getStatusTimeout()));
-		}
-		catch (Exception timeoutDueToBlock) {
+		} catch (Exception timeoutDueToBlock) {
 			logger.error("Caught exception while querying for status of {}", id, timeoutDueToBlock);
 			return createErrorAppStatus(id);
 		}
@@ -202,7 +210,7 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 	public void undeploy(String id) {
 		getStatus(id)
 			.doOnNext(status -> assertApplicationExists(id, status))
-				// Need to block here to be able to throw exception early
+			// Need to block here to be able to throw exception early
 			.block(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
 		requestDeleteApplication(id)
 			.timeout(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()))
@@ -213,38 +221,53 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	@Override
 	public String getLog(String id) {
-		List<LogMessage> logMessageList = getLogMessage(id).collectList().block(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
 		StringBuilder stringBuilder = new StringBuilder();
-		for (LogMessage logMessage: logMessageList) {
-			stringBuilder.append(logMessage.getMessage() + System.lineSeparator());
+		List<Log> logs = getLogMessages(id)
+			.collectList()
+			.block(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
+		Assert.notNull(logs, "expected logs");
+		Base64.Decoder decoder = Base64.getDecoder();
+		for (Log log : logs) {
+			stringBuilder.append(new String(decoder.decode(log.getPayload())));
+			stringBuilder.append(System.lineSeparator());
 		}
 		return stringBuilder.toString();
 	}
 
-	@Override
-	public void scale(AppScaleRequest appScaleRequest) {
-		logger.info("Scaling the application instance using ", appScaleRequest.toString());
-		ScaleApplicationRequest scaleApplicationRequest = ScaleApplicationRequest.builder()
-				.name(appScaleRequest.getDeploymentId())
-				.instances(appScaleRequest.getCount())
-				.memoryLimit(memory(appScaleRequest))
-				.diskLimit(diskQuota(appScaleRequest))
-				.stagingTimeout(this.deploymentProperties.getStagingTimeout())
-				.startupTimeout(this.deploymentProperties.getStartupTimeout())
-				.build();
-		this.operations.applications().scale(scaleApplicationRequest)
-				.timeout(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()))
-				.doOnSuccess(v -> logger.info("Scaled the application with deploymentId = {}",
-						appScaleRequest.getDeploymentId()))
-				.doOnError(e -> logger.error("Error: {} scaling the app instance {}", e.getMessage(),
-						appScaleRequest.getDeploymentId()))
-				.subscribe();
+	private Flux<Log> getLogMessages(String deploymentId) {
+		logger.info("Fetching log for {}", deploymentId);
+		ReadRequest readRequest = ReadRequest.builder().sourceId(deploymentId /* ?? */).build();
+		return this.reactorLogCacheClient.read(readRequest)
+			.flatMapMany(this::responseToEnvelope);
 	}
 
-	private Flux<LogMessage> getLogMessage(String deploymentId) {
-		logger.info("Fetching log for "+ deploymentId);
-		return this.operations.applications().logs(LogsRequest.builder().name(deploymentId).recent(true).build());
+	private Flux<Log> responseToEnvelope(ReadResponse response) {
+		return Flux.fromIterable(response.getEnvelopes().getBatch())
+			.map(Envelope::getLog)
+			.filter(Objects::nonNull);
 	}
+
+
+	@Override
+	public void scale(AppScaleRequest appScaleRequest) {
+		logger.info("Scaling the application instance using {}", appScaleRequest);
+		ScaleApplicationRequest scaleApplicationRequest = ScaleApplicationRequest.builder()
+			.name(appScaleRequest.getDeploymentId())
+			.instances(appScaleRequest.getCount())
+			.memoryLimit(memory(appScaleRequest))
+			.diskLimit(diskQuota(appScaleRequest))
+			.stagingTimeout(this.deploymentProperties.getStagingTimeout())
+			.startupTimeout(this.deploymentProperties.getStartupTimeout())
+			.build();
+		this.operations.applications().scale(scaleApplicationRequest)
+			.timeout(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()))
+			.doOnSuccess(v -> logger.info("Scaled the application with deploymentId = {}",
+				appScaleRequest.getDeploymentId()))
+			.doOnError(e -> logger.error("Error: {} scaling the app instance {}", e.getMessage(),
+				appScaleRequest.getDeploymentId()))
+			.subscribe();
+	}
+
 
 	private void assertApplicationDoesNotExist(String deploymentId, AppStatus status) {
 		DeploymentState state = status.getState();
@@ -300,8 +323,8 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	private String domain(AppDeploymentRequest request) {
 		return Optional
-				.ofNullable(request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY))
-				.orElse(this.deploymentProperties.getDomain());
+			.ofNullable(request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY))
+			.orElse(this.deploymentProperties.getDomain());
 	}
 
 
@@ -318,29 +341,29 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	private ApplicationHealthCheck healthCheck(AppDeploymentRequest request) {
 		return Optional
-				.ofNullable(request.getDeploymentProperties()
-						.get(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY))
-				.map(this::toApplicationHealthCheck).orElse(this.deploymentProperties.getHealthCheck());
+			.ofNullable(request.getDeploymentProperties()
+				.get(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY))
+			.map(this::toApplicationHealthCheck).orElse(this.deploymentProperties.getHealthCheck());
 	}
 
 	private String healthCheckEndpoint(AppDeploymentRequest request) {
 		return Optional
-				.ofNullable(request.getDeploymentProperties()
-						.get(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY))
-				.orElse(this.deploymentProperties.getHealthCheckHttpEndpoint());
+			.ofNullable(request.getDeploymentProperties()
+				.get(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY))
+			.orElse(this.deploymentProperties.getHealthCheckHttpEndpoint());
 	}
 
 	private Integer healthCheckTimeout(AppDeploymentRequest request) {
 		String timeoutString = request.getDeploymentProperties().getOrDefault(
-				CloudFoundryDeploymentProperties.HEALTHCHECK_TIMEOUT_PROPERTY_KEY,
-				this.deploymentProperties.getHealthCheckTimeout());
+			CloudFoundryDeploymentProperties.HEALTHCHECK_TIMEOUT_PROPERTY_KEY,
+			this.deploymentProperties.getHealthCheckTimeout());
 		return Integer.parseInt(timeoutString);
 	}
 
 	private String host(AppDeploymentRequest request) {
 		return Optional
-				.ofNullable(request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.HOST_PROPERTY))
-				.orElse(this.deploymentProperties.getHost());
+			.ofNullable(request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.HOST_PROPERTY))
+			.orElse(this.deploymentProperties.getHost());
 	}
 
 	private int instances(AppDeploymentRequest request) {
@@ -369,15 +392,14 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 		if (route(request) != null) {
 			manifest.route(Route.builder().route(route(request)).build());
 		}
-		if (! routes(request).isEmpty()){
-		    Set<Route> routes = routes(request).stream()
-                    .map(r -> Route.builder().route(r).build())
-                    .collect(Collectors.toSet());
-		    manifest.routes(routes);
-        }
-		if(getDockerImage(request) != null){
-			logger.info("Preparing to run a container from  " + request.getResource()
-					+ ". This may take some time if the image must be downloaded from a remote container registry.");
+		if (!routes(request).isEmpty()) {
+			Set<Route> routes = routes(request).stream()
+				.map(r -> Route.builder().route(r).build())
+				.collect(Collectors.toSet());
+			manifest.routes(routes);
+		}
+		if (getDockerImage(request) != null) {
+			logger.info("Preparing to run a container from {}. This may take some time if the image must be downloaded from a remote container registry.", request.getResource());
 			manifest.docker(Docker.builder().image(getDockerImage(request)).build());
 		} else {
 			manifest.buildpacks(buildpacks(request));
@@ -409,12 +431,10 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 					ClientV2Exception ce = (ClientV2Exception) e;
 					if (ce.getCode() == 10001) {
 						logger.warn("Retry service bind due to concurrency error");
-					}
-					else {
+					} else {
 						logger.warn("Received ClientV2Exception error from cf", ce);
 					}
-				}
-				else {
+				} else {
 					logger.warn("Received error from cf", e);
 				}
 			})
@@ -422,23 +442,25 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 			// CF-ConcurrencyError(10001): The service broker could not perform this operation in parallel with other running operations
 			// and retry those and let other errors to pass and fail fast
 			.retryWhen(Retry.withThrowable(reactor.retry.Retry.onlyIf(c -> {
-					if (c.exception() instanceof ClientV2Exception) {
-						ClientV2Exception e = (ClientV2Exception) c.exception();
-						if (e.getCode() == 10001) {
-							return true;
+						if (c.exception() instanceof ClientV2Exception) {
+							ClientV2Exception e = (ClientV2Exception) c.exception();
+							if (e.getCode() == 10001) {
+								return true;
+							}
 						}
-					}
-					return false;
-				})
-				// for now try 30 seconds and do some jitter to limit concurrency issues
-				.timeout(Duration.ofSeconds(30))
-				.randomBackoff(Duration.ofSeconds(1), Duration.ofSeconds(5))
-				.doOnRetry(c -> logger.debug("Retrying cf call for {}", bindRequest))
+						return false;
+					})
+					// for now try 30 seconds and do some jitter to limit concurrency issues
+					.timeout(Duration.ofSeconds(30))
+					.randomBackoff(Duration.ofSeconds(1), Duration.ofSeconds(5))
+					.doOnRetry(c -> logger.debug("Retrying cf call for {}", bindRequest))
 			));
 	}
 
-	private Mono<Void> pushApplicationWithServiceParameters(ApplicationManifest manifest,
-		AppDeploymentRequest request, String deploymentId) {
+	private Mono<Void> pushApplicationWithServiceParameters(
+		ApplicationManifest manifest,
+		AppDeploymentRequest request, String deploymentId
+	) {
 
 		logger.debug("Pushing application manifest with no start");
 
@@ -514,7 +536,7 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 		String routePath = request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.ROUTE_PATH_PROPERTY);
 		if (StringUtils.hasText(routePath) && !routePath.startsWith("/")) {
 			throw new IllegalArgumentException(
-					"Cloud Foundry routes must start with \"/\". Route passed = [" + routePath + "].");
+				"Cloud Foundry routes must start with \"/\". Route passed = [" + routePath + "].");
 		}
 		return routePath;
 	}
@@ -523,13 +545,13 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 		return request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.ROUTE_PROPERTY);
 	}
 
-    private Set<String> routes(AppDeploymentRequest request) {
-        Set<String> routes = new HashSet<>();
-        routes.addAll(this.deploymentProperties.getRoutes());
+	private Set<String> routes(AppDeploymentRequest request) {
+		Set<String> routes = new HashSet<>();
+		routes.addAll(this.deploymentProperties.getRoutes());
 		routes.addAll(StringUtils.commaDelimitedListToSet(
-				request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.ROUTES_PROPERTY)));
-        return routes;
-    }
+			request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.ROUTES_PROPERTY)));
+		return routes;
+	}
 
 	private ApplicationHealthCheck toApplicationHealthCheck(String raw) {
 		try {
@@ -542,7 +564,7 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	private Boolean toggleNoRoute(AppDeploymentRequest request) {
 		return Optional
-				.ofNullable(request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY))
-				.map(Boolean::valueOf).orElse(null);
+			.ofNullable(request.getDeploymentProperties().get(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY))
+			.map(Boolean::valueOf).orElse(null);
 	}
 }
