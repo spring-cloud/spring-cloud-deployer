@@ -28,14 +28,16 @@ import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.ScaleApplicationRequest;
 import org.cloudfoundry.operations.services.Services;
-import org.cloudfoundry.reactor.logcache.v1.ReactorLogCacheClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
+import org.springframework.context.ApplicationContext;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -55,6 +57,7 @@ public abstract class AbstractAppDeployerTestSupport {
 	protected CloudFoundryAppDeployer deployer;
 
 	@Mock(answer = Answers.RETURNS_SMART_NULLS)
+	@MockBean
 	protected CloudFoundryOperations operations;
 
 	@Mock(answer = Answers.RETURNS_SMART_NULLS)
@@ -64,7 +67,10 @@ public abstract class AbstractAppDeployerTestSupport {
 	protected RuntimeEnvironmentInfo runtimeEnvironmentInfo;
 
 	@Mock(answer = Answers.RETURNS_SMART_NULLS)
+	@MockBean
 	protected LogCacheClient reactorLogCacheClient;
+	@Autowired
+	protected ApplicationContext applicationContext;
 
 	@BeforeEach
 	public void setUp() {
@@ -72,7 +78,7 @@ public abstract class AbstractAppDeployerTestSupport {
 		given(this.operations.applications()).willReturn(this.applications);
 		given(this.operations.services()).willReturn(this.services);
 		this.deployer = new CloudFoundryAppDeployer(this.applicationNameGenerator, this.deploymentProperties,
-				this.operations, this.runtimeEnvironmentInfo, this.reactorLogCacheClient);
+				this.operations, this.runtimeEnvironmentInfo, this.applicationContext);
 		postSetUp();
 	}
 

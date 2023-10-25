@@ -33,7 +33,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.logcache.v1.Envelope;
 import org.cloudfoundry.logcache.v1.Log;
-import org.cloudfoundry.logcache.v1.LogCacheClient;
 import org.cloudfoundry.logcache.v1.ReadRequest;
 import org.cloudfoundry.logcache.v1.ReadResponse;
 import org.cloudfoundry.operations.CloudFoundryOperations;
@@ -50,6 +49,7 @@ import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.applications.ScaleApplicationRequest;
 import org.cloudfoundry.operations.applications.StartApplicationRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
+import org.cloudfoundry.reactor.logcache.v1.ReactorLogCacheClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -66,6 +66,7 @@ import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.app.MultiStateAppDeployer;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -86,7 +87,7 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	private final CloudFoundryOperations operations;
 
-	private final LogCacheClient reactorLogCacheClient;
+	private final ApplicationContext applicationContext;
 
 	private final Cache<String, ApplicationDetail> cache = Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS)
 		.build();
@@ -96,12 +97,13 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 		CloudFoundryDeploymentProperties deploymentProperties,
 		CloudFoundryOperations operations,
 		RuntimeEnvironmentInfo runtimeEnvironmentInfo,
-		LogCacheClient reactorLogCacheClient
+
+		ApplicationContext applicationContext
 	) {
 		super(deploymentProperties, runtimeEnvironmentInfo);
 		this.operations = operations;
 		this.applicationNameGenerator = applicationNameGenerator;
-		this.reactorLogCacheClient = reactorLogCacheClient;
+		this.applicationContext = applicationContext;
 	}
 
 	@Override
@@ -237,7 +239,9 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 	private Flux<Log> getLogMessages(String deploymentId) {
 		logger.info("Fetching log for {}", deploymentId);
 		ReadRequest readRequest = ReadRequest.builder().sourceId(deploymentId /* ?? */).build();
-		return this.reactorLogCacheClient.read(readRequest)
+		ReactorLogCacheClient reactorLogCacheClient = applicationContext.getBean(ReactorLogCacheClient.class);
+		Assert.notNull(reactorLogCacheClient, "expected reactorLogCacheClient");
+		return reactorLogCacheClient.read(readRequest)
 			.flatMapMany(this::responseToEnvelope);
 	}
 

@@ -44,6 +44,7 @@ import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.util.RuntimeVersionUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -104,14 +105,14 @@ public class CloudFoundryDeployerAutoConfiguration {
 	public AppDeployer appDeployer(
 		CloudFoundryOperations operations,
 		AppNameGenerator applicationNameGenerator,
-		ReactorLogCacheClient reactorLogCacheClient
+		ApplicationContext applicationContext
 	) {
 		return new CloudFoundryAppDeployer(
 			applicationNameGenerator,
 			connectionConfiguration.appDeploymentProperties(),
 			operations,
 			runtimeEnvironmentInfo(AppDeployer.class, CloudFoundryAppDeployer.class, connectionConfiguration.cloudFoundryConnectionProperties()),
-			reactorLogCacheClient);
+			applicationContext);
 	}
 
 	@Bean
