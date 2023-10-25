@@ -39,6 +39,14 @@ jobs:
       - name: Build
         run: |
           mvn -U -B -Pfailsafe verify -pl spring-cloud-deployer-kubernetes
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: ${{ success() || failure() }}
+        with:
+          name: Integration Test - Report
+          path: '**/failsafe-reports/*IT.xml'
+          reporter: java-junit
+          list-tests: 'failed'
       # clean m2 cache
       - name: Clean cache
         run: |
