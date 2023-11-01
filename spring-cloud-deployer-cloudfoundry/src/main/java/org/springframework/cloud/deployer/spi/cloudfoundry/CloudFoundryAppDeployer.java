@@ -33,6 +33,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.logcache.v1.Envelope;
 import org.cloudfoundry.logcache.v1.Log;
+import org.cloudfoundry.logcache.v1.LogCacheClient;
 import org.cloudfoundry.logcache.v1.ReadRequest;
 import org.cloudfoundry.logcache.v1.ReadResponse;
 import org.cloudfoundry.operations.CloudFoundryOperations;
@@ -49,7 +50,6 @@ import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.applications.ScaleApplicationRequest;
 import org.cloudfoundry.operations.applications.StartApplicationRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
-import org.cloudfoundry.reactor.logcache.v1.ReactorLogCacheClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -239,9 +239,9 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 	private Flux<Log> getLogMessages(String deploymentId) {
 		logger.info("Fetching log for {}", deploymentId);
 		ReadRequest readRequest = ReadRequest.builder().sourceId(deploymentId /* ?? */).build();
-		ReactorLogCacheClient reactorLogCacheClient = applicationContext.getBean(ReactorLogCacheClient.class);
-		Assert.notNull(reactorLogCacheClient, "expected reactorLogCacheClient");
-		return reactorLogCacheClient.read(readRequest)
+		LogCacheClient logCacheClient = applicationContext.getBean(LogCacheClient.class);
+		Assert.notNull(logCacheClient, "expected logCacheClient");
+		return logCacheClient.read(readRequest)
 			.flatMapMany(this::responseToEnvelope);
 	}
 
