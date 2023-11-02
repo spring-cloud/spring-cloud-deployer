@@ -67,6 +67,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -145,12 +146,15 @@ public class CloudFoundryTaskLauncherTests {
 		given(this.organizations.list(any())).willReturn(listOrganizationsResponse());
 		given(this.spaces.list(any())).willReturn(listSpacesResponse());
 
+		ApplicationContext applicationContext = mock(ApplicationContext.class);
+
 		this.deploymentProperties.setApiTimeout(1);
 		this.deploymentProperties.setStatusTimeout(1_250L);
 		this.launcher = new CloudFoundryTaskLauncher(this.client,
 				this.deploymentProperties,
 				this.operations,
-				runtimeEnvironmentInfo);
+				runtimeEnvironmentInfo,
+				applicationContext);
 
 	}
 

@@ -137,7 +137,8 @@ public class CloudFoundryDeployerAutoConfiguration {
 	public TaskLauncher taskLauncher(
 		CloudFoundryClient client,
 		CloudFoundryOperations operations,
-		Version version
+		Version version,
+		ApplicationContext applicationContext
 	) {
 
 		if (version.greaterThanOrEqualTo(UnsupportedVersionTaskLauncher.MINIMUM_SUPPORTED_VERSION)) {
@@ -147,7 +148,8 @@ public class CloudFoundryDeployerAutoConfiguration {
 				client,
 				connectionConfiguration.taskDeploymentProperties(),
 				operations,
-				runtimeEnvironmentInfo);
+				runtimeEnvironmentInfo,
+				applicationContext);
 		} else {
 			RuntimeEnvironmentInfo runtimeEnvironmentInfo = runtimeEnvironmentInfo(TaskLauncher.class, UnsupportedVersionTaskLauncher.class,
 				connectionConfiguration.cloudFoundryConnectionProperties());

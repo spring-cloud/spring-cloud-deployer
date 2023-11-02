@@ -17,8 +17,10 @@
 package org.springframework.cloud.deployer.spi.cloudfoundry;
 
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,7 +28,12 @@ import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.applications.SummaryApplicationResponse;
 import org.cloudfoundry.client.v3.tasks.CreateTaskRequest;
 import org.cloudfoundry.client.v3.tasks.CreateTaskResponse;
-import org.cloudfoundry.doppler.LogMessage;
+import org.cloudfoundry.logcache.v1.Envelope;
+import org.cloudfoundry.logcache.v1.Log;
+import org.cloudfoundry.logcache.v1.LogCacheClient;
+import org.cloudfoundry.logcache.v1.ReadRequest;
+import org.cloudfoundry.logcache.v1.ReadResponse;
+import org.cloudfoundry.logcache.v1.ReadRequest;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.AbstractApplicationSummary;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
@@ -36,11 +43,12 @@ import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
-import org.cloudfoundry.operations.applications.LogsRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.StopApplicationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -71,14 +79,18 @@ public class CloudFoundryTaskLauncher extends AbstractCloudFoundryTaskLauncher {
 
 	private final CloudFoundryOperations operations;
 
+	private final ApplicationContext applicationContext;
+
 	public CloudFoundryTaskLauncher(CloudFoundryClient client,
 												CloudFoundryDeploymentProperties deploymentProperties,
 												CloudFoundryOperations operations,
-											    RuntimeEnvironmentInfo runtimeEnvironmentInfo) {
+												RuntimeEnvironmentInfo runtimeEnvironmentInfo,
+												ApplicationContext applicationContext) {
 		super(client, deploymentProperties, runtimeEnvironmentInfo);
 		this.client = client;
 		this.deploymentProperties = deploymentProperties;
 		this.operations = operations;
+		this.applicationContext = applicationContext;
 	}
 
 	/**
@@ -127,18 +139,33 @@ public class CloudFoundryTaskLauncher extends AbstractCloudFoundryTaskLauncher {
 	}
 
 	@Override
-	public String getLog(String taskAppName) {
-		List<LogMessage> logMessageList = getLogMessage(taskAppName).collectList().block(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
+	public String getLog(String id) {
 		StringBuilder stringBuilder = new StringBuilder();
-		for (LogMessage logMessage: logMessageList) {
-			stringBuilder.append(logMessage.getMessage() + System.lineSeparator());
+		List<Log> logs = getLogMessages(id)
+				.collectList()
+				.block(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
+		Assert.notNull(logs, "expected logs");
+		Base64.Decoder decoder = Base64.getDecoder();
+		for (Log log : logs) {
+			stringBuilder.append(new String(decoder.decode(log.getPayload())));
+			stringBuilder.append(System.lineSeparator());
 		}
 		return stringBuilder.toString();
 	}
 
-	private Flux<LogMessage> getLogMessage(String taskAppName) {
-		logger.info("Fetching log for {}", taskAppName);
-		return this.operations.applications().logs(LogsRequest.builder().name(taskAppName).recent(true).build());
+	private Flux<Log> getLogMessages(String deploymentId) {
+		logger.info("Fetching log for {}", deploymentId);
+		ReadRequest readRequest = ReadRequest.builder().sourceId(deploymentId /* ?? */).build();
+		LogCacheClient logCacheClient = applicationContext.getBean(LogCacheClient.class);
+		Assert.notNull(logCacheClient, "expected logCacheClient");
+		return logCacheClient.read(readRequest)
+				.flatMapMany(this::responseToEnvelope);
+	}
+
+	private Flux<Log> responseToEnvelope(ReadResponse response) {
+		return Flux.fromIterable(response.getEnvelopes().getBatch())
+				.map(Envelope::getLog)
+				.filter(Objects::nonNull);
 	}
 
 	/**
