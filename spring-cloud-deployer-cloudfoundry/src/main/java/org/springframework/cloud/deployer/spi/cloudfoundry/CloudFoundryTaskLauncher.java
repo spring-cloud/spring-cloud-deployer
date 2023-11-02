@@ -17,7 +17,6 @@
 package org.springframework.cloud.deployer.spi.cloudfoundry;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,7 +25,6 @@ import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.applications.SummaryApplicationResponse;
 import org.cloudfoundry.client.v3.tasks.CreateTaskRequest;
 import org.cloudfoundry.client.v3.tasks.CreateTaskResponse;
-import org.cloudfoundry.doppler.LogMessage;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.AbstractApplicationSummary;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
@@ -36,7 +34,6 @@ import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
-import org.cloudfoundry.operations.applications.LogsRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.StopApplicationRequest;
 import org.slf4j.Logger;
@@ -71,14 +68,18 @@ public class CloudFoundryTaskLauncher extends AbstractCloudFoundryTaskLauncher {
 
 	private final CloudFoundryOperations operations;
 
+	private final ApplicationLogAccessor applicationLogAccessor;
+
 	public CloudFoundryTaskLauncher(CloudFoundryClient client,
 												CloudFoundryDeploymentProperties deploymentProperties,
 												CloudFoundryOperations operations,
-											    RuntimeEnvironmentInfo runtimeEnvironmentInfo) {
+												RuntimeEnvironmentInfo runtimeEnvironmentInfo,
+												ApplicationLogAccessor applicationLogAccessor) {
 		super(client, deploymentProperties, runtimeEnvironmentInfo);
 		this.client = client;
 		this.deploymentProperties = deploymentProperties;
 		this.operations = operations;
+		this.applicationLogAccessor = applicationLogAccessor;
 	}
 
 	/**
@@ -127,19 +128,10 @@ public class CloudFoundryTaskLauncher extends AbstractCloudFoundryTaskLauncher {
 	}
 
 	@Override
-	public String getLog(String taskAppName) {
-		List<LogMessage> logMessageList = getLogMessage(taskAppName).collectList().block(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
-		StringBuilder stringBuilder = new StringBuilder();
-		for (LogMessage logMessage: logMessageList) {
-			stringBuilder.append(logMessage.getMessage() + System.lineSeparator());
-		}
-		return stringBuilder.toString();
+	public String getLog(String id) {
+		return this.applicationLogAccessor.getLog(id, Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
 	}
 
-	private Flux<LogMessage> getLogMessage(String taskAppName) {
-		logger.info("Fetching log for {}", taskAppName);
-		return this.operations.applications().logs(LogsRequest.builder().name(taskAppName).recent(true).build());
-	}
 
 	/**
 	 * Set up a reactor flow to stage a task. Before staging check if the base

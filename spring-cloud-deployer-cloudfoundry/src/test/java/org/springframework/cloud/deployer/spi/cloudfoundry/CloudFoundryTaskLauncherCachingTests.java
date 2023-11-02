@@ -39,6 +39,7 @@ import org.cloudfoundry.client.v3.tasks.ListTasksResponse;
 import org.cloudfoundry.client.v3.tasks.TaskResource;
 import org.cloudfoundry.client.v3.tasks.TaskState;
 import org.cloudfoundry.client.v3.tasks.Tasks;
+import org.cloudfoundry.logcache.v1.LogCacheClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -71,6 +72,8 @@ public class CloudFoundryTaskLauncherCachingTests {
 		given(client.tasks()).willReturn(tasks);
 		given(tasks.list(any())).willReturn(runningTasksResponse());
 
+		LogCacheClient logCacheClient = mock(LogCacheClient.class);
+
 		CloudFoundryDeploymentProperties deploymentProperties = new CloudFoundryDeploymentProperties();
 		CloudFoundryOperations operations = mock(CloudFoundryOperations.class);
 		RuntimeEnvironmentInfo runtimeEnvironmentInfo = mock(RuntimeEnvironmentInfo.class);
@@ -79,7 +82,8 @@ public class CloudFoundryTaskLauncherCachingTests {
 		orgAndSpace.put(CloudFoundryPlatformSpecificInfo.SPACE, "this-space");
 		given(runtimeEnvironmentInfo.getPlatformSpecificInfo()).willReturn(orgAndSpace);
 
-		CloudFoundryTaskLauncher launcher = new CloudFoundryTaskLauncher(client, deploymentProperties, operations, runtimeEnvironmentInfo);
+		CloudFoundryTaskLauncher launcher = new CloudFoundryTaskLauncher(client, deploymentProperties, operations,
+				runtimeEnvironmentInfo, new ApplicationLogAccessor(logCacheClient));
 
 		Throwable thrown1 = catchThrowable(() -> {
 			launcher.getRunningTaskExecutionCount();

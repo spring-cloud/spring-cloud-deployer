@@ -72,13 +72,16 @@ public abstract class AbstractAppDeployerTestSupport {
 	@Autowired
 	protected ApplicationContext applicationContext;
 
+	@Mock
+	protected ApplicationLogAccessor applicationLogAccessor;
+
 	@BeforeEach
 	public void setUp() {
 		MockitoAnnotations.openMocks(this);
 		given(this.operations.applications()).willReturn(this.applications);
 		given(this.operations.services()).willReturn(this.services);
 		this.deployer = new CloudFoundryAppDeployer(this.applicationNameGenerator, this.deploymentProperties,
-				this.operations, this.runtimeEnvironmentInfo, this.applicationContext);
+				this.operations, this.runtimeEnvironmentInfo, this.applicationLogAccessor);
 		postSetUp();
 	}
 

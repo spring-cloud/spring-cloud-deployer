@@ -44,7 +44,6 @@ import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.util.RuntimeVersionUtils;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -105,14 +104,14 @@ public class CloudFoundryDeployerAutoConfiguration {
 	public AppDeployer appDeployer(
 		CloudFoundryOperations operations,
 		AppNameGenerator applicationNameGenerator,
-		ApplicationContext applicationContext
+		ApplicationLogAccessor applicationLogAccessor
 	) {
 		return new CloudFoundryAppDeployer(
 			applicationNameGenerator,
 			connectionConfiguration.appDeploymentProperties(),
 			operations,
 			runtimeEnvironmentInfo(AppDeployer.class, CloudFoundryAppDeployer.class, connectionConfiguration.cloudFoundryConnectionProperties()),
-			applicationContext);
+				applicationLogAccessor);
 	}
 
 	@Bean
@@ -137,7 +136,8 @@ public class CloudFoundryDeployerAutoConfiguration {
 	public TaskLauncher taskLauncher(
 		CloudFoundryClient client,
 		CloudFoundryOperations operations,
-		Version version
+		Version version,
+		ApplicationLogAccessor applicationLogAccessor
 	) {
 
 		if (version.greaterThanOrEqualTo(UnsupportedVersionTaskLauncher.MINIMUM_SUPPORTED_VERSION)) {
@@ -147,12 +147,19 @@ public class CloudFoundryDeployerAutoConfiguration {
 				client,
 				connectionConfiguration.taskDeploymentProperties(),
 				operations,
-				runtimeEnvironmentInfo);
+				runtimeEnvironmentInfo,
+					applicationLogAccessor);
 		} else {
 			RuntimeEnvironmentInfo runtimeEnvironmentInfo = runtimeEnvironmentInfo(TaskLauncher.class, UnsupportedVersionTaskLauncher.class,
 				connectionConfiguration.cloudFoundryConnectionProperties());
 			return new UnsupportedVersionTaskLauncher(version, runtimeEnvironmentInfo);
 		}
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(ApplicationLogAccessor.class)
+	public ApplicationLogAccessor logHelper(LogCacheClient logCacheClient) {
+		return new ApplicationLogAccessor(logCacheClient);
 	}
 
 	@Bean

@@ -145,12 +145,15 @@ public class CloudFoundryTaskLauncherTests {
 		given(this.organizations.list(any())).willReturn(listOrganizationsResponse());
 		given(this.spaces.list(any())).willReturn(listSpacesResponse());
 
+		ApplicationLogAccessor applicationLogAccessor = mock(ApplicationLogAccessor.class);
+
 		this.deploymentProperties.setApiTimeout(1);
 		this.deploymentProperties.setStatusTimeout(1_250L);
 		this.launcher = new CloudFoundryTaskLauncher(this.client,
 				this.deploymentProperties,
 				this.operations,
-				runtimeEnvironmentInfo);
+				runtimeEnvironmentInfo,
+				applicationLogAccessor);
 
 	}
 

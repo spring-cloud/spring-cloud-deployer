@@ -163,7 +163,7 @@ public class CloudFoundryAppDeployerTests extends AbstractAppDeployerTestSupport
 		deploymentProperties.setAutoDeleteMavenArtifacts(false);
 		CloudFoundryAppDeployer deployer = new CloudFoundryAppDeployer(this.applicationNameGenerator,
 				deploymentProperties,
-				this.operations, this.runtimeEnvironmentInfo, this.applicationContext);
+				this.operations, this.runtimeEnvironmentInfo, this.applicationLogAccessor);
 
 		deployResource(deployer, resource);
 		assertThat(mavenArtifact.getParentFile().exists()).isTrue();

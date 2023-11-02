@@ -17,12 +17,9 @@
 package org.springframework.cloud.deployer.spi.cloudfoundry;
 
 import java.time.Duration;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -31,11 +28,6 @@ import java.util.stream.Collectors;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.cloudfoundry.client.v2.ClientV2Exception;
-import org.cloudfoundry.logcache.v1.Envelope;
-import org.cloudfoundry.logcache.v1.Log;
-import org.cloudfoundry.logcache.v1.LogCacheClient;
-import org.cloudfoundry.logcache.v1.ReadRequest;
-import org.cloudfoundry.logcache.v1.ReadResponse;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
@@ -66,8 +58,6 @@ import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.app.MultiStateAppDeployer;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
-import org.springframework.context.ApplicationContext;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -87,23 +77,22 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	private final CloudFoundryOperations operations;
 
-	private final ApplicationContext applicationContext;
-
 	private final Cache<String, ApplicationDetail> cache = Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS)
 		.build();
+
+	private final ApplicationLogAccessor applicationLogAccessor;
 
 	public CloudFoundryAppDeployer(
 		AppNameGenerator applicationNameGenerator,
 		CloudFoundryDeploymentProperties deploymentProperties,
 		CloudFoundryOperations operations,
 		RuntimeEnvironmentInfo runtimeEnvironmentInfo,
-
-		ApplicationContext applicationContext
+		ApplicationLogAccessor applicationLogAccessor
 	) {
 		super(deploymentProperties, runtimeEnvironmentInfo);
 		this.operations = operations;
 		this.applicationNameGenerator = applicationNameGenerator;
-		this.applicationContext = applicationContext;
+		this.applicationLogAccessor = applicationLogAccessor;
 	}
 
 	@Override
@@ -223,34 +212,8 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	@Override
 	public String getLog(String id) {
-		StringBuilder stringBuilder = new StringBuilder();
-		List<Log> logs = getLogMessages(id)
-			.collectList()
-			.block(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
-		Assert.notNull(logs, "expected logs");
-		Base64.Decoder decoder = Base64.getDecoder();
-		for (Log log : logs) {
-			stringBuilder.append(new String(decoder.decode(log.getPayload())));
-			stringBuilder.append(System.lineSeparator());
-		}
-		return stringBuilder.toString();
+		return applicationLogAccessor.getLog(id, Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
 	}
-
-	private Flux<Log> getLogMessages(String deploymentId) {
-		logger.info("Fetching log for {}", deploymentId);
-		ReadRequest readRequest = ReadRequest.builder().sourceId(deploymentId /* ?? */).build();
-		LogCacheClient logCacheClient = applicationContext.getBean(LogCacheClient.class);
-		Assert.notNull(logCacheClient, "expected logCacheClient");
-		return logCacheClient.read(readRequest)
-			.flatMapMany(this::responseToEnvelope);
-	}
-
-	private Flux<Log> responseToEnvelope(ReadResponse response) {
-		return Flux.fromIterable(response.getEnvelopes().getBatch())
-			.map(Envelope::getLog)
-			.filter(Objects::nonNull);
-	}
-
 
 	@Override
 	public void scale(AppScaleRequest appScaleRequest) {
