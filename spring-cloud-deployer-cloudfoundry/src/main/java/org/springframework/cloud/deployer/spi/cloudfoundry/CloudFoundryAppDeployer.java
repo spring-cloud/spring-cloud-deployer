@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.cloudfoundry.operations.applications.StartApplicationRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.yaml.snakeyaml.Yaml;
 import reactor.cache.CacheMono;
 import reactor.core.publisher.Flux;
@@ -212,7 +213,14 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	@Override
 	public String getLog(String id) {
-		return applicationLogAccessor.getLog(id, Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
+		AppStatus status = status(id);
+		String cfGuid = null;
+		for(Map.Entry<String, AppInstanceStatus> appInstanceStatus : status.getInstances().entrySet()) {
+			if(appInstanceStatus.getValue().getAttributes().containsKey("cf-guid")) {
+				cfGuid = appInstanceStatus.getValue().getAttributes().get("cf-guid");
+			}
+		}
+		return applicationLogAccessor.getLog(cfGuid, Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
 	}
 
 	@Override

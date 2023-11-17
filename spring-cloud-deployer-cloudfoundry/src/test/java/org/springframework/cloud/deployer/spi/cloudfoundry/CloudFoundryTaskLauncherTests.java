@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ import org.cloudfoundry.client.v2.spaces.ListSpacesResponse;
 import org.cloudfoundry.client.v2.spaces.SpaceResource;
 import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.client.v3.Pagination;
+import org.cloudfoundry.client.v3.Relationship;
+import org.cloudfoundry.client.v3.ToOneRelationship;
 import org.cloudfoundry.client.v3.tasks.CancelTaskRequest;
 import org.cloudfoundry.client.v3.tasks.CancelTaskResponse;
 import org.cloudfoundry.client.v3.tasks.CreateTaskRequest;
@@ -48,6 +50,7 @@ import org.cloudfoundry.client.v3.tasks.CreateTaskResponse;
 import org.cloudfoundry.client.v3.tasks.GetTaskRequest;
 import org.cloudfoundry.client.v3.tasks.GetTaskResponse;
 import org.cloudfoundry.client.v3.tasks.ListTasksResponse;
+import org.cloudfoundry.client.v3.tasks.TaskRelationships;
 import org.cloudfoundry.client.v3.tasks.TaskResource;
 import org.cloudfoundry.client.v3.tasks.TaskState;
 import org.cloudfoundry.client.v3.tasks.Tasks;
@@ -67,6 +70,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.internal.matchers.Any;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -94,6 +98,8 @@ import static org.mockito.Mockito.mock;
  */
 public class CloudFoundryTaskLauncherTests {
 	private final static int TASK_EXECUTION_COUNT = 10;
+
+	private final static String LOG_RESPONSE = "Test Log Response";
 
 	private final CloudFoundryDeploymentProperties deploymentProperties = new CloudFoundryDeploymentProperties();
 
@@ -126,7 +132,7 @@ public class CloudFoundryTaskLauncherTests {
 	private Resource resource = new FileSystemResource("src/test/resources/demo-0.0.1-SNAPSHOT.jar");
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 		MockitoAnnotations.initMocks(this);
 		given(this.tasks.list(any())).willReturn(this.runningTasksResponse());
 		given(this.client.applicationsV2()).willReturn(this.applicationsV2);
@@ -136,6 +142,8 @@ public class CloudFoundryTaskLauncherTests {
 		given(this.operations.services()).willReturn(this.services);
 		given(this.client.spaces()).willReturn(this.spaces);
 		given(this.client.organizations()).willReturn(this.organizations);
+		Mono<GetTaskResponse> getTaskResponse = getDefaultGetTaskResponse();
+		given(this.tasks.get(any())).willReturn(getTaskResponse);
 
 		RuntimeEnvironmentInfo runtimeEnvironmentInfo = mock(RuntimeEnvironmentInfo.class);
 		Map<String, String> orgAndSpace = new HashMap<>();
@@ -146,6 +154,7 @@ public class CloudFoundryTaskLauncherTests {
 		given(this.spaces.list(any())).willReturn(listSpacesResponse());
 
 		ApplicationLogAccessor applicationLogAccessor = mock(ApplicationLogAccessor.class);
+		given(applicationLogAccessor.getLog(any(), any())).willReturn(LOG_RESPONSE);
 
 		this.deploymentProperties.setApiTimeout(1);
 		this.deploymentProperties.setStatusTimeout(1_250L);
@@ -158,7 +167,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void cancel() {
+	void cancel() {
 		givenRequestCancelTask("test-task-id", Mono.just(CancelTaskResponse.builder()
 			.id("test-task-id")
 			.memoryInMb(1024)
@@ -175,12 +184,12 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void currentExecutionCount() {
+	void currentExecutionCount() {
 		assertThat(this.launcher.getRunningTaskExecutionCount()).isEqualTo(this.TASK_EXECUTION_COUNT);
 	}
 
 	@Test
-	public void launchTaskApplicationExists() {
+	void launchTaskApplicationExists() {
 		setupExistingAppSuccessful();
 		String taskId = this.launcher.launch(defaultRequest());
 
@@ -188,7 +197,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void stageTaskApplicationExists() {
+	void stageTaskApplicationExists() {
 		setupExistingAppSuccessful();
 		SummaryApplicationResponse response = this.launcher.stage(defaultRequest());
 
@@ -197,14 +206,14 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void launchTaskWithNonExistentApplication() throws IOException {
+	void launchTaskWithNonExistentApplication() throws IOException {
 		setupTaskWithNonExistentApplication(this.resource);
 		String taskId = this.launcher.launch(defaultRequest());
 		assertThat(taskId).isEqualTo("test-task-id");
 	}
 
 	@Test
-	public void launchExistingTaskApplicationWithPushDisabled() {
+	void launchExistingTaskApplicationWithPushDisabled() {
 		setupExistingAppSuccessful();
 		deploymentProperties.setPushTaskAppsEnabled(false);
 		String taskId = this.launcher.launch(defaultRequest());
@@ -212,7 +221,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void launchNonExistingTaskApplicationWithPushDisabled() throws IOException {
+	void launchNonExistingTaskApplicationWithPushDisabled() throws IOException {
 		setupTaskWithNonExistentApplication(this.resource);
 		deploymentProperties.setPushTaskAppsEnabled(false);
 		assertThatThrownBy(() -> {
@@ -221,7 +230,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void stageTaskWithNonExistentApplication() throws IOException {
+	void stageTaskWithNonExistentApplication() throws IOException {
 		setupTaskWithNonExistentApplication(this.resource);
 
 		SummaryApplicationResponse response = this.launcher.stage(defaultRequest());
@@ -230,7 +239,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void automaticallyConfigureForCfEnv() throws JsonProcessingException {
+	void automaticallyConfigureForCfEnv() throws JsonProcessingException {
 		Resource resource = new FileSystemResource("src/test/resources/log-sink-rabbit-3.0.0.BUILD-SNAPSHOT.jar");
 		AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(new AppDefinition("test-application",
 					Collections.emptyMap()), resource, Collections.emptyMap());
@@ -250,7 +259,7 @@ public class CloudFoundryTaskLauncherTests {
 
 
 	@Test
-	public void launchTaskWithNonExistentApplicationAndApplicationListingFails() {
+	void launchTaskWithNonExistentApplicationAndApplicationListingFails() {
 		givenRequestListApplications(Flux.error(new UnsupportedOperationException()));
 
 		assertThatThrownBy(() -> {
@@ -259,7 +268,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void stageTaskWithNonExistentApplicationAndApplicationListingFails() {
+	void stageTaskWithNonExistentApplicationAndApplicationListingFails() {
 		givenRequestListApplications(Flux.error(new UnsupportedOperationException()));
 
 		assertThatThrownBy(() -> {
@@ -268,7 +277,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void launchTaskWithNonExistentApplicationAndPushFails() throws IOException {
+	void launchTaskWithNonExistentApplicationAndPushFails() throws IOException {
 		setupFailedPush(this.resource);
 
 		assertThatThrownBy(() -> {
@@ -277,7 +286,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void stageTaskWithNonExistentApplicationAndPushFails() throws IOException {
+	void stageTaskWithNonExistentApplicationAndPushFails() throws IOException {
 		setupFailedPush(this.resource);
 
 		assertThatThrownBy(() -> {
@@ -286,7 +295,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void launchTaskWithNonExistentApplicationAndRetrievingApplicationSummaryFails() throws IOException {
+	void launchTaskWithNonExistentApplicationAndRetrievingApplicationSummaryFails() throws IOException {
 		setupTaskWithNonExistentApplicationAndRetrievingApplicationSummaryFails(this.resource);
 
 		assertThatThrownBy(() -> {
@@ -295,7 +304,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void stageTaskWithNonExistentApplicationAndRetrievingApplicationSummaryFails() throws IOException {
+	void stageTaskWithNonExistentApplicationAndRetrievingApplicationSummaryFails() throws IOException {
 		setupTaskWithNonExistentApplicationAndRetrievingApplicationSummaryFails(this.resource);
 
 		assertThatThrownBy(() -> {
@@ -304,7 +313,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void launchTaskWithNonExistentApplicationAndStoppingApplicationFails() throws IOException {
+	void launchTaskWithNonExistentApplicationAndStoppingApplicationFails() throws IOException {
 		setupTaskWithNonExistentApplicationAndStoppingApplicationFails(this.resource);
 
 		assertThatThrownBy(() -> {
@@ -313,7 +322,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void stageTaskWithNonExistentApplicationAndStoppingApplicationFails() throws IOException {
+	void stageTaskWithNonExistentApplicationAndStoppingApplicationFails() throws IOException {
 		setupTaskWithNonExistentApplicationAndStoppingApplicationFails(this.resource);
 
 		assertThatThrownBy(() -> {
@@ -322,7 +331,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void launchTaskWithNonExistentApplicationAndTaskCreationFails() throws IOException {
+	void launchTaskWithNonExistentApplicationAndTaskCreationFails() throws IOException {
 		givenRequestListApplications(Flux.empty());
 
 		givenRequestPushApplication(PushApplicationManifestRequest.builder()
@@ -374,7 +383,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void launchTaskWithNonExistentApplicationBindingOneService() throws IOException {
+	void launchTaskWithNonExistentApplicationBindingOneService() throws IOException {
 		setupTaskWithNonExistentApplicationBindingOneService(this.resource);
 		AppDeploymentRequest request = deploymentRequest(this.resource,
 			Collections.singletonMap(CloudFoundryDeploymentProperties.SERVICES_PROPERTY_KEY, "test-service-instance-2"));
@@ -384,7 +393,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void stageTaskWithNonExistentApplicationBindingOneService() throws IOException {
+	void stageTaskWithNonExistentApplicationBindingOneService() throws IOException {
 		setupTaskWithNonExistentApplicationBindingOneService(this.resource);
 		AppDeploymentRequest request = deploymentRequest(this.resource,
 				Collections.singletonMap(CloudFoundryDeploymentProperties.SERVICES_PROPERTY_KEY, "test-service-instance-2"));
@@ -395,7 +404,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void launchTaskWithNonExistentApplicationBindingThreeServices() throws IOException {
+	void launchTaskWithNonExistentApplicationBindingThreeServices() throws IOException {
 		setupTaskWithNonExistentApplicationBindingThreeServices(this.resource);
 		AppDeploymentRequest request = deploymentRequest(this.resource,
 			Collections.singletonMap(CloudFoundryDeploymentProperties.SERVICES_PROPERTY_KEY,
@@ -406,7 +415,7 @@ public class CloudFoundryTaskLauncherTests {
 		assertThat(taskId).isEqualTo("test-task-id");
 	}
 	@Test
-	public void stageTaskWithNonExistentApplicationBindingThreeServices() throws IOException {
+	void stageTaskWithNonExistentApplicationBindingThreeServices() throws IOException {
 		setupTaskWithNonExistentApplicationBindingThreeServices(this.resource);
 		AppDeploymentRequest request = deploymentRequest(this.resource,
 				Collections.singletonMap(CloudFoundryDeploymentProperties.SERVICES_PROPERTY_KEY,
@@ -418,7 +427,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void launchTaskWithNonExistentApplicationRetrievalFails() throws IOException {
+	void launchTaskWithNonExistentApplicationRetrievalFails() throws IOException {
 		setupTaskWithNonExistentApplicationRetrievalFails(this.resource);
 
 		assertThatThrownBy(() -> {
@@ -427,7 +436,7 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void stageTaskWithNonExistentApplicationRetrievalFails() throws IOException {
+	void stageTaskWithNonExistentApplicationRetrievalFails() throws IOException {
 		setupTaskWithNonExistentApplicationRetrievalFails(this.resource);
 
 		assertThatThrownBy(() -> {
@@ -436,26 +445,37 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void status() {
-		givenRequestGetTask("test-task-id", Mono.just(GetTaskResponse.builder()
-			.id("test-task-id")
-				.memoryInMb(1024)
-				.diskInMb(1024)
-				.dropletId("1")
-				.createdAt(new Date().toString())
-				.updatedAt(new Date().toString())
-				.sequenceId(1)
-				.name("test-task-id")
-			.state(TaskState.SUCCEEDED)
-			.build()));
+	void status() {
+		ToOneRelationship toOneRelationship = ToOneRelationship.builder()
+				.data(Relationship.builder().id("task-app-guid").build()).build();
+		TaskRelationships taskRelationships = TaskRelationships.builder().app(toOneRelationship).build();
+		givenRequestGetTask("test-task-id", getDefaultGetTaskResponse());
 
 		TaskStatus status = this.launcher.status("test-task-id");
 
 		assertThat(status.getState()).isEqualTo(LaunchState.complete);
 	}
 
+	private Mono<GetTaskResponse> getDefaultGetTaskResponse() {
+		ToOneRelationship toOneRelationship = ToOneRelationship.builder()
+				.data(Relationship.builder().id("task-app-guid").build()).build();
+		TaskRelationships taskRelationships = TaskRelationships.builder().app(toOneRelationship).build();
+		return Mono.just(GetTaskResponse.builder()
+				.id("test-task-id")
+				.memoryInMb(1024)
+				.diskInMb(1024)
+				.dropletId("1")
+				.createdAt(new Date().toString())
+				.updatedAt(new Date().toString())
+				.sequenceId(1)
+				.taskRelationships(taskRelationships)
+				.name("test-task-id")
+				.state(TaskState.SUCCEEDED)
+				.build());
+	}
+
 	@Test
-	public void testStatusTimeout() {
+	void statusTimeout() {
 		// Delay twice as much as 40% of statusTimeout, which is what the deployer uses
 		long delay = (long) (this.deploymentProperties.getStatusTimeout() * .4f * 2);
 
@@ -477,14 +497,14 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	public void testDestroy() {
+	void destroyApp() {
 		givenRequestDeleteApplication("test-application");
 
 		this.launcher.destroy("test-application");
 	}
 
 	@Test
-	public void testCommand() {
+	void commandProperlyConfigured() {
 		AppDeploymentRequest request = new AppDeploymentRequest(new AppDefinition(
 				"test-app-1", null),
 				this.resource,
@@ -515,6 +535,11 @@ public class CloudFoundryTaskLauncherTests {
 						.build(),
 				request);
 		assertThat(command).isEqualTo("command-val test-command-arg-1 a=b run.id=1 run.id\\\\\\(long\\\\\\)=1 run.id\\\\\\(long=1 run.id\\\\\\)=1");
+	}
+
+	@Test
+	void getLog() {
+		assertThat(this.launcher.getLog("agcd")).isEqualTo(LOG_RESPONSE);
 	}
 
 	private void givenRequestCancelTask(String taskId, Mono<CancelTaskResponse> response) {
