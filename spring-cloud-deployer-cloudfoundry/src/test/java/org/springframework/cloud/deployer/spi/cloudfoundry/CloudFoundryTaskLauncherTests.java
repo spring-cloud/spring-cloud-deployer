@@ -54,6 +54,13 @@ import org.cloudfoundry.client.v3.tasks.TaskRelationships;
 import org.cloudfoundry.client.v3.tasks.TaskResource;
 import org.cloudfoundry.client.v3.tasks.TaskState;
 import org.cloudfoundry.client.v3.tasks.Tasks;
+import org.cloudfoundry.doppler.Envelope;
+import org.cloudfoundry.doppler.EventType;
+import org.cloudfoundry.doppler.LogMessage;
+import org.cloudfoundry.doppler.MessageType;
+import org.cloudfoundry.logcache.v1.EnvelopeBatch;
+import org.cloudfoundry.logcache.v1.LogCacheClient;
+import org.cloudfoundry.logcache.v1.ReadResponse;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
@@ -71,6 +78,7 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.internal.matchers.Any;
+import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -156,14 +164,26 @@ public class CloudFoundryTaskLauncherTests {
 		ApplicationLogAccessor applicationLogAccessor = mock(ApplicationLogAccessor.class);
 		given(applicationLogAccessor.getLog(any(), any())).willReturn(LOG_RESPONSE);
 
+		this.launcher = getCloudFoundryTaskLauncher(applicationLogAccessor);
+
+	}
+
+	private CloudFoundryTaskLauncher getCloudFoundryTaskLauncher(ApplicationLogAccessor applicationLogAccessor) {
+		RuntimeEnvironmentInfo runtimeEnvironmentInfo = mock(RuntimeEnvironmentInfo.class);
+		Map<String, String> orgAndSpace = new HashMap<>();
+		orgAndSpace.put(CloudFoundryPlatformSpecificInfo.ORG, "this-org");
+		orgAndSpace.put(CloudFoundryPlatformSpecificInfo.SPACE, "this-space");
+		given(runtimeEnvironmentInfo.getPlatformSpecificInfo()).willReturn(orgAndSpace);
+		given(this.organizations.list(any())).willReturn(listOrganizationsResponse());
+		given(this.spaces.list(any())).willReturn(listSpacesResponse());
+
 		this.deploymentProperties.setApiTimeout(1);
 		this.deploymentProperties.setStatusTimeout(1_250L);
-		this.launcher = new CloudFoundryTaskLauncher(this.client,
+		return new CloudFoundryTaskLauncher(this.client,
 				this.deploymentProperties,
 				this.operations,
 				runtimeEnvironmentInfo,
 				applicationLogAccessor);
-
 	}
 
 	@Test
@@ -540,6 +560,42 @@ public class CloudFoundryTaskLauncherTests {
 	@Test
 	void getLog() {
 		assertThat(this.launcher.getLog("agcd")).isEqualTo(LOG_RESPONSE);
+	}
+	@Test
+	void getLogForUnknownId() {
+		LogCacheClient logCacheClient = mock(LogCacheClient.class);
+		ApplicationLogAccessor applicationLogAccessor = new ApplicationLogAccessor(logCacheClient);
+		Envelope.builder().logMessage(LogMessage.builder().message("").messageType(MessageType.OUT).timestamp(0l)
+				.build()).eventType(EventType.LOG_MESSAGE).origin("foo").build();
+		EnvelopeBatch envelopeBatch = EnvelopeBatch.builder().batch().build();
+		ReadResponse response = ReadResponse.builder().envelopes(envelopeBatch).build();
+		given(logCacheClient.read(any())).willReturn(Mono.just(response));
+
+		this.launcher = getCloudFoundryTaskLauncher(applicationLogAccessor);
+		assertThat(this.launcher.getLog("agcd")).isEmpty();
+	}
+
+	@Test
+	void getLogWithUnknownTaskAppGuid() {
+		ToOneRelationship toOneRelationship = ToOneRelationship.builder()
+				.data(Relationship.builder().id("task-app-guid").build()).build();
+		TaskRelationships taskRelationships = TaskRelationships.builder().app(toOneRelationship).build();
+		Mono<GetTaskResponse> getTaskResponse =  Mono.just(GetTaskResponse.builder()
+				.id("test-task-id")
+				.memoryInMb(1024)
+				.diskInMb(1024)
+				.dropletId("1")
+				.createdAt(new Date().toString())
+				.updatedAt(new Date().toString())
+				.sequenceId(1)
+				.state(TaskState.FAILED)
+				.name("TaskAppNotPresent")
+				.build());
+		given(this.tasks.get(any())).willReturn(getTaskResponse);
+		assertThatThrownBy(() -> {
+			assertThat(this.launcher.getLog("agcd")).isEqualTo(LOG_RESPONSE);
+		}).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("could not find a GUID app id for the task guid id agcd");
 	}
 
 	private void givenRequestCancelTask(String taskId, Mono<CancelTaskResponse> response) {

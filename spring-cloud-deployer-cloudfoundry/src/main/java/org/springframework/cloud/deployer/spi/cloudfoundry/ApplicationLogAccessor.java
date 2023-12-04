@@ -56,12 +56,11 @@ public class ApplicationLogAccessor {
      * @return String containing the log information or empty string if no entries are available.
      */
     public String getLog(String deploymentId, Duration apiTimeout) {
-        logger.info("getLog:{}:{}", deploymentId, apiTimeout);
+        logger.debug("Retrieving log for deploymentId:{} with apiTimeout:{}", deploymentId, apiTimeout);
         Assert.hasText(deploymentId, "id must have text and not null");
         Assert.notNull(apiTimeout, "apiTimeout must not be null");
         StringBuilder stringBuilder = new StringBuilder();
         ReadRequest request = ReadRequest.builder().sourceId(deploymentId).build();
-        Assert.notNull(request, "request must not be null");
         List<Log> logs = this.logCacheClient
                 .read(request)
                 .flatMapMany(this::responseToEnvelope)

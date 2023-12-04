@@ -149,6 +149,9 @@ abstract class AbstractCloudFoundryTaskLauncher extends AbstractCloudFoundryDepl
 	protected TaskStatus toTaskStatus(GetTaskResponse response) {
 		Map<String, String> attributes = new HashMap<>();
 		//retrieve CF-GUID for retrieving logs
+		Assert.notNull(response.getTaskRelationships(), "response must contain task relationships.");
+		Assert.notNull(response.getTaskRelationships().getApp(), "app in the taskRelationships of the response must not be null");
+		Assert.notNull(response.getTaskRelationships().getApp().getData(), "data in the app of the task relationships within the response must not be null");
 		attributes.put("app-cf-guid", response.getTaskRelationships().getApp().getData().getId());
 		switch (response.getState()) {
 		case SUCCEEDED:

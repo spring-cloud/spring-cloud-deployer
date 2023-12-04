@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +45,6 @@ import org.cloudfoundry.operations.applications.StartApplicationRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.yaml.snakeyaml.Yaml;
 import reactor.cache.CacheMono;
 import reactor.core.publisher.Flux;
@@ -73,6 +73,8 @@ import org.springframework.util.StringUtils;
 public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implements MultiStateAppDeployer {
 
 	private static final Logger logger = LoggerFactory.getLogger(CloudFoundryAppDeployer.class);
+
+	private static final String CF_GUID_ID = "cf-guid";
 
 	private final AppNameGenerator applicationNameGenerator;
 
@@ -214,12 +216,11 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 	@Override
 	public String getLog(String id) {
 		AppStatus status = status(id);
-		String cfGuid = null;
-		for(Map.Entry<String, AppInstanceStatus> appInstanceStatus : status.getInstances().entrySet()) {
-			if(appInstanceStatus.getValue().getAttributes().containsKey("cf-guid")) {
-				cfGuid = appInstanceStatus.getValue().getAttributes().get("cf-guid");
-			}
-		}
+		String cfGuid = status.getInstances().values().stream()
+				.map((appInstanceStatus) -> appInstanceStatus.getAttributes().get(CF_GUID_ID))
+				.filter(Objects::nonNull)
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("Unable to find " + CF_GUID_ID));
 		return applicationLogAccessor.getLog(cfGuid, Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
 	}
 

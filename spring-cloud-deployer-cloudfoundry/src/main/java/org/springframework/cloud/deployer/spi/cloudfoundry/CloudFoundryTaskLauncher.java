@@ -133,7 +133,7 @@ public class CloudFoundryTaskLauncher extends AbstractCloudFoundryTaskLauncher {
 	public String getLog(String id) {
 		TaskStatus taskStatus = this.status(id);
 		String appCfGuid = taskStatus.getAttributes().get("app-cf-guid");
-		logger.info("Retrieving log for app-guid-id {} for task-guid-id {}", appCfGuid, id);
+		logger.debug("Retrieving log for app-guid-id {} for task-guid-id {}", appCfGuid, id);
 		Assert.hasText(appCfGuid, "could not find a GUID app id for the task guid id " + id);
 		return this.applicationLogAccessor.getLog(appCfGuid,
 				Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
