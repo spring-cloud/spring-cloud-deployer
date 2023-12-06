@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.StopApplicationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.deployer.spi.task.TaskStatus;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -129,9 +131,13 @@ public class CloudFoundryTaskLauncher extends AbstractCloudFoundryTaskLauncher {
 
 	@Override
 	public String getLog(String id) {
-		return this.applicationLogAccessor.getLog(id, Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
+		TaskStatus taskStatus = this.status(id);
+		String appCfGuid = taskStatus.getAttributes().get("app-cf-guid");
+		logger.debug("Retrieving log for app-guid-id {} for task-guid-id {}", appCfGuid, id);
+		Assert.hasText(appCfGuid, "could not find a GUID app id for the task guid id " + id);
+		return this.applicationLogAccessor.getLog(appCfGuid,
+				Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
 	}
-
 
 	/**
 	 * Set up a reactor flow to stage a task. Before staging check if the base

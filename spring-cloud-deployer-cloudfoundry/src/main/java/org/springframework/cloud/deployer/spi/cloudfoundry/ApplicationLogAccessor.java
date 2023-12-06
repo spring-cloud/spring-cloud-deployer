@@ -22,6 +22,8 @@ import org.cloudfoundry.logcache.v1.Log;
 import org.cloudfoundry.logcache.v1.LogCacheClient;
 import org.cloudfoundry.logcache.v1.ReadRequest;
 import org.cloudfoundry.logcache.v1.ReadResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 
@@ -39,7 +41,7 @@ import java.util.Objects;
  * @since 2.9.3
  */
 public class ApplicationLogAccessor {
-
+    private final static Logger logger = LoggerFactory.getLogger(ApplicationLogAccessor.class);
     private final LogCacheClient logCacheClient;
 
     public ApplicationLogAccessor(LogCacheClient logCacheClient) {
@@ -54,11 +56,13 @@ public class ApplicationLogAccessor {
      * @return String containing the log information or empty string if no entries are available.
      */
     public String getLog(String deploymentId, Duration apiTimeout) {
+        logger.debug("Retrieving log for deploymentId:{} with apiTimeout:{}", deploymentId, apiTimeout);
         Assert.hasText(deploymentId, "id must have text and not null");
         Assert.notNull(apiTimeout, "apiTimeout must not be null");
         StringBuilder stringBuilder = new StringBuilder();
+        ReadRequest request = ReadRequest.builder().sourceId(deploymentId).build();
         List<Log> logs = this.logCacheClient
-                .read(ReadRequest.builder().sourceId(deploymentId).build())
+                .read(request)
                 .flatMapMany(this::responseToEnvelope)
                 .collectList()
                 .block(apiTimeout);
@@ -66,17 +70,17 @@ public class ApplicationLogAccessor {
         if(logs == null) {
             return "";
         }
-        Base64.Decoder decoder = Base64.getDecoder();
         logs.forEach((log) -> {
-            stringBuilder.append(new String(decoder.decode(log.getPayload())));
+            stringBuilder.append(log.getPayloadAsText());
             stringBuilder.append(System.lineSeparator());
         });
+
         return stringBuilder.toString();
     }
 
     private Flux<Log> responseToEnvelope(ReadResponse response) {
         return Flux.fromIterable(response.getEnvelopes().getBatch())
-                .map(Envelope::getLog)
-                .filter(Objects::nonNull);
+                .filter(envelope -> envelope.getLog() != null)
+                .map(Envelope::getLog);
     }
 }

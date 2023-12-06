@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.cloud.deployer.spi.cloudfoundry;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.jsonwebtoken.lang.Assert;
 import org.cloudfoundry.client.CloudFoundryClient;
@@ -145,17 +147,23 @@ abstract class AbstractCloudFoundryTaskLauncher extends AbstractCloudFoundryDepl
 	}
 
 	protected TaskStatus toTaskStatus(GetTaskResponse response) {
+		Map<String, String> attributes = new HashMap<>();
+		//retrieve CF-GUID for retrieving logs
+		Assert.notNull(response.getTaskRelationships(), "response must contain task relationships.");
+		Assert.notNull(response.getTaskRelationships().getApp(), "app in the taskRelationships of the response must not be null");
+		Assert.notNull(response.getTaskRelationships().getApp().getData(), "data in the app of the task relationships within the response must not be null");
+		attributes.put("app-cf-guid", response.getTaskRelationships().getApp().getData().getId());
 		switch (response.getState()) {
 		case SUCCEEDED:
-			return new TaskStatus(response.getId(), LaunchState.complete, null);
+			return new TaskStatus(response.getId(), LaunchState.complete, attributes);
 		case RUNNING:
-			return new TaskStatus(response.getId(), LaunchState.running, null);
+			return new TaskStatus(response.getId(), LaunchState.running, attributes);
 		case PENDING:
-			return new TaskStatus(response.getId(), LaunchState.launching, null);
+			return new TaskStatus(response.getId(), LaunchState.launching, attributes);
 		case CANCELING:
-			return new TaskStatus(response.getId(), LaunchState.cancelled, null);
+			return new TaskStatus(response.getId(), LaunchState.cancelled, attributes);
 		case FAILED:
-			return new TaskStatus(response.getId(), LaunchState.failed, null);
+			return new TaskStatus(response.getId(), LaunchState.failed, attributes);
 		default:
 			throw new IllegalStateException(String.format("Unsupported CF task state %s", response.getState()));
 		}

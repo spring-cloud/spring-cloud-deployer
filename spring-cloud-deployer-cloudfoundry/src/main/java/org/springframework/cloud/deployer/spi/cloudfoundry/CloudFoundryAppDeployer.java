@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +73,8 @@ import org.springframework.util.StringUtils;
 public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implements MultiStateAppDeployer {
 
 	private static final Logger logger = LoggerFactory.getLogger(CloudFoundryAppDeployer.class);
+
+	private static final String CF_GUID_ID = "cf-guid";
 
 	private final AppNameGenerator applicationNameGenerator;
 
@@ -212,7 +215,13 @@ public class CloudFoundryAppDeployer extends AbstractCloudFoundryDeployer implem
 
 	@Override
 	public String getLog(String id) {
-		return applicationLogAccessor.getLog(id, Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
+		AppStatus status = status(id);
+		String cfGuid = status.getInstances().values().stream()
+				.map((appInstanceStatus) -> appInstanceStatus.getAttributes().get(CF_GUID_ID))
+				.filter(Objects::nonNull)
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("Unable to find " + CF_GUID_ID));
+		return applicationLogAccessor.getLog(cfGuid, Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
 	}
 
 	@Override

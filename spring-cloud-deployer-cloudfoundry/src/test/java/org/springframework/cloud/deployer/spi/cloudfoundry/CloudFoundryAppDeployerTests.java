@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,6 +69,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for the {@link CloudFoundryAppDeployer}.
@@ -134,8 +136,31 @@ public class CloudFoundryAppDeployerTests extends AbstractAppDeployerTestSupport
 	}
 
 	@Test
-	public void deployMavenArtifactShouldDeleteByDefault() throws IOException, URISyntaxException {
+	void getLog() {
+		final String LOG_RESULTS = "log results";
 
+		when(this.operations.applications().get(any())).thenReturn(applicationDetailRunningApp());
+		ApplicationLogAccessor applicationLogAccessor = mock(ApplicationLogAccessor.class);
+		when(applicationLogAccessor.getLog(any(), any())).thenReturn(LOG_RESULTS);
+		CloudFoundryAppDeployer deployer = new CloudFoundryAppDeployer(this.applicationNameGenerator,
+				this.deploymentProperties,
+				this.operations, this.runtimeEnvironmentInfo, applicationLogAccessor);
+		assertThat(deployer.getLog("test-application-id")).isEqualTo(LOG_RESULTS);
+	}
+	@Test
+	void getLogWithNoResult() {
+		when(this.operations.applications().get(any())).thenThrow(new NoSuchElementException());
+		ApplicationLogAccessor applicationLogAccessor = mock(ApplicationLogAccessor.class);
+		CloudFoundryAppDeployer deployer = new CloudFoundryAppDeployer(this.applicationNameGenerator,
+				this.deploymentProperties,
+				this.operations, this.runtimeEnvironmentInfo, applicationLogAccessor);
+		assertThatThrownBy( () -> deployer.getLog("test-application-id"))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Unable to find cf-guid");
+	}
+
+	@Test
+	public void deployMavenArtifactShouldDeleteByDefault() throws IOException, URISyntaxException {
 		MavenResource resource = mock(MavenResource.class);
 
 		Path mavenPath = folder.resolve("maven");
@@ -431,17 +456,7 @@ public class CloudFoundryAppDeployerTests extends AbstractAppDeployerTestSupport
 
 		given(this.applicationNameGenerator.generateAppName("test-application")).willReturn("test-application-id");
 
-		givenRequestGetApplication("test-application-id", Mono.error(new IllegalArgumentException()), Mono.just(
-				ApplicationDetail.builder()
-						.diskQuota(0)
-						.id("test-application-id")
-						.instances(1)
-						.memoryLimit(0)
-						.name("test-application")
-						.requestedState("RUNNING")
-						.runningInstances(0)
-						.stack("test-stack")
-						.build()));
+		givenRequestGetApplication("test-application-id", Mono.error(new IllegalArgumentException()), applicationDetailRunningApp());
 
 		givenRequestPushApplication(PushApplicationManifestRequest.builder()
 				.manifest(ApplicationManifest.builder()
@@ -486,6 +501,20 @@ public class CloudFoundryAppDeployerTests extends AbstractAppDeployerTestSupport
 		assertThat(merged.get("SPRING_CLOUD_STREAMAPP_SECURITY_ADMIN-USER")).isEqualTo("user");
 		assertThat(merged.get("SPRING_CLOUD_STREAMAPP_SECURITY_ADMIN-PASSWORD")).isEqualTo("password");
 		assertThat(deploymentId).isEqualTo("test-application-id");
+	}
+
+	private Mono<ApplicationDetail> applicationDetailRunningApp() {
+		return Mono.just(
+				ApplicationDetail.builder()
+						.diskQuota(0)
+						.id("test-application-id")
+						.instances(1)
+						.memoryLimit(0)
+						.name("test-application")
+						.requestedState("RUNNING")
+						.runningInstances(0)
+						.stack("test-stack")
+						.build());
 	}
 
 	@Test
