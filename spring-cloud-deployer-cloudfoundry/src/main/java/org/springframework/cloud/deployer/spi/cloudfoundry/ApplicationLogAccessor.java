@@ -28,9 +28,7 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
-import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Provide api access to retrieve logs for applications.
@@ -41,6 +39,9 @@ import java.util.Objects;
  * @since 2.9.3
  */
 public class ApplicationLogAccessor {
+
+    private final static int MAX_LOG_LIMIT = 1000;
+
     private final static Logger logger = LoggerFactory.getLogger(ApplicationLogAccessor.class);
     private final LogCacheClient logCacheClient;
 
@@ -60,7 +61,7 @@ public class ApplicationLogAccessor {
         Assert.hasText(deploymentId, "id must have text and not null");
         Assert.notNull(apiTimeout, "apiTimeout must not be null");
         StringBuilder stringBuilder = new StringBuilder();
-        ReadRequest request = ReadRequest.builder().sourceId(deploymentId).build();
+        ReadRequest request = ReadRequest.builder().sourceId(deploymentId).limit(MAX_LOG_LIMIT).build();
         List<Log> logs = this.logCacheClient
                 .read(request)
                 .flatMapMany(this::responseToEnvelope)
