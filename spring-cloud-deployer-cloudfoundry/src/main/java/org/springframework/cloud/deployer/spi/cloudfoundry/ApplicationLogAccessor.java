@@ -61,7 +61,7 @@ public class ApplicationLogAccessor {
         Assert.hasText(deploymentId, "id must have text and not null");
         Assert.notNull(apiTimeout, "apiTimeout must not be null");
         StringBuilder stringBuilder = new StringBuilder();
-        ReadRequest request = ReadRequest.builder().sourceId(deploymentId).limit(MAX_LOG_LIMIT).build();
+        ReadRequest request = ReadRequest.builder().sourceId(deploymentId).limit(MAX_LOG_LIMIT).descending(true).build();
         List<Log> logs = this.logCacheClient
                 .read(request)
                 .flatMapMany(this::responseToEnvelope)
@@ -75,8 +75,15 @@ public class ApplicationLogAccessor {
             stringBuilder.append(log.getPayloadAsText());
             stringBuilder.append(System.lineSeparator());
         });
-
-        return stringBuilder.toString();
+        String [] lines = stringBuilder.toString().split("\n");
+        StringBuilder stringBuilderReconstruct = new StringBuilder();
+        for(int i = lines.length -1  ; i >= 0  ; i--) {
+            stringBuilderReconstruct.append(lines[i]);
+            if ( i > 0 ) {
+                stringBuilderReconstruct.append("\n");
+            }
+        }
+        return stringBuilderReconstruct.toString();
     }
 
     private Flux<Log> responseToEnvelope(ReadResponse response) {
