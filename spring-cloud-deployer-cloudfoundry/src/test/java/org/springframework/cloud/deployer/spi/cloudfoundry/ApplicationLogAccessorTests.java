@@ -42,8 +42,8 @@ public class ApplicationLogAccessorTests {
 
     @Test
     void testDefaultCase() {
-        final String sampleData = "foo\nbar\nbaz\nboo";
-        final String exectedResult = "boo\nbaz\nbar\nfoo";
+        String sampleData = "foo\nbar\nbaz\nboo";
+        String exectedResult = "boo\nbaz\nbar\nfoo";
         when(logCacheClient.read(any())).thenReturn(getSampleResponse(sampleData));
         ApplicationLogAccessor applicationLogAccessor = new ApplicationLogAccessor(this.logCacheClient);
         assertThat(applicationLogAccessor.getLog("myDeploymentId", Duration.ofSeconds(5))).isEqualTo(exectedResult);
@@ -54,6 +54,7 @@ public class ApplicationLogAccessorTests {
         EnvelopeBatch envelopeBatch = EnvelopeBatch.builder().batch(envelope).build();
         return Mono.just(ReadResponse.builder().envelopes(envelopeBatch).build());
     }
+
     private Log getSampleLog(String sampleData) {
         return Log.builder().payload(Base64.getEncoder().encodeToString(sampleData.getBytes())).build();
     }
