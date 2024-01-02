@@ -43,7 +43,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: ${{ success() || failure() }}
         with:
-          name: Integration Test - Report
+          name: "Integration Test - Report for ${{ matrix.k8s_version }}"
           path: '**/failsafe-reports/*IT.xml'
           reporter: java-junit
           list-tests: 'failed'
