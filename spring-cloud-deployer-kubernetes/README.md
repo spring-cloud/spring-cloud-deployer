@@ -3,14 +3,15 @@ A [Spring Cloud Deployer](https://github.com/spring-cloud/spring-cloud-deployer)
 
 ## Kubernetes Compatibilit
 
-| Deployer \ Kubernetes | 1.18 | 1.19 | 1.20 | 1.21 | 1.22 | 1.23 |
-|-----------------------|------|------|------|------|------|------|
-| **2.6.x**             | `✓`  | `✕`  | `✕`  | `✕`  | `✕`  | `✕`  |
-| **2.7.x**             | `✓`  | `✓`  | `✓`  | `✓`  | `?`  | `?`  |
-| **MAIN**              | `✕`  | `✓`  | `✓`  | `✓`  | `✓`  | `✓`  |
+| Deployer \ Kubernetes | 1.18 | 1.19 | 1.20 | 1.21 | 1.22 | 1.23 | 1.24 | 1.25  | 1.26 | 1.27 |
+|-----------------------|------|------|------|------|------|------|------|-------|------|------|
+| **2.6.x**             | `✓`  | `✕`  | `✕`  | `✕`  | `✕`   | `✕`   |`✕`  | `✕`   |`✕`  | `✕`   |
+| **2.7.x**             | `✓`  | `✓`  | `✓`  | `✓`  | `?`   | `?`   |`?`  | `✕`   |`✕`  | `✕`   |
+| **2.8.x**             | `✕`  | `✓`  | `✓`  | `✓`  | `✓`   | `✓`   |`✓`  | `✕`   |`✕`  | `✕`   |
+| **2.9.x**             | `✕`  | `✓`  | `✓`  | `✓`  | `✓`   | `✓`   |`✓`  | `✓`   |`✓`  | `✓`   |
 
-- `✓` Fully supported vers
-- `?` Due to breaking chans might not work _(e.g., ABAC vs RBAC)_. Also, we haven't thoroughly tested against this version.
+- `✓` Fully supported version
+- `?` Due to breaking changes might not work _(e.g., ABAC vs RBAC)_. Also, we haven't thoroughly tested against this version.
 - `✕` Unsupported version.
 
 ## Building
