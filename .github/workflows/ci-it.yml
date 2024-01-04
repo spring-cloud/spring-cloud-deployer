@@ -13,8 +13,8 @@ jobs:
       matrix:
         k8s_version: [ 'v1.23', 'v1.24', 'v1.25', 'v1.26', 'v1.27' ]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-m2it-${{ hashFiles('**/pom.xml') }}
