@@ -99,8 +99,10 @@ import org.springframework.web.client.RestTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 
 /**
  * Integration tests for {@link KubernetesAppDeployer}.
@@ -1321,7 +1323,96 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
     }
 
     @Test
-    public void testCreateInitContainerWithVolumeMounts() {
+    public void initContainerFromGlobalProps() {
+        // Set up a global initContainer (it should be chosen)
+        KubernetesDeployerProperties.InitContainer globalInitContainerProps = new KubernetesDeployerProperties.InitContainer();
+        globalInitContainerProps.setContainerName("test-global");
+        globalInitContainerProps.setImageName("busybox:latest");
+        globalInitContainerProps.setCommands(Arrays.asList("sh", "-c", "echo hello-global"));
+
+        KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+        kubernetesDeployerProperties.setInitContainer(globalInitContainerProps);
+        KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer(kubernetesDeployerProperties);
+        AppDefinition definition = new AppDefinition(randomName(), null);
+        AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), Collections.emptyMap());
+
+        String deploymentId = deploy(kubernetesAppDeployer, request);
+
+        Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
+        List<Container> initContainers = deployment.getSpec().getTemplate().getSpec().getInitContainers();
+        Optional<Container> initContainer = initContainers.stream().filter(i -> i.getName().equals("test-global")).findFirst();
+        assertThat(initContainer).isPresent();
+        Container testInitContainer = initContainer.get();
+        assertThat(testInitContainer.getName()).isEqualTo("test-global");
+        assertThat(testInitContainer.getImage()).isEqualTo("busybox:latest");
+        assertThat(testInitContainer.getCommand()).containsExactly("sh", "-c", "echo hello-global");
+
+        undeploy(kubernetesAppDeployer, deploymentId);
+    }
+
+    @Test
+    public void initContainerFromDeployerProps() {
+        // Set up a global mock initContainer (it should not be chosen)
+        KubernetesDeployerProperties.InitContainer globalInitContainerProps = mock(KubernetesDeployerProperties.InitContainer.class);
+        KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+        kubernetesDeployerProperties.setInitContainer(globalInitContainerProps);
+        KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer(kubernetesDeployerProperties);
+
+        // Set up a deployer props initContainer (it should be chosen)
+        Map<String, String> deployerProps = Collections.singletonMap("spring.cloud.deployer.kubernetes.initContainer",
+                "{containerName: 'test', imageName: 'busybox:latest', imagePullPolicy: 'IfNotPresent', commands: ['sh', '-c', 'echo hello']" +
+                        ", environmentVariables: ['KEY1=VAL1', 'KEY2=VAL2']}");
+        AppDefinition definition = new AppDefinition(randomName(), null);
+        AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), deployerProps);
+
+        String deploymentId = deploy(kubernetesAppDeployer, request);
+
+        Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
+        List<Container> initContainers = deployment.getSpec().getTemplate().getSpec().getInitContainers();
+        Optional<Container> initContainer = initContainers.stream().filter(i -> i.getName().equals("test")).findFirst();
+        assertThat(initContainer).isPresent();
+        Container testInitContainer = initContainer.get();
+        assertThat(testInitContainer.getName()).isEqualTo("test");
+        assertThat(testInitContainer.getImage()).isEqualTo("busybox:latest");
+        assertThat(testInitContainer.getEnv()).extracting("name", "value")
+                .containsExactlyInAnyOrder(tuple("KEY1", "VAL1"), tuple("KEY2", "VAL2"));
+        assertThat(testInitContainer.getCommand()).containsExactly("sh", "-c", "echo hello");
+
+        undeploy(kubernetesAppDeployer, deploymentId);
+    }
+
+    @Test
+    public void initContainerPartialFromDeployerProps() {
+        // Set up a global mock initContainer (it should not be chosen)
+        KubernetesDeployerProperties.InitContainer globalInitContainerProps = mock(KubernetesDeployerProperties.InitContainer.class);
+        KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+        kubernetesDeployerProperties.setInitContainer(globalInitContainerProps);
+        KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer(kubernetesDeployerProperties);
+
+        // Set up a deployer props initContainer partial (they should be used)
+        Map<String, String> deployerProps = new HashMap<>();
+        deployerProps.put("spring.cloud.deployer.kubernetes.initContainer.containerName", "test");
+        deployerProps.put("spring.cloud.deployer.kubernetes.initContainer.imageName", "busybox:latest");
+        deployerProps.put("spring.cloud.deployer.kubernetes.initContainer.commands", "sh,-c,echo hello");
+        AppDefinition definition = new AppDefinition(randomName(), null);
+        AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), deployerProps);
+
+        String deploymentId = deploy(kubernetesAppDeployer, request);
+
+        Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
+        List<Container> initContainers = deployment.getSpec().getTemplate().getSpec().getInitContainers();
+        Optional<Container> initContainer = initContainers.stream().filter(i -> i.getName().equals("test")).findFirst();
+        assertThat(initContainer).isPresent();
+        Container testInitContainer = initContainer.get();
+        assertThat(testInitContainer.getName()).isEqualTo("test");
+        assertThat(testInitContainer.getImage()).isEqualTo("busybox:latest");
+        assertThat(testInitContainer.getCommand()).containsExactly("sh", "-c", "echo hello");
+
+        undeploy(kubernetesAppDeployer, deploymentId);
+    }
+
+    @Test
+    public void initContainerFromDeployerPropsWithVolumeMounts() {
         log.info("Testing {}...", "CreateInitContainerWithVolumeMounts");
         KubernetesAppDeployer kubernetesAppDeployer = kubernetesAppDeployer();
 
@@ -1344,12 +1435,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         AppDefinition definition = new AppDefinition(randomName(), null);
         AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), props);
 
-        log.info("Deploying {}...", request.getDefinition().getName());
-        String deploymentId = kubernetesAppDeployer.deploy(request);
-        Timeout timeout = deploymentTimeout();
-        await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.totalTime))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.deployed));
+        String deploymentId = deploy(kubernetesAppDeployer, request);
 
         Deployment deployment = kubernetesClient.apps().deployments().withName(request.getDefinition().getName()).get();
         List<Container> initContainers = deployment.getSpec().getTemplate().getSpec().getInitContainers();
@@ -1377,13 +1463,30 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(vm.getMountPath()).as("Unexpected init container volume mount path").isEqualTo("/tmp");
         assertThat(vm.getReadOnly()).as("Expected read only volume mount").isTrue();
 
+        undeploy(kubernetesAppDeployer, deploymentId);
+    }
+
+    private String deploy(KubernetesAppDeployer kubernetesAppDeployer, AppDeploymentRequest deployRequest) {
+        log.info("Deploying {}...", deployRequest.getDefinition().getName());
+        String deploymentId = kubernetesAppDeployer.deploy(deployRequest);
+        Timeout timeout = deploymentTimeout();
+        await().pollInterval(Duration.ofMillis(timeout.pause))
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long)  timeout.pause))
+                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState())
+                        .isEqualTo(DeploymentState.deployed));
+        return deploymentId;
+    }
+
+    private void undeploy(KubernetesAppDeployer kubernetesAppDeployer, String deploymentId) {
         log.info("Undeploying {}...", deploymentId);
-        timeout = undeploymentTimeout();
+        Timeout timeout = undeploymentTimeout();
         kubernetesAppDeployer.undeploy(deploymentId);
         await().pollInterval(Duration.ofMillis(timeout.pause))
-                .atMost(Duration.ofMillis(timeout.totalTime))
-                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
+                .atMost(Duration.ofMillis((long) timeout.maxAttempts * (long) timeout.pause))
+                .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState())
+                        .isEqualTo(DeploymentState.unknown));
     }
+
 
     @Test
     public void testCreateAdditionalContainers() {
