@@ -235,7 +235,7 @@ public class KubernetesTaskLauncher extends AbstractKubernetesDeployer implement
 	}
 
 
-	private void launch(String appId, AppDeploymentRequest request) {
+	private synchronized void launch(String appId, AppDeploymentRequest request) {
 		Map<String, String> idMap = createIdMap(appId, request);
 		Map<String, String> podLabelMap = new HashMap<>();
 		podLabelMap.put("task-name", request.getDefinition().getName());
