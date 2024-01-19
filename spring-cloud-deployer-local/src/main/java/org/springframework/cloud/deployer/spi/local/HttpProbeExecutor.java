@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.cloud.deployer.spi.local.LocalDeployerProperties.HttpProbe;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -63,7 +63,7 @@ public class HttpProbeExecutor {
         try {
             logger.info("Probing for {}", this.uri);
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
-            HttpStatus statusCode = response.getStatusCode();
+            HttpStatusCode statusCode = response.getStatusCode();
             boolean ok = statusCode.is2xxSuccessful();
             if (!ok) {
                 logger.info("Probe for {} returned {}:{}", this.uri, statusCode, response.getBody());

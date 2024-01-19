@@ -77,8 +77,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.matchers.Any;
-import org.springframework.cloud.deployer.spi.task.TaskLauncher;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -209,16 +208,50 @@ public class CloudFoundryTaskLauncherTests {
 	}
 
 	@Test
-	void launchTaskApplicationExists() {
+	void launchTaskApplicationExists() throws IOException{
 		setupExistingAppSuccessful();
+		givenRequestPushApplication(
+				PushApplicationManifestRequest.builder()
+						.manifest(ApplicationManifest.builder()
+								.path(resource.getFile().toPath())
+								.buildpack(deploymentProperties.getBuildpack())
+								.command("echo '*** First run of container to allow droplet creation.***' && sleep 300")
+								.disk((int) ByteSizeUtils.parseToMebibytes(this.deploymentProperties.getDisk()))
+								.environmentVariable("SPRING_APPLICATION_JSON", "{}")
+								.healthCheckType(ApplicationHealthCheck.NONE)
+								.memory((int) ByteSizeUtils.parseToMebibytes(this.deploymentProperties.getMemory()))
+								.name("test-application")
+								.noRoute(true)
+								.services(Collections.emptySet())
+								.build())
+						.stagingTimeout(this.deploymentProperties.getStagingTimeout())
+						.startupTimeout(this.deploymentProperties.getStartupTimeout())
+						.build(), Mono.empty());
 		String taskId = this.launcher.launch(defaultRequest());
 
 		assertThat(taskId).isEqualTo("test-task-id");
 	}
 
 	@Test
-	void stageTaskApplicationExists() {
+	void stageTaskApplicationExists() throws IOException{
 		setupExistingAppSuccessful();
+		givenRequestPushApplication(
+				PushApplicationManifestRequest.builder()
+						.manifest(ApplicationManifest.builder()
+								.path(resource.getFile().toPath())
+								.buildpack(deploymentProperties.getBuildpack())
+								.command("echo '*** First run of container to allow droplet creation.***' && sleep 300")
+								.disk((int) ByteSizeUtils.parseToMebibytes(this.deploymentProperties.getDisk()))
+								.environmentVariable("SPRING_APPLICATION_JSON", "{}")
+								.healthCheckType(ApplicationHealthCheck.NONE)
+								.memory((int) ByteSizeUtils.parseToMebibytes(this.deploymentProperties.getMemory()))
+								.name("test-application")
+								.noRoute(true)
+								.services(Collections.emptySet())
+								.build())
+						.stagingTimeout(this.deploymentProperties.getStagingTimeout())
+						.startupTimeout(this.deploymentProperties.getStartupTimeout())
+						.build(), Mono.empty());
 		SummaryApplicationResponse response = this.launcher.stage(defaultRequest());
 
 		assertThat(response.getId()).isEqualTo("test-application-id");
@@ -281,6 +314,7 @@ public class CloudFoundryTaskLauncherTests {
 	@Test
 	void launchTaskWithNonExistentApplicationAndApplicationListingFails() {
 		givenRequestListApplications(Flux.error(new UnsupportedOperationException()));
+		given(this.operations.applications().pushManifest(any())).willThrow(new UnsupportedOperationException());
 
 		assertThatThrownBy(() -> {
 			this.launcher.launch(defaultRequest());
@@ -290,6 +324,7 @@ public class CloudFoundryTaskLauncherTests {
 	@Test
 	void stageTaskWithNonExistentApplicationAndApplicationListingFails() {
 		givenRequestListApplications(Flux.error(new UnsupportedOperationException()));
+		given(this.operations.applications().pushManifest(any())).willThrow(new UnsupportedOperationException());
 
 		assertThatThrownBy(() -> {
 			this.launcher.stage(defaultRequest());
