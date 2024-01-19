@@ -3,22 +3,21 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-deployer-cloudfoundry</artifactId>
-	<version>2.9.3-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Spring Cloud Deployer CloudFoundry</name>
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-deployer-parent</artifactId>
-		<version>2.9.3-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>17</java.version>
 		<cloudfoundry-java-lib.version>4.16.0.RELEASE</cloudfoundry-java-lib.version>
 		<pivotal-cf-client-reactor.version>2.2.0.RELEASE</pivotal-cf-client-reactor.version>
 		<commons-compress.version>1.24.0</commons-compress.version>
-		<okhttp.version>3.14.9</okhttp.version>
 	</properties>
 
 	<dependencies>
@@ -29,7 +28,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-loader</artifactId>
+			<artifactId>spring-boot-loader-classic</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -108,13 +107,11 @@
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
-			<version>${okhttp.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>mockwebserver</artifactId>
-			<version>${okhttp.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
