@@ -28,7 +28,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.User.UserBuilder;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -105,7 +106,7 @@ public class MavenExtension implements AfterEachCallback, BeforeEachCallback {
 	}
 
 	@Configuration
-	static class BasicSecurityConfig extends WebSecurityConfigurerAdapter {
+	static class BasicSecurityConfig {
 
 		@Bean
 		public UserDetailsService userDetailsService() {
@@ -115,16 +116,16 @@ public class MavenExtension implements AfterEachCallback, BeforeEachCallback {
 			return manager;
 		}
 
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
+		@Bean
+		public HttpBasicConfigurer configureBasic(HttpSecurity http) throws Exception {
 
 			// We add basic auth for /private so server returns 401 and
 			// challenge happens with maven client.
 
-			http
-				.authorizeRequests()
-					.antMatchers("/public/**").permitAll()
-					.antMatchers("/private/**").hasRole("USER")
+			return http
+				.authorizeHttpRequests()
+					.requestMatchers("/public/**").permitAll()
+					.requestMatchers("/private/**").hasRole("USER")
 					.and()
 				.httpBasic();
 		}
@@ -132,10 +133,10 @@ public class MavenExtension implements AfterEachCallback, BeforeEachCallback {
 
 	@Configuration
 	@Order(1)
-	static class PreemptiveSecurityConfig extends WebSecurityConfigurerAdapter {
+	static class PreemptiveSecurityConfig {
 
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
+		@Bean
+		protected ExceptionHandlingConfigurer<HttpSecurity> configure(HttpSecurity http) throws Exception {
 
 			// We add basic auth for /preemptive so server returns 403 as
 			// exception handling is changed to force 403.
@@ -143,8 +144,8 @@ public class MavenExtension implements AfterEachCallback, BeforeEachCallback {
 			// This is where preemptive auth takes place as client should send auth
 			// with every request.
 
-			http
-				.antMatcher("/preemptive/**")
+			return http
+				.securityMatcher("/preemptive/**")
 				.authorizeRequests(authorizeRequests ->
                     authorizeRequests.anyRequest().hasRole("USER")
 				)
