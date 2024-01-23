@@ -62,6 +62,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<logback.version>1.2.13</logback.version>
+		<json-path.version>2.9.0</json-path.version>
 	</properties>
 
 	<modules>
@@ -85,6 +86,11 @@
 				<groupId>org.yaml</groupId>
 				<artifactId>snakeyaml</artifactId>
 				<version>1.33</version>
+			</dependency>
+			<dependency>
+				<groupId>com.jayway.jsonpath</groupId>
+				<artifactId>json-path</artifactId>
+				<version>${json-path.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.squareup.okio</groupId>
