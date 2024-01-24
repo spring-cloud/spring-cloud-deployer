@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - 'main'
+      - 'main-3'
       - '2.9.x'
       - '2.8.x'
       - '2.7.x'
@@ -49,7 +50,7 @@ jobs:
           --repo-resolve-snapshots=libs-snapshot \
           --repo-deploy-releases=libs-release-local \
           --repo-deploy-snapshots=libs-snapshot-local
-        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-main >> $GITHUB_ENV
+        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-main-3 >> $GITHUB_ENV
         echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
     # build and publish
     - name: Build and Publish
