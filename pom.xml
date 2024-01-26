@@ -61,7 +61,7 @@
 		<spring-boot.version>3.2.2</spring-boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<json-path.version>2.9.0</json-path.version>
+		<json-path.version>2.9.0</json-path.version> <!-- TODO remove when fixed in SB -->
 	</properties>
 
 	<modules>
