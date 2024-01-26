@@ -63,6 +63,7 @@ import org.springframework.util.StringUtils;
  * @author Enrique Medina Montenegro
  * @author Ilayaperumal Gopinathan
  * @author Chris Bono
+ * @author Corneil du Plessis
  */
 public class AbstractKubernetesDeployer {
 

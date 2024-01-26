@@ -42,6 +42,7 @@ import static org.awaitility.Awaitility.await;
  * Abstract base class for integration tests for {@link KubernetesTaskLauncher}.
  *
  * @author Chris Bono
+ * @author Corneil du Plessis
  */
 abstract class AbstractKubernetesTaskLauncherIntegrationTests extends AbstractTaskLauncherIntegrationJUnit5Tests {
 
@@ -81,7 +82,9 @@ abstract class AbstractKubernetesTaskLauncherIntegrationTests extends AbstractTa
 	}
 
 	protected void logTestInfo(TestInfo testInfo) {
-		log.info("Testing {}...", testInfo.getTestMethod().map(Method::getName).orElse(testInfo.getDisplayName()));
+		if (log.isInfoEnabled()) {
+			log.info("Testing {}...", testInfo.getTestMethod().map(Method::getName).orElse(testInfo.getDisplayName()));
+		}
 	}
 
 	protected ConditionFactory awaitWithPollAndTimeout(Timeout timeout) {

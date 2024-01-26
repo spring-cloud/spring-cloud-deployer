@@ -30,7 +30,6 @@ import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.InstanceDetail;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
@@ -44,7 +43,6 @@ import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Disabled
 public class CloudFoundryActuatorTemplateTests extends AbstractAppDeployerTestSupport {
 
 	private ActuatorOperations actuatorOperations;
