@@ -15,6 +15,9 @@
  */
 package org.springframework.cloud.deployer.spi.kubernetes;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Test;
 
@@ -23,11 +26,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Ilayaperumal Gopinathan
  * @author Chris Schaefer
+ * @author Corneil du Plessis
  */
 public class KubernetesConfigurationPropertiesTests {
 
 	@Test
-	public void testFabric8Namespacing() {
+	public void testFabric8Namespacing() throws MalformedURLException {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.getFabric8().setTrustCerts(true);
 		kubernetesDeployerProperties.getFabric8().setMasterUrl("http://localhost:8090");
@@ -39,42 +43,42 @@ public class KubernetesConfigurationPropertiesTests {
 		KubernetesClient kubernetesClient = KubernetesClientFactory
 				.getKubernetesClient(kubernetesDeployerProperties);
 
-		assertThat(kubernetesClient.getMasterUrl().toString()).isEqualTo("http://localhost:8090");
+		assertThat(kubernetesClient.getMasterUrl()).isEqualTo(new URL("http://localhost:8090/"));
 		assertThat(kubernetesClient.getNamespace()).isEqualTo("testing");
-		assertThat(kubernetesClient.getConfiguration().getMasterUrl()).isEqualTo("http://localhost:8090");
+		assertThat(kubernetesClient.getConfiguration().getMasterUrl()).isEqualTo("http://localhost:8090/");
 		assertThat(kubernetesClient.getConfiguration().isTrustCerts()).isTrue();
 	}
 
 	@Test
-	public void testTopLevelNamespacing() {
+	public void testTopLevelNamespacing() throws MalformedURLException {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.getFabric8().setTrustCerts(true);
-		kubernetesDeployerProperties.getFabric8().setMasterUrl("http://localhost:8090");
+		kubernetesDeployerProperties.getFabric8().setMasterUrl("http://localhost:8090/");
 		kubernetesDeployerProperties.setNamespace("toplevel");
 
 		KubernetesClient kubernetesClient = KubernetesClientFactory
 				.getKubernetesClient(kubernetesDeployerProperties);
 
-		assertThat(kubernetesClient.getMasterUrl().toString()).isEqualTo("http://localhost:8090");
+		assertThat(kubernetesClient.getMasterUrl()).isEqualTo(new URL("http://localhost:8090/"));
 		assertThat(kubernetesClient.getNamespace()).isEqualTo("toplevel");
-		assertThat(kubernetesClient.getConfiguration().getMasterUrl()).isEqualTo("http://localhost:8090");
+		assertThat(kubernetesClient.getConfiguration().getMasterUrl()).isEqualTo("http://localhost:8090/");
 		assertThat(kubernetesClient.getConfiguration().isTrustCerts()).isTrue();
 	}
 
 	@Test
-	public void testTopLevelNamespacingOverride() {
+	public void testTopLevelNamespacingOverride() throws MalformedURLException {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.getFabric8().setTrustCerts(true);
-		kubernetesDeployerProperties.getFabric8().setMasterUrl("http://localhost:8090");
+		kubernetesDeployerProperties.getFabric8().setMasterUrl("http://localhost:8090/");
 		kubernetesDeployerProperties.getFabric8().setNamespace("toplevel");
 		kubernetesDeployerProperties.setNamespace("toplevel");
 
 		KubernetesClient kubernetesClient = KubernetesClientFactory
 				.getKubernetesClient(kubernetesDeployerProperties);
 
-		assertThat(kubernetesClient.getMasterUrl().toString()).isEqualTo("http://localhost:8090");
+		assertThat(kubernetesClient.getMasterUrl()).isEqualTo(new URL("http://localhost:8090/"));
 		assertThat(kubernetesClient.getNamespace()).isEqualTo("toplevel");
-		assertThat(kubernetesClient.getConfiguration().getMasterUrl()).isEqualTo("http://localhost:8090");
+		assertThat(kubernetesClient.getConfiguration().getMasterUrl()).isEqualTo("http://localhost:8090/");
 		assertThat(kubernetesClient.getConfiguration().isTrustCerts()).isTrue();
 	}
 }

@@ -52,20 +52,13 @@
 	</developers>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.8</java.version>
-		<maven.version>3.6.2</maven.version>
-		<maven-resolver.version>1.4.1</maven-resolver.version>
-		<maven-wagon.version>3.5.2</maven-wagon.version>
-		<commons-compress.version>1.26.1</commons-compress.version>
-		<commons-io.version>2.15.1</commons-io.version>
 		<java.version>17</java.version>
 		<maven.version>3.9.6</maven.version>
 		<maven-resolver.version>1.9.18</maven-resolver.version>
 		<maven-wagon.version>3.5.3</maven-wagon.version>
-		<commons-io.version>2.15.1</commons-io.version>
-		<kubernetes-fabric8-client.version>5.12.4</kubernetes-fabric8-client.version>
-		<spring-boot.version>2.7.18</spring-boot.version>
-		<spring-framework.version>5.3.39</spring-framework.version>
+        <commons-compress.version>1.26.1</commons-compress.version>
+        <commons-io.version>2.15.1</commons-io.version>
+		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
 		<spring-boot.version>3.2.2</spring-boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
@@ -93,21 +86,21 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>org.yaml</groupId>
-				<artifactId>snakeyaml</artifactId>
-				<version>${snakeyaml.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.jayway.jsonpath</groupId>
-				<artifactId>json-path</artifactId>
-				<version>${json-path.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.squareup.okio</groupId>
-				<artifactId>okio</artifactId>
-				<version>${okio.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jayway.jsonpath</groupId>
+                <artifactId>json-path</artifactId>
+                <version>${json-path.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio</artifactId>
+                <version>${okio.version}</version>
+            </dependency>
 			<dependency>
 				<groupId>io.fabric8</groupId>
 				<artifactId>kubernetes-client-bom</artifactId>
