@@ -15,6 +15,8 @@
  */
 package org.springframework.cloud.deployer.resource.maven;
 
+import java.util.Objects;
+
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -26,14 +28,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.User.UserBuilder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,16 +44,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Simple junit5 extension which bootstraps a server to simulate various
- * scenarious for artifact resolving via http.
+ * scenarios for artifact resolving via http.
  *
  * @author Janne Valkealahti
+ * @author Corneil du Plessis
  */
 public class MavenExtension implements AfterEachCallback, BeforeEachCallback {
 
 	private ConfigurableApplicationContext context;
 
 	public int getPort() {
-		return Integer.parseInt(this.context.getEnvironment().getProperty("local.server.port"));
+		return Integer.parseInt(Objects.requireNonNull(this.context.getEnvironment().getProperty("local.server.port")));
 	}
 
 	@Override
@@ -117,17 +121,15 @@ public class MavenExtension implements AfterEachCallback, BeforeEachCallback {
 		}
 
 		@Bean
-		public HttpBasicConfigurer configureBasic(HttpSecurity http) throws Exception {
+		public SecurityFilterChain configureBasic(HttpSecurity http) throws Exception {
 
-			// We add basic auth for /private so server returns 401 and
-			// challenge happens with maven client.
-
-			return http
-				.authorizeHttpRequests()
+			return http.authorizeHttpRequests(authorise ->
+				authorise
 					.requestMatchers("/public/**").permitAll()
 					.requestMatchers("/private/**").hasRole("USER")
-					.and()
-				.httpBasic();
+					.anyRequest().authenticated()
+
+			).httpBasic(Customizer.withDefaults()).build();
 		}
 	}
 
@@ -147,12 +149,12 @@ public class MavenExtension implements AfterEachCallback, BeforeEachCallback {
 			return http
 				.securityMatcher("/preemptive/**")
 				.authorizeRequests(authorizeRequests ->
-                    authorizeRequests.anyRequest().hasRole("USER")
+					authorizeRequests.anyRequest().hasRole("USER")
 				)
 				.httpBasic()
-					.and()
+				.and()
 				.exceptionHandling()
-					.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.FORBIDDEN));
+				.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.FORBIDDEN));
 		}
 	}
 }

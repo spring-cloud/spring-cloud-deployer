@@ -57,10 +57,11 @@
 		<maven-resolver.version>1.9.18</maven-resolver.version>
 		<maven-wagon.version>3.5.3</maven-wagon.version>
 		<commons-io.version>2.15.1</commons-io.version>
-		<kubernetes-fabric8-client.version>5.12.4</kubernetes-fabric8-client.version>
+		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
 		<spring-boot.version>3.2.2</spring-boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<json-path.version>2.9.0</json-path.version>
 	</properties>
 
 	<modules>
@@ -83,11 +84,7 @@
 			<dependency>
 				<groupId>com.jayway.jsonpath</groupId>
 				<artifactId>json-path</artifactId>
-			</dependency>
-			<dependency>
-				<groupId>com.squareup.okio</groupId>
-				<artifactId>okio</artifactId>
-				<version>3.4.0</version>
+				<version>${json-path.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.fabric8</groupId>
