@@ -26,9 +26,10 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.StatusCause;
-import io.fabric8.kubernetes.api.model.batch.v1.CronJobList;
+import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJobList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 
@@ -47,6 +48,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Chris Schaefer
  * @author Ilayaperumal Gopinathan
+ * @author Corneil du Plessis
  */
 public class KubernetesScheduler extends AbstractKubernetesDeployer implements Scheduler {
 	protected static final String SPRING_CRONJOB_ID_KEY = "spring-cronjob-id";
@@ -158,10 +160,10 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 
 	@Override
 	public void unschedule(String scheduleName) {
-		boolean unscheduled = this.client.batch().v1().cronjobs().withName(scheduleName).delete();
+		List<StatusDetails> unscheduled = this.client.batch().v1().cronjobs().withName(scheduleName).delete();
 
-		if (!unscheduled) {
-			throw new SchedulerException("Failed to unschedule schedule " + scheduleName + " does not exist.");
+		if (unscheduled == null || unscheduled.isEmpty()) {
+			throw new SchedulerException("Failed to unschedule " + scheduleName);
 		}
 	}
 

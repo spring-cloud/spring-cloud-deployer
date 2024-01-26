@@ -19,7 +19,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
@@ -31,6 +30,12 @@ import org.springframework.cloud.deployer.resource.maven.MavenProperties.WagonHt
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests for Maven Wagon resolver.
+ *
+ * @author Janne Valkealahti
+ * @author Corneil du Plessis
+ */
 public class WagonHttpTests {
 
 	@RegisterExtension
@@ -50,7 +55,7 @@ public class WagonHttpTests {
 		assertThat(resource.exists()).isFalse();
 	}
 
-	@Disabled
+
 	@Test
 	public void resourceDoesExistWagon(@TempDir Path tempDir) {
 		MavenProperties mavenProperties = new MavenProperties();

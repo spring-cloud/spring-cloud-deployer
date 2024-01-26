@@ -36,10 +36,10 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.api.model.StatusDetails;
-import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJobList;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJobSpec;
+import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -79,6 +79,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * @author Chris Schaefer
  * @author Ilayaperumal Gopinathan
+ * @author Corneil du Plessis
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
@@ -218,7 +219,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		Container container = new Container();
 		container.setName("test");
 		container.setImage("busybox");
-		podSpec.setContainers(Arrays.asList(container));
+		podSpec.setContainers(List.of(container));
 		podSpec.setRestartPolicy("OnFailure");
 		podTemplateSpec.setSpec(podSpec);
 		jobSpec.setTemplate(podTemplateSpec);
@@ -591,7 +592,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 
 		CronJob cronJob = kubernetesScheduler.createCronJob(scheduleRequest);
 
-		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTemplate().getMetadata().getAnnotations()).isNull();
+		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTemplate().getMetadata().getAnnotations()).isEmpty();
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTemplate().getMetadata().getLabels()
 				.size()).as("Should have one label").isEqualTo(1);
 		assertThat(cronJob.getSpec().getJobTemplate().getSpec().getTemplate().getMetadata().getLabels().get(
@@ -1246,7 +1247,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 	@EnableAutoConfiguration
 	@EnableConfigurationProperties
 	public static class Config {
-		private KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
+		private final KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 
 		@Bean
 		public Scheduler scheduler(KubernetesClient kubernetesClient) {

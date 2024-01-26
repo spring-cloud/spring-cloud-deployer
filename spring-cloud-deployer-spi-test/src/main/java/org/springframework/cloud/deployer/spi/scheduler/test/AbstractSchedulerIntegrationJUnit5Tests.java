@@ -192,7 +192,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 
         assertThatThrownBy(() -> {
             unscheduleTestSchedule(scheduleName);
-        }).isInstanceOf(SchedulerException.class).hasMessage("Failed to unschedule schedule %s does not exist.",
+		}).isInstanceOf(SchedulerException.class).hasMessage("Failed to unschedule %s",
                 scheduleName);
 	}
 
@@ -303,7 +303,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 	}
 
 	protected String randomName() {
-		return this.testName + "-" + UUID.randomUUID().toString();
+		return this.testName + "-" + UUID.randomUUID();
 	}
 
 	protected String scheduleName() {

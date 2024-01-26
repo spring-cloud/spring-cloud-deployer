@@ -68,7 +68,6 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractTaskLauncherInt
 
 	@Test
 	@Override
-	@Disabled("Currently reported as failed instead of cancelled")
 	public void testSimpleCancel() throws InterruptedException {
 		super.testSimpleCancel();
 	}

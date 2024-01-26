@@ -113,6 +113,7 @@ import static org.mockito.Mockito.mock;
  * @author Chris Schaefer
  * @author Christian Tzolov
  * @author Chris Bono
+ * @author Corneil du Plessis
  */
 @SpringBootTest(classes = {KubernetesAutoConfiguration.class}, properties = {
         "logging.level.org.springframework.cloud.deployer=DEBUG"
@@ -2479,11 +2480,9 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         countDownLatch.await();
 
-        byte[] bytes = execOutputStream.toByteArray();
-
         watch.close();
 
-        return new String(bytes);
+		return execOutputStream.toString();
     }
 
     // Creates a Secret with a name will be generated prefixed by "secret-" followed by random numbers.
