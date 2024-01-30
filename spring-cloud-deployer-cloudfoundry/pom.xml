@@ -15,7 +15,8 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<cloudfoundry-java-lib.version>4.16.0.RELEASE</cloudfoundry-java-lib.version>
+		<!-- @TODO boot3 updates need for jakarta ee -->
+		<cloudfoundry-java-lib.version>5.10.0.RELEASE</cloudfoundry-java-lib.version>
 		<pivotal-cf-client-reactor.version>2.2.0.RELEASE</pivotal-cf-client-reactor.version>
 		<commons-compress.version>1.24.0</commons-compress.version>
 	</properties>
@@ -43,6 +44,13 @@
 			<groupId>org.cloudfoundry</groupId>
 			<artifactId>cloudfoundry-client-reactor</artifactId>
 			<version>${cloudfoundry-java-lib.version}</version>
+			<!-- @TODO boot3 remove when updated -->
+			<exclusions>
+				<exclusion>
+					<groupId>javax.annotation</groupId>
+					<artifactId>javax.annotation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
