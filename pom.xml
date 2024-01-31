@@ -53,7 +53,9 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>17</java.version>
+		<!-- @TODO boot3 waiting for 4.x to support jakarta ee -->
 		<maven.version>3.9.6</maven.version>
+		<!-- @TODO boot3 waiting for 4.x to support jakarta ee -->
 		<maven-resolver.version>1.9.18</maven-resolver.version>
 		<maven-wagon.version>3.5.3</maven-wagon.version>
 		<commons-io.version>2.15.1</commons-io.version>
