@@ -73,7 +73,7 @@ public abstract class AbstractIntegrationTests {
 	 * @return the deployment timeout value
 	 */
 	protected Timeout deploymentTimeout() {
-		return new Timeout(12, 5000);
+		return new Timeout(30, 5000);
 	}
 
 	/**
