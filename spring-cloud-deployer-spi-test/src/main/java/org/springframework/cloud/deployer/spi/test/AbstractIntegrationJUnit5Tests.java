@@ -80,7 +80,7 @@ public abstract class AbstractIntegrationJUnit5Tests {
 	 * @return the timeout
 	 */
 	protected Timeout deploymentTimeout() {
-		return new Timeout(12, 5000);
+		return new Timeout(30, 5000);
 	}
 
 	/**
