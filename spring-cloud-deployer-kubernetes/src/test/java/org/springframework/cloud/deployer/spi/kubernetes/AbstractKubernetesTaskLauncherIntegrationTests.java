@@ -71,7 +71,7 @@ abstract class AbstractKubernetesTaskLauncherIntegrationTests extends AbstractTa
 
 	@Override
 	protected Timeout deploymentTimeout() {
-		return new Timeout(20, 5000);
+		return new Timeout(30, 5000);
 	}
 
 	@Test

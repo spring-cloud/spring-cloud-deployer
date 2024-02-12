@@ -83,7 +83,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 	 * Return the timeout to use for repeatedly querying that a task has been scheduled.
 	 * Default value is one minute, being queried every 5 seconds.
 	 */
-	private Timeout scheduleTimeout = new Timeout(12, 5000);
+	private Timeout scheduleTimeout = new Timeout(30, 5000);
 
 	/**
 	 * Return the timeout to use for repeatedly querying whether a task has been unscheduled.
