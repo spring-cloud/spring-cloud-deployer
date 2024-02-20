@@ -311,6 +311,11 @@ public class LocalDeployerProperties {
 		 */
 		private String volumeMounts;
 
+		/**
+		 * Set additional hosts
+		 */
+		private String additionalHosts;
+
 		public PortRange getPortRange() {
 			return portRange;
 		}
@@ -346,6 +351,10 @@ public class LocalDeployerProperties {
 		public void setVolumeMounts(String volumeMounts) {
 			this.volumeMounts = volumeMounts;
 		}
+
+		public String getAdditionalHosts() { return additionalHosts; }
+
+		public void setAdditionalHosts(String additionalHosts) { this.additionalHosts = additionalHosts; }
 
 		@Override
 		public int hashCode() {

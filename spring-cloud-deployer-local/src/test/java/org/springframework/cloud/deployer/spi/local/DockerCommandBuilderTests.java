@@ -160,4 +160,24 @@ public class DockerCommandBuilderTests {
 		assertThat(builder.command()).contains(goodMapping1, goodMapping2);
 		assertThat(builder.command()).doesNotContain(incompleteMapping);
 	}
+
+	@Test
+	public void  testContainerAdditionalHost(){
+		AppDefinition appDefinition = new AppDefinition("foo", null);
+		Resource resource = new DockerResource("foo/bar");
+		Map<String, String> deploymentProperties = Collections.emptyMap();
+		AppDeploymentRequest request = new AppDeploymentRequest(appDefinition, resource, deploymentProperties);
+
+		String goodMapping1 = "host.docker.internal:host-gateway";
+		String incompleteMapping = "host.docker.internal";
+		LocalDeployerProperties localDeployerProperties = new LocalDeployerProperties();
+		localDeployerProperties.getDocker().setAdditionalHosts(goodMapping1 + "," + incompleteMapping);
+
+		ProcessBuilder builder = new DockerCommandBuilder("scdf_default")
+				.buildExecutionCommand(request, new HashMap<>(), "deployerId", Optional.of(1),
+						localDeployerProperties, Optional.empty());
+
+		assertThat(builder.command()).contains(goodMapping1);
+		assertThat(builder.command()).doesNotContain(incompleteMapping);
+	}
 }
