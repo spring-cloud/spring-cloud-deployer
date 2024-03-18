@@ -10,7 +10,7 @@
 	<artifactId>spring-cloud-deployer-spi-test-app</artifactId>
 	<properties>
 		<start-class>org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestApplication</start-class>
-		<java.version>1.8</java.version>
+		<java.version>17</java.version>
 		<docker.image.prefix>springcloud</docker.image.prefix>
 		<dockerfile-maven-plugin.version>1.3.6</dockerfile-maven-plugin.version>
 	</properties>

@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.deployer.spi.scheduler.test.app;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

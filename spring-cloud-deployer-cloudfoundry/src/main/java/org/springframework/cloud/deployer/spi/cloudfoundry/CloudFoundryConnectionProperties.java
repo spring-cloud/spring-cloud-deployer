@@ -18,7 +18,7 @@ package org.springframework.cloud.deployer.spi.cloudfoundry;
 
 import java.net.URL;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.springframework.validation.annotation.Validated;
 
