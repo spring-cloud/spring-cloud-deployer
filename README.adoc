@@ -1,4 +1,4 @@
-== Spring Cloud Deployer image:https://build.spring.io/plugins/servlet/wittified/build-status/SCD-DEPMASTER[Build Status, link=https://build.spring.io/browse/SCD-DEPMASTER]
+== Spring Cloud Deployer [![Build Snapshot Worker main](https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/build-snapshot-worker.yml/badge.svg)](https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/build-snapshot-worker.yml) [![Build Snapshot Worker 2.9.x](https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/build-snapshot-worker.yml/badge.svg?branch=2.9.x)](https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/build-snapshot-worker.yml)
 
 The Spring Cloud Deployer project defines a Service Provider Interface (SPI) for deploying long lived applications and short lived tasks.
 
