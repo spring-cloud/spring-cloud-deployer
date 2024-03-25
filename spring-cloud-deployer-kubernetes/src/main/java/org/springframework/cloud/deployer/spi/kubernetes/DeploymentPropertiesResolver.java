@@ -173,6 +173,21 @@ class DeploymentPropertiesResolver {
 			cpu = properties.getLimits().getCpu();
 		}
 
+		String ephemeralStorage = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".limits.ephemeral-storage");
+		if(!StringUtils.hasText(ephemeralStorage)) {
+			ephemeralStorage = properties.getLimits().getEphemeralStorage();
+		}
+
+		String hugePages2Mi = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".limits.hugepages-2Mi");
+		if(!StringUtils.hasText(hugePages2Mi)) {
+			hugePages2Mi = properties.getLimits().getHugepages2Mi();
+		}
+
+		String hugePages1Gi = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".limits.hugepages-1Gi");
+		if(!StringUtils.hasText(hugePages1Gi)) {
+			hugePages1Gi = properties.getLimits().getHugepages1Gi();
+		}
+
 		String gpuVendor = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
 			this.propertyPrefix + ".limits.gpuVendor");
 
@@ -196,11 +211,22 @@ class DeploymentPropertiesResolver {
 		if (StringUtils.hasText(cpu)) {
 			limits.put("cpu", new Quantity(cpu));
 		}
+		if(StringUtils.hasText(ephemeralStorage)) {
+			limits.put("ephemeral-storage", new Quantity(ephemeralStorage));
+		}
+		if(StringUtils.hasText(hugePages2Mi)) {
+			limits.put("hugepages-2Mi", new Quantity(hugePages2Mi));
+		}
+		if(StringUtils.hasText(hugePages1Gi)) {
+			limits.put("hugepages-1Gi", new Quantity(hugePages1Gi));
+		}
 
 		if (StringUtils.hasText(gpuVendor) && StringUtils.hasText(gpuCount)) {
 			limits.put(gpuVendor + "/gpu", new Quantity(gpuCount));
 		}
-
+		if(logger.isDebugEnabled()) {
+			logger.debug("limits:" + limits);
+		}
 		return limits;
 	}
 
@@ -254,8 +280,23 @@ class DeploymentPropertiesResolver {
 		if (cpuOverride == null) {
 			cpuOverride = properties.getRequests().getCpu();
 		}
+		String ephemeralStorage = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".requests.ephemeral-storage");
+		if(!StringUtils.hasText(ephemeralStorage)) {
+			ephemeralStorage = properties.getLimits().getEphemeralStorage();
+		}
 
-		logger.debug("Using requests - cpu: " + cpuOverride + " mem: " + memOverride);
+		String hugePages2Mi = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".requests.hugepages-2Mi");
+		if(!StringUtils.hasText(hugePages2Mi)) {
+			hugePages2Mi = properties.getLimits().getHugepages2Mi();
+		}
+
+		String hugePages1Gi = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".requests.hugepages-1Gi");
+		if(!StringUtils.hasText(hugePages1Gi)) {
+			hugePages1Gi = properties.getLimits().getHugepages1Gi();
+		}
+		if(logger.isDebugEnabled()) {
+			logger.debug("Using requests - cpu: " + cpuOverride + " mem: " + memOverride + " ephemeral-storage:" + ephemeralStorage + " hugepages-2Mi:" + hugePages2Mi + " hugepages-1Gi:" + hugePages1Gi);
+		}
 
 		Map<String,Quantity> requests = new HashMap<String, Quantity>();
 
@@ -267,6 +308,18 @@ class DeploymentPropertiesResolver {
 			requests.put("cpu", new Quantity(cpuOverride));
 		}
 
+		if(StringUtils.hasText(ephemeralStorage)) {
+			requests.put("ephemeral-storage", new Quantity(ephemeralStorage));
+		}
+		if(StringUtils.hasText(hugePages2Mi)) {
+			requests.put("hugepages-2Mi", new Quantity(hugePages2Mi));
+		}
+		if(StringUtils.hasText(hugePages1Gi)) {
+			requests.put("hugepages-1Gi", new Quantity(hugePages1Gi));
+		}
+		if(logger.isDebugEnabled()) {
+			logger.debug("requests:" + requests);
+		}
 		return requests;
 	}
 
