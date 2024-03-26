@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -147,6 +148,14 @@ class DeploymentPropertiesResolver {
 
 		return volumes;
 	}
+	private <T> String deducePropertyValue(Map<String, String> deployerProps, String propNameSansPrefix, Supplier<String> defaultValue) {
+		String propName = this.propertyPrefix + propNameSansPrefix;
+		String propValue = PropertyParserUtils.getDeploymentPropertyValue(deployerProps, propName);
+		if (!StringUtils.hasText(propValue)) {
+			propValue = defaultValue.get();
+		}
+		return propValue;
+	}
 
 	/**
 	 * Get the resource limits for the deployment request. A Pod can define its maximum needed resources by setting the
@@ -159,33 +168,19 @@ class DeploymentPropertiesResolver {
 	 * @return the resource limits to use
 	 */
 	Map<String, Quantity> deduceResourceLimits(Map<String, String> kubernetesDeployerProperties) {
-		String memory = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".limits.memory");
+		String memory = deducePropertyValue(kubernetesDeployerProperties, ".limits.memory", () -> properties.getLimits().getMemory());
 
-		if (!StringUtils.hasText(memory)) {
-			memory = properties.getLimits().getMemory();
-		}
+		String cpu = deducePropertyValue(kubernetesDeployerProperties, ".limits.cpu", () -> properties.getLimits().getCpu());
 
-		String cpu = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".limits.cpu");
+		String ephemeralStorage = deducePropertyValue(kubernetesDeployerProperties, ".limits.ephemeral-storage", () -> properties.getLimits().getEphemeralStorage());
 
-		if (!StringUtils.hasText(cpu)) {
-			cpu = properties.getLimits().getCpu();
-		}
+		String hugePages2Mi = deducePropertyValue(kubernetesDeployerProperties, ".limits.hugepages-2Mi", () -> properties.getLimits().getHugepages2Mi());
 
-		String gpuVendor = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-			this.propertyPrefix + ".limits.gpuVendor");
+		String hugePages1Gi = deducePropertyValue(kubernetesDeployerProperties, ".limits.hugepages-1Gi", () -> properties.getLimits().getHugepages1Gi());
 
-		if (!StringUtils.hasText(gpuVendor)) {
-			gpuVendor = properties.getLimits().getGpuVendor();
-		}
+		String gpuVendor = deducePropertyValue(kubernetesDeployerProperties, ".limits.gpuVendor", () -> properties.getLimits().getGpuVendor());
 
-		String gpuCount = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-			this.propertyPrefix + ".limits.gpuCount");
-
-		if (!StringUtils.hasText(gpuCount)) {
-			gpuCount = properties.getLimits().getGpuCount();
-		}
+		String gpuCount = deducePropertyValue(kubernetesDeployerProperties, ".limits.gpuCount", () -> properties.getLimits().getGpuCount());
 
 		Map<String,Quantity> limits = new HashMap<String,Quantity>();
 
@@ -197,10 +192,25 @@ class DeploymentPropertiesResolver {
 			limits.put("cpu", new Quantity(cpu));
 		}
 
+		if(StringUtils.hasText(ephemeralStorage)) {
+			limits.put("ephemeral-storage", new Quantity(ephemeralStorage));
+		}
+
+		if(StringUtils.hasText(hugePages2Mi)) {
+			limits.put("hugepages-2Mi", new Quantity(hugePages2Mi));
+		}
+
+		if(StringUtils.hasText(hugePages1Gi)) {
+			limits.put("hugepages-1Gi", new Quantity(hugePages1Gi));
+		}
+
 		if (StringUtils.hasText(gpuVendor) && StringUtils.hasText(gpuCount)) {
 			limits.put(gpuVendor + "/gpu", new Quantity(gpuCount));
 		}
 
+		if(logger.isDebugEnabled()) {
+			logger.debug("limits:" + limits);
+		}
 		return limits;
 	}
 
@@ -240,22 +250,19 @@ class DeploymentPropertiesResolver {
 	 * @return the resource requests to use
 	 */
 	Map<String, Quantity> deduceResourceRequests(Map<String, String> kubernetesDeployerProperties) {
-		String memOverride = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".requests.memory");
+		String memOverride = deducePropertyValue(kubernetesDeployerProperties, ".requests.memory", () -> properties.getRequests().getMemory());
 
-		if (memOverride == null) {
-			memOverride = properties.getRequests().getMemory();
+		String cpuOverride = deducePropertyValue(kubernetesDeployerProperties, ".requests.cpu", () -> properties.getRequests().getCpu());
+
+		String ephemeralStorage = deducePropertyValue(kubernetesDeployerProperties, ".requests.ephemeral-storage", () -> properties.getLimits().getEphemeralStorage());
+
+		String hugePages2Mi = deducePropertyValue(kubernetesDeployerProperties, ".requests.hugepages-2Mi", () -> properties.getLimits().getHugepages2Mi());
+
+		String hugePages1Gi = deducePropertyValue(kubernetesDeployerProperties, ".requests.hugepages-1Gi", () -> properties.getLimits().getHugepages1Gi());
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("Using requests - cpu: " + cpuOverride + " mem: " + memOverride + " ephemeral-storage:" + ephemeralStorage + " hugepages-2Mi:" + hugePages2Mi + " hugepages-1Gi:" + hugePages1Gi);
 		}
-
-
-		String cpuOverride = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".requests.cpu");
-
-		if (cpuOverride == null) {
-			cpuOverride = properties.getRequests().getCpu();
-		}
-
-		logger.debug("Using requests - cpu: " + cpuOverride + " mem: " + memOverride);
 
 		Map<String,Quantity> requests = new HashMap<String, Quantity>();
 
@@ -267,6 +274,21 @@ class DeploymentPropertiesResolver {
 			requests.put("cpu", new Quantity(cpuOverride));
 		}
 
+		if(StringUtils.hasText(ephemeralStorage)) {
+			requests.put("ephemeral-storage", new Quantity(ephemeralStorage));
+		}
+
+		if(StringUtils.hasText(hugePages2Mi)) {
+			requests.put("hugepages-2Mi", new Quantity(hugePages2Mi));
+		}
+
+		if(StringUtils.hasText(hugePages1Gi)) {
+			requests.put("hugepages-1Gi", new Quantity(hugePages1Gi));
+		}
+
+		if(logger.isDebugEnabled()) {
+			logger.debug("requests:" + requests);
+		}
 		return requests;
 	}
 
