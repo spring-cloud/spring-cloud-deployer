@@ -91,6 +91,20 @@ public class KubernetesDeployerProperties {
         private String memory;
 
         /**
+         * Container resource ephemeral-storage limit.
+         */
+        private String ephemeralStorage;
+
+        /**
+         * Container resource hugepages-2Mi limit.
+         */
+        private String hugepages2Mi;
+
+        /**
+         * Container resource hugepages-1Gi limit.
+         */
+        private String hugepages1Gi;
+        /**
          * Container GPU vendor name for limit
          */
         private String gpuVendor;
@@ -113,9 +127,12 @@ public class KubernetesDeployerProperties {
          * Use the default constructor and set() methods instead.
          */
         @Deprecated
-        public LimitsResources(String cpu, String memory) {
+        public LimitsResources(String cpu, String memory, String ephemeralStorage, String hugepages2Mi, String hugepages1Gi) {
             this.cpu = cpu;
             this.memory = memory;
+            this.ephemeralStorage = ephemeralStorage;
+            this.hugepages2Mi = hugepages2Mi;
+            this.hugepages1Gi = hugepages1Gi;
         }
 
         public String getCpu() {
@@ -132,6 +149,30 @@ public class KubernetesDeployerProperties {
 
         public void setMemory(String memory) {
             this.memory = memory;
+        }
+
+        public String getEphemeralStorage() {
+            return ephemeralStorage;
+        }
+
+        public void setEphemeralStorage(String ephemeralStorage) {
+            this.ephemeralStorage = ephemeralStorage;
+        }
+
+        public String getHugepages2Mi() {
+            return hugepages2Mi;
+        }
+
+        public void setHugepages2Mi(String hugepages2Mi) {
+            this.hugepages2Mi = hugepages2Mi;
+        }
+
+        public String getHugepages1Gi() {
+            return hugepages1Gi;
+        }
+
+        public void setHugepages1Gi(String hugepages1Gi) {
+            this.hugepages1Gi = hugepages1Gi;
         }
 
         public String getGpuVendor() {
@@ -157,21 +198,39 @@ public class KubernetesDeployerProperties {
     public static class RequestsResources {
 
         /**
-         * Container request limit.
+         * Container cpu request.
          */
         private String cpu;
 
         /**
-         * Container memory limit.
+         * Container memory request.
          */
         private String memory;
+
+        /**
+         * Container resource ephemeral-storage request.
+         */
+        private String ephemeralStorage;
+
+        /**
+         * Container resource hugepages-2Mi request.
+         */
+        private String hugepages2Mi;
+
+        /**
+         * Container resource hugepages-1Gi request.
+         */
+        private String hugepages1Gi;
 
         public RequestsResources() {
         }
 
-        public RequestsResources(String cpu, String memory) {
+        public RequestsResources(String cpu, String memory, String ephemeralStorage, String hugepages2Mi, String hugepages1Gi) {
             this.cpu = cpu;
             this.memory = memory;
+            this.ephemeralStorage = ephemeralStorage;
+            this.hugepages2Mi = hugepages2Mi;
+            this.hugepages1Gi = hugepages1Gi;
         }
 
         public String getCpu() {
@@ -188,6 +247,30 @@ public class KubernetesDeployerProperties {
 
         public void setMemory(String memory) {
             this.memory = memory;
+        }
+
+        public String getEphemeralStorage() {
+            return ephemeralStorage;
+        }
+
+        public void setEphemeralStorage(String ephemeralStorage) {
+            this.ephemeralStorage = ephemeralStorage;
+        }
+
+        public String getHugepages2Mi() {
+            return hugepages2Mi;
+        }
+
+        public void setHugepages2Mi(String hugepages2Mi) {
+            this.hugepages2Mi = hugepages2Mi;
+        }
+
+        public String getHugepages1Gi() {
+            return hugepages1Gi;
+        }
+
+        public void setHugepages1Gi(String hugepages1Gi) {
+            this.hugepages1Gi = hugepages1Gi;
         }
     }
 
