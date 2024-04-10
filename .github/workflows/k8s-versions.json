@@ -1,0 +1,30 @@
+[
+  {
+    "k8s_version": "v1.23",
+    "patch": null
+  },
+  {
+    "k8s_version": "v1.24",
+    "patch": null
+  },
+  {
+    "k8s_version": "v1.25",
+    "patch": null
+  },
+  {
+    "k8s_version": "v1.26",
+    "patch": null
+  },
+  {
+    "k8s_version": "v1.27",
+    "patch": null
+  },
+  {
+    "k8s_version": "v1.28",
+    "patch": null
+  },
+  {
+    "k8s_version": "v1.29",
+    "patch": "1.29.2"
+  }
+]

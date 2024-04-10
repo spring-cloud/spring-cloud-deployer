@@ -135,7 +135,7 @@ public class DockerCommandBuilder implements CommandBuilder {
 
 		applyPortMappings(commands,localDeployerProperties);
 		applyVolumeMountings(commands,localDeployerProperties);
-
+		applyAdditionalHosts(commands,localDeployerProperties);
 
 		if (request.getDeploymentProperties().containsKey(DOCKER_CONTAINER_NAME_KEY)) {
 			if (appInstanceNumber.isPresent()) {
@@ -172,6 +172,16 @@ public class DockerCommandBuilder implements CommandBuilder {
 		if (StringUtils.hasText(volumeMounts)) {
 			for (String v : parseMapping(volumeMounts)) {
 				commands.add("-v");
+				commands.add(v);
+			}
+		}
+	}
+
+	private void applyAdditionalHosts(List<String> commands, LocalDeployerProperties localDeployerProperties) {
+		String additionalHosts = localDeployerProperties.getDocker().getAdditionalHosts();
+		if (StringUtils.hasText(additionalHosts)) {
+			for (String v : parseMapping(additionalHosts)) {
+				commands.add("--add-host");
 				commands.add(v);
 			}
 		}
