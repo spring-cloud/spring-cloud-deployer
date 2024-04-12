@@ -19,7 +19,7 @@
 		<java-semver.version>0.9.0</java-semver.version>
 		<maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
 		<powermock.version>2.0.2</powermock.version>
-		<okhttp.version>3.14.9</okhttp.version>
+		<okhttp.version>4.12.0</okhttp.version>
 		<fabric8-kubernetes-client.version>5.12.4</fabric8-kubernetes-client.version>
 	</properties>
 
