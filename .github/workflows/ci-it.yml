@@ -14,7 +14,7 @@ jobs:
         id: matrix
         shell: bash
         run: |
-          MATRIX=$(cat .github/workflows/k8s-versions.json)
+          MATRIX=$(jq -c . .github/workflows/k8s-versions.json)
           echo "MATRIX=$MATRIX" >> $GITHUB_OUTPUT
     outputs:
       matrix: ${{ steps.matrix.outputs.MATRIX }}
