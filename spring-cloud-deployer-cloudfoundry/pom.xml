@@ -17,7 +17,6 @@
 		<java.version>1.8</java.version>
 		<cloudfoundry-java-lib.version>4.16.0.RELEASE</cloudfoundry-java-lib.version>
 		<pivotal-cf-client-reactor.version>2.2.0.RELEASE</pivotal-cf-client-reactor.version>
-		<commons-compress.version>1.26.0</commons-compress.version>
 		<okhttp.version>3.14.9</okhttp.version>
 	</properties>
 
@@ -48,7 +47,6 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
-			<version>${commons-compress.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.cloudfoundry</groupId>
