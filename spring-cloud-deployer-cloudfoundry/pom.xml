@@ -16,7 +16,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<!-- @TODO boot3 updates need for jakarta ee -->
-		<cloudfoundry-java-lib.version>5.10.0.RELEASE</cloudfoundry-java-lib.version>
+		<cloudfoundry-java-lib.version>5.12.1.RELEASE</cloudfoundry-java-lib.version>
 		<pivotal-cf-client-reactor.version>2.2.0.RELEASE</pivotal-cf-client-reactor.version>
 		<commons-compress.version>1.26.2</commons-compress.version>
 	</properties>
