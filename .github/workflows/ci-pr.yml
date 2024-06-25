@@ -27,7 +27,7 @@ jobs:
     # build
     - name: Build
       run: |
-        mvn -U -B clean package -T 0.5C
+        mvn -U -B clean package
     - name: Capture Test Results
       if: failure()
       uses: actions/upload-artifact@v3
