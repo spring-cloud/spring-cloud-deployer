@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,11 @@ class CfEnvAwareResource implements Resource {
 				URLClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 				try {
 					Class.forName(CF_ENV, false, classLoader);
+					return true;
+				}
+				catch (UnsupportedClassVersionError err) {
+					logger.debug(app.getFilename() + " contain " + CF_ENV);
+					// class found but can't load it i.e. because it's newer class version
 					return true;
 				}
 				catch (ClassNotFoundException e) {
