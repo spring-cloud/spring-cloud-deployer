@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,14 @@ import static org.mockito.Mockito.when;
  * @author David Turanski
  */
 public class CfEnvAwareResourceTests {
+
+	@Test
+	public void testCfEnvResolverWithCfEnvJava17() throws IOException {
+		// this task app is compiled from a spring-cloud-task sample using jdk17
+		// and cfenv added to build
+		CfEnvAwareResource resource = CfEnvAwareResource.of(new ClassPathResource("timestamp-task-3.1.2-SNAPSHOT.jar"));
+		assertThat(resource.hasCfEnv()).isTrue();
+	}
 
 	@Test
 	public void testCfEnvResolverWithCfEnv() throws IOException {
