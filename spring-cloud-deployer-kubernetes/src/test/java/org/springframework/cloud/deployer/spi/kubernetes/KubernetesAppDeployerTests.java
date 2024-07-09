@@ -166,6 +166,18 @@ public class KubernetesAppDeployerTests {
 
         assertThat(podSpec.getNodeSelector()).containsOnly(entry("disktype", "ssd"), entry("os", "linux"));
     }
+    @Test
+    public void deployWithNodeSelectorTrainTruckCaseProperty() throws Exception {
+        AppDefinition definition = new AppDefinition("app-test", null);
+        Map<String, String> props = new HashMap<>();
+        props.put("spring.cloud.deployer.kubernetes.deployment.node-selector", "os: linux");
+        AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
+
+        deployer = k8sAppDeployer();
+        PodSpec podSpec = deployer.createPodSpec(appDeploymentRequest);
+
+        assertThat(podSpec.getNodeSelector()).containsOnly(entry("os", "linux"));
+    }
 
     @Test
     public void deployWithNodeSelectorDeploymentPropertyGlobalOverride() throws Exception {

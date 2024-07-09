@@ -61,6 +61,7 @@ import org.springframework.cloud.deployer.spi.kubernetes.KubernetesDeployerPrope
 import org.springframework.cloud.deployer.spi.kubernetes.KubernetesDeployerProperties.InitContainer;
 import org.springframework.cloud.deployer.spi.kubernetes.KubernetesDeployerProperties.SecretKeyRef;
 import org.springframework.cloud.deployer.spi.kubernetes.support.PropertyParserUtils;
+import org.springframework.cloud.deployer.spi.kubernetes.support.RelaxedNames;
 import org.springframework.cloud.deployer.spi.util.ByteSizeUtils;
 import org.springframework.cloud.deployer.spi.util.CommandLineTokenizer;
 import org.springframework.core.io.ByteArrayResource;
@@ -354,15 +355,17 @@ class DeploymentPropertiesResolver {
 		Map<String, String> nodeSelectors = new HashMap<>();
 
 		String nodeSelector = this.properties.getNodeSelector();
-
-		String nodeSelectorDeploymentProperty = deploymentProperties
-				.getOrDefault(KubernetesDeployerProperties.KUBERNETES_DEPLOYMENT_NODE_SELECTOR, "");
-
-		boolean hasGlobalNodeSelector = StringUtils.hasText(properties.getNodeSelector());
+		String nodeSelectorDeploymentProperty = deploymentProperties.getOrDefault(KubernetesDeployerProperties.KUBERNETES_DEPLOYMENT_NODE_SELECTOR, "");
+		for (String name : RelaxedNames.forCamelCase(KubernetesDeployerProperties.KUBERNETES_DEPLOYMENT_NODE_SELECTOR)) {
+			String value = deploymentProperties.get(name);
+			if (StringUtils.hasText(value)) {
+				nodeSelectorDeploymentProperty = value;
+				break;
+			}
+		}
 		boolean hasDeployerPropertyNodeSelector = StringUtils.hasText(nodeSelectorDeploymentProperty);
 
-		if ((hasGlobalNodeSelector && hasDeployerPropertyNodeSelector) ||
-				(!hasGlobalNodeSelector && hasDeployerPropertyNodeSelector)) {
+		if (hasDeployerPropertyNodeSelector) {
 			nodeSelector = nodeSelectorDeploymentProperty;
 		}
 
