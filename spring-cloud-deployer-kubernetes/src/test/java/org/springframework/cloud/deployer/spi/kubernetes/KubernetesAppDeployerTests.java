@@ -170,7 +170,7 @@ public class KubernetesAppDeployerTests {
     public void deployWithNodeSelectorTrainTruckCaseProperty() throws Exception {
         AppDefinition definition = new AppDefinition("app-test", null);
         Map<String, String> props = new HashMap<>();
-        props.put("spring.cloud.deployer.kubernetes.deployment.node-selector", "os: linux");
+        props.put(KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".node-selector", "os: linux");
         AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
 
         deployer = k8sAppDeployer();
