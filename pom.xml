@@ -66,6 +66,7 @@
 		<logback.version>1.2.13</logback.version>
 		<json-path.version>2.9.0</json-path.version>
 		<jackson-bom.version>2.17.1</jackson-bom.version>
+		<snakeyaml.version>1.33</snakeyaml.version>
 	</properties>
 
 	<modules>
@@ -88,7 +89,7 @@
 			<dependency>
 				<groupId>org.yaml</groupId>
 				<artifactId>snakeyaml</artifactId>
-				<version>1.33</version>
+				<version>${snakeyaml.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.jayway.jsonpath</groupId>
