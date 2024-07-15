@@ -142,21 +142,22 @@ class CfEnvAwareResource implements Resource {
 				});
 				URLClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 				try {
+					logger.info("Attempting to load class CFEnv");
 					Class.forName(CF_ENV, false, classLoader);
 					return true;
 				}
 				catch (UnsupportedClassVersionError err) {
-					logger.debug(app.getFilename() + " contain " + CF_ENV);
+					logger.debug(app.getFilename() + " contains " + CF_ENV);
 					// class found but can't load it i.e. because it's newer class version
 					return true;
 				}
 				catch (ClassNotFoundException e) {
-					logger.debug(app.getFilename() + " does not contain " + CF_ENV);
+					logger.debug(app.getFilename() + " doesn't contain " + CF_ENV);
 					return false;
 				}
 			}
 			catch (Exception e) {
-				logger.warn("Unable to determine dependencies for " + app.getFilename());
+				logger.warn("Unable to determine dependencies for file " + app.getFilename());
 			}
 			return false;
 		}
