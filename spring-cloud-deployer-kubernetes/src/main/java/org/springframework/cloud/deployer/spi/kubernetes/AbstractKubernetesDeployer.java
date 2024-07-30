@@ -243,7 +243,7 @@ public class AbstractKubernetesDeployer {
 		}
 
 		Map<String, String> nodeSelectors = this.deploymentPropertiesResolver.getNodeSelectors(deploymentProperties);
-		if (nodeSelectors.size() > 0) {
+		if (!nodeSelectors.isEmpty()) {
 			podSpec.withNodeSelector(nodeSelectors);
 		}
 
