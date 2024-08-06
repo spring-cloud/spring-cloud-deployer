@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.deployer.spi.kubernetes;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,7 @@ import org.springframework.util.StringUtils;
  * @author Enrique Medina Montenegro
  * @author Ilayaperumal Gopinathan
  * @author Chris Bono
+ * @author Corneil du Plessis
  */
 public class AbstractKubernetesDeployer {
 
@@ -287,12 +289,14 @@ public class AbstractKubernetesDeployer {
 			podSpec.withAffinity(affinity);
 		}
 
-		Container initContainer = this.deploymentPropertiesResolver.getInitContainer(deploymentProperties);
-		if (initContainer != null) {
-			if (initContainer.getSecurityContext() == null && containerSecurityContext != null) {
-				initContainer.setSecurityContext(containerSecurityContext);
+		Collection<Container> initContainers = this.deploymentPropertiesResolver.getInitContainers(deploymentProperties);
+		if (initContainers != null && !initContainers.isEmpty()) {
+			for (Container initContainer : initContainers) {
+				if (initContainer.getSecurityContext() == null && containerSecurityContext != null) {
+					initContainer.setSecurityContext(containerSecurityContext);
+				}
+				podSpec.addToInitContainers(initContainer);
 			}
-			podSpec.addToInitContainers(initContainer);
 		}
 
 		Boolean shareProcessNamespace = this.deploymentPropertiesResolver.getShareProcessNamespace(deploymentProperties);

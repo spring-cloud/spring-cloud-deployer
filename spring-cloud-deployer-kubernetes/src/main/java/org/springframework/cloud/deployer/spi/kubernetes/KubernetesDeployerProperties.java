@@ -1439,7 +1439,11 @@ public class KubernetesDeployerProperties {
      * A custom init container to apply.
      */
     private InitContainer initContainer;
-
+    /**
+     * Apply multiple custom init containers.
+     * Will add initContainer first if it exists and add to list.
+     */
+    private List<InitContainer> initContainers = new ArrayList<>();
     /**
      * Lifecycle spec to apply.
      */
@@ -2492,6 +2496,14 @@ public class KubernetesDeployerProperties {
 
     public void setInitContainer(InitContainer initContainer) {
         this.initContainer = initContainer;
+    }
+
+    public List<InitContainer> getInitContainers() {
+        return initContainers;
+    }
+
+    public void setInitContainers(List<InitContainer> initContainers) {
+        this.initContainers = initContainers;
     }
 
     public List<Container> getAdditionalContainers() {
