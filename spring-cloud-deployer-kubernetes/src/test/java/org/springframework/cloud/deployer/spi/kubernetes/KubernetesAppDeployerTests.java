@@ -27,10 +27,13 @@ import java.util.Properties;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.Capabilities;
 import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSource;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSource;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.KeyToPath;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
@@ -50,6 +53,7 @@ import io.fabric8.kubernetes.api.model.SecurityContext;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Sysctl;
 import io.fabric8.kubernetes.api.model.Toleration;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.WindowsSecurityContextOptions;
@@ -138,6 +142,24 @@ public class KubernetesAppDeployerTests {
                 new VolumeBuilder().withName("testhostpath").withHostPath(hostPathVolumeSource).build(),
                 new VolumeBuilder().withName("testpvc").withNewPersistentVolumeClaim("testClaim", true).build(),
                 new VolumeBuilder().withName("testnfs").withNewNfs("/test/override/nfs", null, "192.168.1.1:111").build());
+    }
+    @Test
+    public void deployWithVolumesAndVolumeMountsOnAdditionalContainer() throws Exception {
+        AppDefinition definition = new AppDefinition("app-test", null);
+        Map<String, String> props = new HashMap<>();
+        props.put("spring.cloud.deployer.kubernetes.volumes", "[{name: 'config', configMap: {name: promtail-config, items: [{key: promtail.yaml, path: promtail.yaml}]}}]");
+        props.put("spring.cloud.deployer.kubernetes.additional-containers", "[{name: 'promtail',image: image-path-of-promtail, ports:[{protocol: TCP,containerPort: 8080}],args: [\"-config.file=/home/conf/promtail.yaml\"],volumeMounts: [{name: 'config', mountPath: '/home/conf'}]}]");
+        AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
+
+        deployer = k8sAppDeployer();
+        PodSpec podSpec = deployer.createPodSpec(appDeploymentRequest);
+
+        ConfigMapVolumeSource configMapVolumeSource = new ConfigMapVolumeSourceBuilder()
+                .withName("promtail-config")
+                .withItems(new KeyToPath("promtail.yaml", null, "promtail.yaml"))
+                .build();
+        Volume volume = new VolumeBuilder().withName("config").withNewConfigMapLike(configMapVolumeSource).endConfigMap().build();
+        assertThat(podSpec.getVolumes()).containsOnly(volume);
     }
 
     @Test
