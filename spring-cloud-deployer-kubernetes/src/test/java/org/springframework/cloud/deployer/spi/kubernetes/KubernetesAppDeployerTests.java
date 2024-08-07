@@ -147,8 +147,8 @@ public class KubernetesAppDeployerTests {
     public void deployWithVolumesAndVolumeMountsOnAdditionalContainer() throws Exception {
         AppDefinition definition = new AppDefinition("app-test", null);
         Map<String, String> props = new HashMap<>();
-        props.put("spring.cloud.deployer.kubernetes.volumes", "[{name: 'config', configMap: {name: promtail-config, items: [{key: promtail.yaml, path: promtail.yaml}]}}]");
-        props.put("spring.cloud.deployer.kubernetes.additional-containers", "[{name: 'promtail',image: image-path-of-promtail, ports:[{protocol: TCP,containerPort: 8080}],args: [\"-config.file=/home/conf/promtail.yaml\"],volumeMounts: [{name: 'config', mountPath: '/home/conf'}]}]");
+        props.put("spring.cloud.deployer.kubernetes.volumes", "[{name: 'config', configMap: {name: promtail-config, items: [{key: promtail.yaml, path: promtail.yaml}]}},{name: 'config2', configMap: {name: promtail-config, items: [{key: promtail.yaml, path: promtail.yaml}]}}]");
+        props.put("spring.cloud.deployer.kubernetes.additional-containers", "[{name: 'promtail',image: image-path-of-promtail, ports:[{protocol: TCP,containerPort: 8080}],args: [\"-config.file=/home/conf/promtail.yaml\"],volumeMounts: [{name: 'config', mountPath: '/home/conf'}]},{name: 'promtail2',image: image-path-of-promtail, ports:[{protocol: TCP,containerPort: 8080}],args: [\"-config.file=/home/conf/promtail.yaml\"],volumeMounts: [{name: 'config2', mountPath: '/home/conf'}]}]");
         AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
 
         deployer = k8sAppDeployer();
@@ -159,7 +159,9 @@ public class KubernetesAppDeployerTests {
                 .withItems(new KeyToPath("promtail.yaml", null, "promtail.yaml"))
                 .build();
         Volume volume = new VolumeBuilder().withName("config").withNewConfigMapLike(configMapVolumeSource).endConfigMap().build();
-        assertThat(podSpec.getVolumes()).containsOnly(volume);
+        Volume volume2 = new VolumeBuilder().withName("config2").withNewConfigMapLike(configMapVolumeSource).endConfigMap().build();
+        assertThat(podSpec.getVolumes()).containsExactly(volume, volume2);
+
     }
 
     @Test
