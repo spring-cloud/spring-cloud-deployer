@@ -250,8 +250,6 @@ public class AbstractKubernetesDeployer {
 
 		podSpec.withTolerations(this.deploymentPropertiesResolver.getTolerations(deploymentProperties));
 
-		// only add volumes with corresponding volume mounts
-
 
 		if (hostNetwork) {
 			podSpec.withHostNetwork(true);
@@ -316,6 +314,7 @@ public class AbstractKubernetesDeployer {
 			allContainers.add(initContainer);
 		}
 		allContainers.addAll(additionalContainers);
+		// only add volumes with corresponding volume mounts in any container.
 		podSpec.withVolumes(this.deploymentPropertiesResolver.getVolumes(deploymentProperties).stream()
 				.filter(volume -> allContainers.stream()
 						.anyMatch(c -> c.getVolumeMounts()

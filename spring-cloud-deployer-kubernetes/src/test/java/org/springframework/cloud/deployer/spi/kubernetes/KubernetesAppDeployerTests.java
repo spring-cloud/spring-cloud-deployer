@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.Capabilities;
@@ -161,9 +163,29 @@ public class KubernetesAppDeployerTests {
         Volume volume = new VolumeBuilder().withName("config").withNewConfigMapLike(configMapVolumeSource).endConfigMap().build();
         Volume volume2 = new VolumeBuilder().withName("config2").withNewConfigMapLike(configMapVolumeSource).endConfigMap().build();
         assertThat(podSpec.getVolumes()).containsExactly(volume, volume2);
+    }
+    @Test
+    public void deployWithVolumesAndVolumeMountsOnAdditionalContainerAbsentVolumeMount() throws Exception {
+        AppDefinition definition = new AppDefinition("app-test", null);
+        Map<String, String> props = new HashMap<>();
+        props.put("spring.cloud.deployer.kubernetes.volumes", "[{name: 'config', configMap: {name: promtail-config, items: [{key: promtail.yaml, path: promtail.yaml}]}},{name: 'config2', configMap: {name: promtail-config, items: [{key: promtail.yaml, path: promtail.yaml}]}}]");
+        // both containers reference config.
+        props.put("spring.cloud.deployer.kubernetes.additional-containers", "[{name: 'promtail',image: image-path-of-promtail, ports:[{protocol: TCP,containerPort: 8080}],args: [\"-config.file=/home/conf/promtail.yaml\"],volumeMounts: [{name: 'config', mountPath: '/home/conf'}]},{name: 'promtail2',image: image-path-of-promtail, ports:[{protocol: TCP,containerPort: 8080}],args: [\"-config.file=/home/conf/promtail.yaml\"],volumeMounts: [{name: 'config', mountPath: '/home/conf'}]}]");
+        AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
+
+        deployer = k8sAppDeployer();
+        PodSpec podSpec = deployer.createPodSpec(appDeploymentRequest);
+
+        ConfigMapVolumeSource configMapVolumeSource = new ConfigMapVolumeSourceBuilder()
+                .withName("promtail-config")
+                .withItems(new KeyToPath("promtail.yaml", null, "promtail.yaml"))
+                .build();
+        Set<String> volumeNames = podSpec.getVolumes().stream().map(v -> v.getName()).collect(Collectors.toSet());
+        assertThat(volumeNames).doesNotContain("config2");
+        Volume volume = new VolumeBuilder().withName("config").withNewConfigMapLike(configMapVolumeSource).endConfigMap().build();
+        assertThat(podSpec.getVolumes()).containsExactly(volume);
 
     }
-
     @Test
     public void deployWithNodeSelectorGlobalProperty() throws Exception {
         AppDefinition definition = new AppDefinition("app-test", null);
