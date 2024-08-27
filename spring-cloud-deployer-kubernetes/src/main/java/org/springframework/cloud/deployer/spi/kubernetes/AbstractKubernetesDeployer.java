@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.deployer.spi.kubernetes;
 
+
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -245,17 +247,12 @@ public class AbstractKubernetesDeployer {
 		}
 
 		Map<String, String> nodeSelectors = this.deploymentPropertiesResolver.getNodeSelectors(deploymentProperties);
-		if (nodeSelectors.size() > 0) {
+		if (!nodeSelectors.isEmpty()) {
 			podSpec.withNodeSelector(nodeSelectors);
 		}
 
 		podSpec.withTolerations(this.deploymentPropertiesResolver.getTolerations(deploymentProperties));
 
-		// only add volumes with corresponding volume mounts
-		podSpec.withVolumes(this.deploymentPropertiesResolver.getVolumes(deploymentProperties).stream()
-				.filter(volume -> container.getVolumeMounts().stream()
-						.anyMatch(volumeMount -> volumeMount.getName().equals(volume.getName())))
-				.collect(Collectors.toList()));
 
 		if (hostNetwork) {
 			podSpec.withHostNetwork(true);
@@ -315,6 +312,22 @@ public class AbstractKubernetesDeployer {
 					.forEach((c) -> c.setSecurityContext(containerSecurityContext));
 		}
 		podSpec.addAllToContainers(additionalContainers);
+
+		List<Container> allContainers = new ArrayList<>();
+		allContainers.add(container);
+		if (initContainer != null) {
+			allContainers.add(initContainer);
+		}
+		allContainers.addAll(additionalContainers);
+		// only add volumes with corresponding volume mounts in any container.
+		podSpec.withVolumes(this.deploymentPropertiesResolver.getVolumes(deploymentProperties).stream()
+				.filter(volume -> allContainers.stream()
+						.anyMatch(c -> c.getVolumeMounts()
+								.stream()
+								.anyMatch(volumeMount -> volumeMount.getName().equals(volume.getName()))
+						)
+				)
+				.collect(Collectors.toList()));
 		return podSpec.build();
 	}
 

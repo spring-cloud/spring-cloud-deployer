@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-deployer-parent</artifactId>
-	<version>2.9.4-SNAPSHOT</version>
+	<version>2.9.5-SNAPSHOT</version>
 	<groupId>org.springframework.cloud</groupId>
 	<packaging>pom</packaging>
 
@@ -65,7 +65,9 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<logback.version>1.2.13</logback.version>
 		<json-path.version>2.9.0</json-path.version>
-		<jackson-bom.version>2.17.1</jackson-bom.version>
+		<okio.version>3.4.0</okio.version>
+		<jackson-bom.version>2.17.2</jackson-bom.version>
+		<snakeyaml.version>1.33</snakeyaml.version>
 	</properties>
 
 	<modules>
@@ -88,7 +90,7 @@
 			<dependency>
 				<groupId>org.yaml</groupId>
 				<artifactId>snakeyaml</artifactId>
-				<version>1.33</version>
+				<version>${snakeyaml.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.jayway.jsonpath</groupId>
@@ -98,7 +100,7 @@
 			<dependency>
 				<groupId>com.squareup.okio</groupId>
 				<artifactId>okio</artifactId>
-				<version>3.4.0</version>
+				<version>${okio.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.fabric8</groupId>
@@ -159,7 +161,7 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-deployer-dependencies</artifactId>
-				<version>2.9.4-SNAPSHOT</version>
+				<version>2.9.5-SNAPSHOT</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

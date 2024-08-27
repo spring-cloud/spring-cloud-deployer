@@ -51,7 +51,7 @@ public class KubernetesDeployerProperties {
      * Constants for app deployment properties that don't have a deployer level default
      * property.
      */
-    static final String KUBERNETES_DEPLOYMENT_NODE_SELECTOR = "spring.cloud.deployer.kubernetes.deployment.nodeSelector";
+    static final String KUBERNETES_DEPLOYMENT_NODE_SELECTOR = KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".nodeSelector";
 
     /**
      * The maximum concurrent tasks allowed for this platform instance.
