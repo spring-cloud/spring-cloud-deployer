@@ -17,6 +17,7 @@ package org.springframework.cloud.deployer.spi.kubernetes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -65,6 +66,7 @@ import org.springframework.cloud.deployer.spi.kubernetes.support.RelaxedNames;
 import org.springframework.cloud.deployer.spi.util.ByteSizeUtils;
 import org.springframework.cloud.deployer.spi.util.CommandLineTokenizer;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -77,6 +79,7 @@ import org.springframework.util.StringUtils;
  * @author Chris Schaefer
  * @author Ilayaperumal Gopinathan
  * @author Chris Bono
+ * @author Corneil du Plessis
  */
 
 class DeploymentPropertiesResolver {
@@ -586,44 +589,79 @@ class DeploymentPropertiesResolver {
 		return affinity;
 	}
 
-	Container getInitContainer(Map<String, String> kubernetesDeployerProperties) {
+	Collection<Container> getInitContainers(Map<String, String> kubernetesDeployerProperties) {
+		Collection<Container> initContainers = new ArrayList<>();
 		KubernetesDeployerProperties deployerProperties = bindProperties(kubernetesDeployerProperties,
 				this.propertyPrefix + ".initContainer", "initContainer");
 
 		// Deployment prop passed in for entire '.initContainer'
 		InitContainer initContainerProps = deployerProperties.getInitContainer();
 		if (initContainerProps != null) {
-			return containerFromProps(initContainerProps);
+			initContainers.add(containerFromProps(initContainerProps));
+		} else {
+			String propertyKey = this.propertyPrefix + ".initContainer";
+			Container container = initContainerFromProperties(kubernetesDeployerProperties, propertyKey);
+			if (container != null) {
+				initContainers.add(container);
+			} else {
+				initContainerProps = this.properties.getInitContainer();
+				if (initContainerProps != null) {
+					initContainers.add(containerFromProps(initContainerProps));
+				}
+			}
 		}
+		KubernetesDeployerProperties initContainerDeployerProperties = bindProperties(kubernetesDeployerProperties,
+				this.propertyPrefix + ".initContainers", "initContainers");
+		for (InitContainer initContainer : initContainerDeployerProperties.getInitContainers()) {
+			initContainers.add(containerFromProps(initContainer));
+		}
+		if(initContainerDeployerProperties.getInitContainers().isEmpty()) {
+			for (int i = 0; ; i++) {
+				String propertyKey = this.propertyPrefix + ".initContainers[" + i + "]";
+				// Get properties using binding
+				KubernetesDeployerProperties kubeProps = bindProperties(kubernetesDeployerProperties, propertyKey, "initContainer");
+				if (kubeProps.getInitContainer() != null) {
+					initContainers.add(containerFromProps(kubeProps.getInitContainer()));
+				} else {
+					// Get properties using FQN
+					Container initContainer = initContainerFromProperties(kubernetesDeployerProperties, propertyKey);
+					if (initContainer != null) {
+						initContainers.add(initContainer);
+					} else {
+						// Use default is configured
+						if (properties.getInitContainers().size() > i) {
+							initContainers.add(containerFromProps(properties.getInitContainers().get(i)));
+						}
+						break;
+					}
+				}
+			}
+		}
+		if (!properties.getInitContainers().isEmpty()) {
+			// Add remaining defaults.
+			for (int i = initContainers.size(); i < properties.getInitContainers().size(); i++) {
+				initContainers.add(containerFromProps(properties.getInitContainers().get(i)));
+			}
+		}
+		return initContainers;
+	}
 
-		// Deployment props passed in for specific '.initContainer.<property>'
-		String containerName = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".initContainer.containerName");
-		String imageName = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".initContainer.imageName");
-
+	private @Nullable Container initContainerFromProperties(Map<String, String> kubeProps, String propertyKey) {
+		String containerName = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".containerName");
+		String imageName = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".imageName");
 		if (StringUtils.hasText(containerName) && StringUtils.hasText(imageName)) {
-			String commandsStr = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-					this.propertyPrefix + ".initContainer.commands");
-			List<String> commands = StringUtils.hasText(commandsStr) ? Arrays.stream(commandsStr.split(",")).collect(Collectors.toList()) : Collections.emptyList();
-			String envString = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-					this.propertyPrefix + ".initContainer.environmentVariables");
-			List<VolumeMount> vms = this.getInitContainerVolumeMounts(kubernetesDeployerProperties);
+			String commandsStr = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".commands");
+			List<String> commands = StringUtils.hasText(commandsStr) ? Arrays.asList(commandsStr.split(",")) : Collections.emptyList();
+			String envString = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + "environmentVariables");
+			List<VolumeMount> vms = this.getInitContainerVolumeMounts(kubeProps, propertyKey);
 			return new ContainerBuilder()
 					.withName(containerName)
 					.withImage(imageName)
 					.withCommand(commands)
-					.withEnv(toEnvironmentVariables((envString != null)? envString.split(","): new String[0]))
+					.withEnv(toEnvironmentVariables((envString != null) ? envString.split(",") : new String[0]))
 					.addAllToVolumeMounts(vms)
 					.build();
 		}
-
-		// Default is global initContainer
-		initContainerProps = this.properties.getInitContainer();
-		if (initContainerProps != null) {
-			return containerFromProps(initContainerProps);
-		}
-
 		return null;
 	}
 
@@ -836,9 +874,11 @@ class DeploymentPropertiesResolver {
 	 * @param deploymentProperties the deployment properties from {@link AppDeploymentRequest}
 	 * @return the configured volume mounts
 	 */
-	private List<VolumeMount> getInitContainerVolumeMounts(Map<String, String> deploymentProperties) {
-		return this.getVolumeMounts(PropertyParserUtils.getDeploymentPropertyValue(deploymentProperties,
-				this.propertyPrefix + ".initContainer.volumeMounts"));
+	private List<VolumeMount> getInitContainerVolumeMounts(Map<String, String> deploymentProperties, String propertyKey) {
+		return this.getVolumeMounts(PropertyParserUtils.getDeploymentPropertyValue(
+				deploymentProperties,
+				propertyKey + ".volumeMounts")
+		);
 	}
 
 	private List<VolumeMount> getVolumeMounts(String propertyValue) {
