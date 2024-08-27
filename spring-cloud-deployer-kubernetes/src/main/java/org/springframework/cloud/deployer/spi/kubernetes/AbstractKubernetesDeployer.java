@@ -315,9 +315,7 @@ public class AbstractKubernetesDeployer {
 
 		List<Container> allContainers = new ArrayList<>();
 		allContainers.add(container);
-		if (initContainer != null) {
-			allContainers.add(initContainer);
-		}
+
 		allContainers.addAll(additionalContainers);
 		// only add volumes with corresponding volume mounts in any container.
 		podSpec.withVolumes(this.deploymentPropertiesResolver.getVolumes(deploymentProperties).stream()
