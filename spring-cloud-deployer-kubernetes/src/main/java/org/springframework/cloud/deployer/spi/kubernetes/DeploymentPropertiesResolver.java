@@ -670,6 +670,7 @@ class DeploymentPropertiesResolver {
 				.withName(initContainerProps.getContainerName())
 				.withImage(initContainerProps.getImageName())
 				.withCommand(initContainerProps.getCommands())
+				.withArgs(initContainerProps.getArgs())
 				.withEnv(toEnvironmentVariables(initContainerProps.getEnvironmentVariables()))
 				.addAllToVolumeMounts(Optional.ofNullable(initContainerProps.getVolumeMounts()).orElse(Collections.emptyList()))
 				.build();

@@ -893,7 +893,7 @@ public class KubernetesDeployerProperties {
         private String containerName;
 
         private List<String> commands;
-
+        private List<String> args;
         private List<VolumeMount> volumeMounts;
 
         /**
@@ -923,6 +923,14 @@ public class KubernetesDeployerProperties {
 
         public void setCommands(List<String> commands) {
             this.commands = commands;
+        }
+
+        public List<String> getArgs() {
+            return args;
+        }
+
+        public void setArgs(List<String> args) {
+            this.args = args;
         }
 
         public List<VolumeMount> getVolumeMounts() {
