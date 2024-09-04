@@ -931,7 +931,7 @@ public class KubernetesAppDeployerTests {
         props.put("spring.cloud.deployer.kubernetes.initContainers[1].imageName", "busybox:2");
         props.put("spring.cloud.deployer.kubernetes.initContainers[1].containerName", "bb_s2");
         props.put("spring.cloud.deployer.kubernetes.initContainers[1].commands", "sh,-c,script2.sh");
-        props.put("spring.cloud.deployer.kubernetes.initContainers[2]", "{ \"imageName\": \"busybox:3\", \"containerName\": \"bb_s3\", \"commands\": [\"sh\", \"-c\", \"script3.sh\"], \"volumeMounts\": [{\"mountPath\": \"/data\", \"name\": \"s3vol\", \"readOnly\": true}] }");
+        props.put("spring.cloud.deployer.kubernetes.initContainers[2]", "{ \"imageName\": \"busybox:3\", \"containerName\": \"bb_s3\", \"args\": [\"-c\", \"script3.sh\"], \"volumeMounts\": [{\"mountPath\": \"/data\", \"name\": \"s3vol\", \"readOnly\": true}] }");
 
         AppDefinition definition = new AppDefinition("app-test", null);
         AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
@@ -951,7 +951,7 @@ public class KubernetesAppDeployerTests {
         Container container2 = podSpec.getInitContainers().get(2);
         assertThat(container2.getImage()).isEqualTo("busybox:3");
         assertThat(container2.getName()).isEqualTo("bb_s3");
-        assertThat(container2.getCommand()).containsExactly("sh", "-c", "script3.sh");
+        assertThat(container2.getArgs()).containsExactly("-c", "script3.sh");
         assertThat(container2.getVolumeMounts()).isNotEmpty();
         assertThat(container2.getVolumeMounts().get(0).getName()).isEqualTo("s3vol");
         assertThat(container2.getVolumeMounts().get(0).getMountPath()).isEqualTo("/data");
