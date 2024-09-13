@@ -3,13 +3,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-deployer-cloudfoundry</artifactId>
-	<version>2.9.5-SNAPSHOT</version>
+	<version>2.9.5</version>
 	<packaging>jar</packaging>
 	<name>Spring Cloud Deployer CloudFoundry</name>
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-deployer-parent</artifactId>
-		<version>2.9.5-SNAPSHOT</version>
+		<version>2.9.5</version>
 		<relativePath>..</relativePath>
 	</parent>
 
