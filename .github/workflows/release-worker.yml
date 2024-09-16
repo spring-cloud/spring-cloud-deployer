@@ -43,7 +43,7 @@ jobs:
           --repo-resolve-snapshots=libs-snapshot \
           --repo-deploy-releases=libs-staging-local \
           --repo-deploy-snapshots=libs-snapshot-local
-        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-main-release >> $GITHUB_ENV
+        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-2-9-x-release >> $GITHUB_ENV
         echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
 
     # zoo extract and ensure
@@ -70,7 +70,7 @@ jobs:
           -P-spring,stagingrelease \
           -DskipTests -U -B -T 0.5C
         jfrog rt build-publish
-        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-main-release >> $GITHUB_ENV
+        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-2-9-x-release >> $GITHUB_ENV
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildnumber=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
     - name: Run Trivy vulnerability scanner in repo mode
       uses: aquasecurity/trivy-action@master
