@@ -45,7 +45,7 @@ jobs:
           --repo-resolve-snapshots=libs-snapshot \
           --repo-deploy-releases=libs-release-local \
           --repo-deploy-snapshots=libs-snapshot-local
-        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-main >> $GITHUB_ENV
+        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-2-9-x >> $GITHUB_ENV
         echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
 
     # zoo extract and ensure
@@ -60,7 +60,7 @@ jobs:
         jfrog rt mvn -U -B clean install -T 0.5C
         jfrog rt build-publish
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout) >> $GITHUB_ENV
-        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-main >> $GITHUB_ENV
+        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-2-9-x >> $GITHUB_ENV
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildnumber=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
     - name: Test Report
       uses: dorny/test-reporter@v1
