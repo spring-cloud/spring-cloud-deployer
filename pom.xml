@@ -62,6 +62,7 @@
         <commons-io.version>2.16.1</commons-io.version>
 		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
 		<spring-boot.version>3.3.0</spring-boot.version>
+		<spring-framework.version>6.1.8</spring-framework.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<logback.version>1.2.13</logback.version>
