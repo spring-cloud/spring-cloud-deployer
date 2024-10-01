@@ -37,10 +37,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'liberica'
-      - uses: jvalkeal/setup-maven@v1
-        with:
-          maven-version: 3.8.8
-          maven-mirror: 'https://dlcdn.apache.org/maven/maven-3/'
       - name: 'Install minikube ${{ matrix.patch && matrix.patch || matrix.k8s_version }}'
         shell: bash
         run: |
@@ -48,10 +44,15 @@ jobs:
           curl -LO "https://storage.googleapis.com/minikube/releases/$MINIKUBE_VERSION/minikube-linux-amd64"
           sudo install minikube-linux-amd64 /usr/local/bin/minikube
           minikube start "--kubernetes-version=${{ matrix.patch && matrix.patch || matrix.k8s_version }}"
+          docker pull busybox:latest
+          minikube image load busybox:latest
       # build
       - name: Build
         run: |
-          mvn -U -B -Pfailsafe verify -pl spring-cloud-deployer-kubernetes
+          ./mvnw install -am -pl spring-cloud-deployer-kubernetes,spring-cloud-deployer-spi-test-app -DskipTests -T 1C
+          ./mvnw spring-boot:build-image -pl spring-cloud-deployer-spi-test-app
+          minikube image load springcloud/spring-cloud-deployer-spi-test-app:latest
+          ./mvnw -B -Pfailsafe verify -pl spring-cloud-deployer-kubernetes
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: ${{ success() || failure() }}
