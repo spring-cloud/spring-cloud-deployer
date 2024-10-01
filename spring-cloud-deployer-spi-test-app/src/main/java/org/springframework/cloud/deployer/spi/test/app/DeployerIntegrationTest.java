@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.deployer.spi.test.app;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

@@ -30,6 +30,12 @@ import org.springframework.cloud.deployer.resource.maven.MavenProperties.WagonHt
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests for Maven Wagon resolver.
+ *
+ * @author Janne Valkealahti
+ * @author Corneil du Plessis
+ */
 public class WagonHttpTests {
 
 	@RegisterExtension
@@ -48,6 +54,7 @@ public class WagonHttpTests {
 				.parse("org.example:doesnotexist:jar:1.0.0.RELEASE", mavenProperties);
 		assertThat(resource.exists()).isFalse();
 	}
+
 
 	@Test
 	public void resourceDoesExistWagon(@TempDir Path tempDir) {

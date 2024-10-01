@@ -39,6 +39,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -50,12 +51,16 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetList;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
+import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.fabric8.kubernetes.client.dsl.ScalableResource;
+import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppScaleRequest;
@@ -81,17 +86,16 @@ import org.springframework.util.StringUtils;
  * @author Christian Tzolov
  * @author Omar Gonzalez
  * @author Chris Bono
+ * @author Corneil du Plessis
  */
 public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements AppDeployer {
 
     protected final Log logger = LogFactory.getLog(getClass().getName());
 
-    @Autowired
     public KubernetesAppDeployer(KubernetesDeployerProperties properties, KubernetesClient client) {
         this(properties, client, new DefaultContainerFactory(properties));
     }
 
-    @Autowired
     public KubernetesAppDeployer(KubernetesDeployerProperties properties, KubernetesClient client,
                                  ContainerFactory containerFactory) {
         this.properties = properties;
@@ -106,7 +110,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
         String appId = createDeploymentId(request);
         if (logger.isDebugEnabled()) {
             ArgumentSanitizer sanitizer = new ArgumentSanitizer();
-            Map<String,String> sanitized = sanitizer.sanitizeProperties(request.getDeploymentProperties());
+			Map<String, String> sanitized = sanitizer.sanitizeProperties(request.getDeploymentProperties());
             List<String> sanitizedCommandlineArguments = sanitizer.sanitizeArguments(request.getCommandlineArguments());
             logger.debug(String.format("Deploying app: %s, request: commandlineArguments=%s, deploymentProperties=%s, definition=%s, resource=%s", appId, sanitizedCommandlineArguments, sanitized, request.getDefinition(), request.getResource()));
         }
@@ -218,15 +222,22 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
             logger.debug(String.format("Scale app: %s to: %s", deploymentId, appScaleRequest.getCount()));
         }
 
-        ScalableResource scalableResource = this.client.apps().deployments().withName(deploymentId);
-        if (scalableResource.get() == null) {
-            scalableResource = this.client.apps().statefulSets().withName(deploymentId);
-        }
-        if (scalableResource.get() == null) {
-            throw new IllegalStateException(String.format("App '%s' is not deployed", deploymentId));
-        }
-        scalableResource.scale(appScaleRequest.getCount(), true);
-    }
+		try {
+			ScalableResource<?> scalableResource = this.client.apps().deployments().withName(deploymentId);
+			if (scalableResource.get() == null) {
+				scalableResource = this.client.apps().statefulSets().withName(deploymentId);
+			}
+			if (scalableResource.get() == null) {
+				throw new IllegalStateException(String.format("App '%s' is not deployed", deploymentId));
+			}
+			scalableResource.scale(appScaleRequest.getCount(), true);
+		} catch (KubernetesClientException x) {
+			logger.debug("scale:exception:" + x, x);
+			throw new IllegalStateException(x);
+		}
+
+
+	}
 
     @Override
     public RuntimeEnvironmentInfo environmentInfo() {
@@ -364,7 +375,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
         if (createLoadBalancer == null) {
             isCreateLoadBalancer = properties.isCreateLoadBalancer();
         } else {
-            if ("true".equals(createLoadBalancer.toLowerCase())) {
+			if ("true".equalsIgnoreCase(createLoadBalancer)) {
                 isCreateLoadBalancer = true;
             }
         }
@@ -379,7 +390,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
 
         if (createNodePort != null) {
             spec.withType("NodePort");
-            if (!"true".equals(createNodePort.toLowerCase())) {
+			if (!"true".equalsIgnoreCase(createNodePort)) {
                 try {
                     Integer nodePort = Integer.valueOf(createNodePort);
                     servicePort.setNodePort(nodePort);
@@ -488,7 +499,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
      * <p>
      * Since 1.8 the annotation method has been removed, and the initContainer API is supported since 1.6
      *
-	 * @param podSpec the current pod spec the container is being added to
+	 * @param podSpec   the current pod spec the container is being added to
      * @param imageName the image name to use in the init container
      * @return a container definition with the  aforementioned configuration
      */
@@ -520,7 +531,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
 
     private String setIndexProperty(String name) {
         return String
-                .format("echo %s=\"$(expr $HOSTNAME | grep -o \"[[:digit:]]*$\")\" >> "+
+			.format("echo %s=\"$(expr $HOSTNAME | grep -o \"[[:digit:]]*$\")\" >> " +
                         "/config/application.properties", name);
     }
 
@@ -538,62 +549,62 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
     }
 
     private void deleteService(Map<String, String> labels) {
-        FilterWatchListDeletable<Service, ServiceList> servicesToDelete =
+		FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>> servicesToDelete =
                 client.services().withLabels(labels);
 
         if (servicesToDelete != null && servicesToDelete.list().getItems() != null) {
-            boolean servicesDeleted = servicesToDelete.delete();
-            if (logger.isDebugEnabled()) {
-                logger.debug(String.format("Service deleted for: %s - %b", labels, servicesDeleted));
-            }
+			List<StatusDetails> servicesDeleted = servicesToDelete.delete();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("Service deleted for: %s - %s", labels, servicesDeleted));
+			}
         }
     }
 
     private void deleteDeployment(Map<String, String> labels) {
-        FilterWatchListDeletable<Deployment, DeploymentList> deploymentsToDelete =
+		FilterWatchListDeletable<Deployment, DeploymentList, RollableScalableResource<Deployment>> deploymentsToDelete =
                 client.apps().deployments().withLabels(labels);
 
         if (deploymentsToDelete != null && deploymentsToDelete.list().getItems() != null) {
-            boolean deploymentsDeleted = deploymentsToDelete.delete();
-            if (logger.isDebugEnabled()) {
-                logger.debug(String.format("Deployment deleted for: %s - %b", labels, deploymentsDeleted));
-            }
+			List<StatusDetails> deploymentsDeleted = deploymentsToDelete.delete();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("Deployment deleted for: %s - %s", labels, deploymentsDeleted));
+			}
         }
     }
 
     private void deleteStatefulSet(Map<String, String> labels) {
-        FilterWatchListDeletable<StatefulSet, StatefulSetList> ssToDelete =
+		FilterWatchListDeletable<StatefulSet, StatefulSetList, RollableScalableResource<StatefulSet>> ssToDelete =
                 client.apps().statefulSets().withLabels(labels);
 
         if (ssToDelete != null && ssToDelete.list().getItems() != null) {
-            boolean ssDeleted = ssToDelete.delete();
+			List<StatusDetails> ssDeleted = ssToDelete.delete();
             if (logger.isDebugEnabled()) {
-                logger.debug(String.format("StatefulSet deleted for: %s - %b", labels, ssDeleted));
+                logger.debug(String.format("StatefulSet deleted for: %s - %s", labels, ssDeleted));
             }
         }
     }
 
     private void deletePod(Map<String, String> labels) {
-        FilterWatchListDeletable<Pod, PodList> podsToDelete = client.pods()
+		FilterWatchListDeletable<Pod, PodList, PodResource> podsToDelete = client.pods()
                 .withLabels(labels);
 
         if (podsToDelete != null && podsToDelete.list().getItems() != null) {
-            boolean podsDeleted = podsToDelete.delete();
-            if (logger.isDebugEnabled()) {
-                logger.debug(String.format("Pod deleted for: %s - %b", labels, podsDeleted));
-            }
+			List<StatusDetails> podsDeleted = podsToDelete.delete();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("Pod deleted for: %s - %s", labels, podsDeleted));
+			}
         }
     }
 
     private void deletePvc(Map<String, String> labels) {
-        FilterWatchListDeletable<PersistentVolumeClaim, PersistentVolumeClaimList> pvcsToDelete = client.persistentVolumeClaims()
+		FilterWatchListDeletable<PersistentVolumeClaim, PersistentVolumeClaimList, Resource<PersistentVolumeClaim>> pvcsToDelete = client.persistentVolumeClaims()
                 .withLabels(labels);
 
         if (pvcsToDelete != null && pvcsToDelete.list().getItems() != null) {
-            boolean pvcsDeleted = pvcsToDelete.delete();
-            if (logger.isDebugEnabled()) {
-                logger.debug(String.format("PVC deleted for: %s - %b", labels, pvcsDeleted));
-            }
+			List<StatusDetails> pvcsDeleted = pvcsToDelete.delete();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("PVC deleted for: %s - %s", labels, pvcsDeleted));
+			}
         }
     }
 

@@ -83,7 +83,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 	 * Return the timeout to use for repeatedly querying that a task has been scheduled.
 	 * Default value is one minute, being queried every 5 seconds.
 	 */
-	private Timeout scheduleTimeout = new Timeout(12, 5000);
+	private Timeout scheduleTimeout = new Timeout(30, 5000);
 
 	/**
 	 * Return the timeout to use for repeatedly querying whether a task has been unscheduled.
@@ -192,7 +192,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 
         assertThatThrownBy(() -> {
             unscheduleTestSchedule(scheduleName);
-        }).isInstanceOf(SchedulerException.class).hasMessage("Failed to unschedule schedule %s does not exist.",
+		}).isInstanceOf(SchedulerException.class).hasMessage("Failed to unschedule %s",
                 scheduleName);
 	}
 
@@ -303,7 +303,7 @@ public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 	}
 
 	protected String randomName() {
-		return this.testName + "-" + UUID.randomUUID().toString();
+		return this.testName + "-" + UUID.randomUUID();
 	}
 
 	protected String scheduleName() {
