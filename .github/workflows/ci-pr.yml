@@ -20,14 +20,10 @@ jobs:
       with:
         java-version: '17'
         distribution: 'liberica'
-    - uses: jvalkeal/setup-maven@v1
-      with:
-        maven-version: 3.8.8
-        maven-mirror: 'https://dlcdn.apache.org/maven/maven-3/'
     # build
     - name: Build
       run: |
-        mvn -U -B clean package
+        ./mvnw -U -B clean package
     - name: Capture Test Results
       if: failure()
       uses: actions/upload-artifact@v3

@@ -17,10 +17,6 @@ jobs:
       with:
         java-version: '17'
         distribution: 'liberica'
-    - uses: jvalkeal/setup-maven@v1
-      with:
-        maven-version: 3.8.8
-        maven-mirror: 'https://dlcdn.apache.org/maven/maven-3/'
     - uses: jfrog/setup-jfrog-cli@v1
       with:
         version: 1.46.4
@@ -38,14 +34,14 @@ jobs:
     # target deploy repos
     - name: Configure JFrog Cli
       run: |
-        jfrog rt mvnc \
+        jfrog rt mvnc --use-wrapper \
           --server-id-resolve=repo.spring.io \
           --server-id-deploy=repo.spring.io \
           --repo-resolve-releases=libs-milestone \
           --repo-resolve-snapshots=libs-snapshot \
           --repo-deploy-releases=libs-release-local \
           --repo-deploy-snapshots=libs-snapshot-local
-        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-main-3 >> $GITHUB_ENV
+        echo JFROG_CLI_BUILD_NAME=spring-cloud-deployer-main >> $GITHUB_ENV
         echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
 
     # zoo extract and ensure
@@ -59,8 +55,8 @@ jobs:
       run: |
         jfrog rt mvn -U -B clean install -T 0.5C
         jfrog rt build-publish
-        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout) >> $GITHUB_ENV
-        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-main-3 >> $GITHUB_ENV
+        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout) >> $GITHUB_ENV
+        echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildname=spring-cloud-deployer-main >> $GITHUB_ENV
         echo BUILD_ZOO_HANDLER_spring_cloud_deployer_buildnumber=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
     - name: Test Report
       uses: dorny/test-reporter@v1
