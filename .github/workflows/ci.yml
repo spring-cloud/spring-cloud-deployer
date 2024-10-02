@@ -30,9 +30,7 @@ jobs:
         java-version: '17'
         distribution: 'liberica'
     # jfrog cli
-    - uses: jfrog/setup-jfrog-cli@v1
-      with:
-        version: 1.46.4
+    - uses: jfrog/setup-jfrog-cli@v3
       env:
         JF_ARTIFACTORY_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
     # setup frog cli
