@@ -38,7 +38,7 @@ jobs:
     # setup frog cli
     - name: Configure JFrog Cli
       run: |
-        jfrog rt mvnc \
+        jfrog rt mvnc --use-wrapper \
           --server-id-resolve=repo.spring.io \
           --server-id-deploy=repo.spring.io \
           --repo-resolve-releases=libs-milestone \
