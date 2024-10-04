@@ -37,8 +37,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'liberica'
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
       - name: 'Install minikube ${{ matrix.patch && matrix.patch || matrix.k8s_version }}'
         shell: bash
         run: |
@@ -49,9 +47,6 @@ jobs:
       # build
       - name: Build
         run: |
-          ./mvnw install -am -pl spring-cloud-deployer-kubernetes,spring-cloud-deployer-spi-test-app -DskipTests -T 1C
-          ./mvnw spring-boot:build-image -pl spring-cloud-deployer-spi-test-app
-          minikube image load springcloud/spring-cloud-deployer-spi-test-app:latest
           ./mvnw -B -Pfailsafe verify -pl spring-cloud-deployer-kubernetes
       - name: Test Report
         uses: dorny/test-reporter@v1
