@@ -39,10 +39,6 @@ jobs:
           distribution: 'liberica'
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: 'Install minikube ${{ matrix.patch && matrix.patch || matrix.k8s_version }}'
         shell: bash
         run: |
@@ -50,17 +46,6 @@ jobs:
           curl -LO "https://storage.googleapis.com/minikube/releases/$MINIKUBE_VERSION/minikube-linux-amd64"
           sudo install minikube-linux-amd64 /usr/local/bin/minikube
           minikube start "--kubernetes-version=${{ matrix.patch && matrix.patch || matrix.k8s_version }}"
-      - name: 'Prepare docker hub pull secrets'
-        shell: bash
-        env:
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-        run: |
-          kubectl create secret docker-registry docker-hub-pull-secret \
-            --docker-server=registry-1.docker.io \
-            --docker-username="$DOCKER_HUB_USERNAME" \
-            --docker-password="$DOCKER_HUB_PASSWORD" \
-          kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "docker-hub-pull-secret"}]}'
       # build
       - name: Build
         run: |
