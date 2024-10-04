@@ -40,7 +40,7 @@ jobs:
       - name: 'Install minikube ${{ matrix.patch && matrix.patch || matrix.k8s_version }}'
         shell: bash
         run: |
-          MINIKUBE_VERSION="v1.32.0"
+          MINIKUBE_VERSION="v1.34.0"
           curl -LO "https://storage.googleapis.com/minikube/releases/$MINIKUBE_VERSION/minikube-linux-amd64"
           sudo install minikube-linux-amd64 /usr/local/bin/minikube
           minikube start "--kubernetes-version=${{ matrix.patch && matrix.patch || matrix.k8s_version }}"

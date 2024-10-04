@@ -25,6 +25,10 @@
   },
   {
     "k8s_version": "v1.29",
-    "patch": "1.29.2"
+    "patch": null
+  },
+  {
+    "k8s_version": "v1.30",
+    "patch": null
   }
 ]
