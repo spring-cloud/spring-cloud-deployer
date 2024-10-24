@@ -53,22 +53,32 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>17</java.version>
+
+		<!-- ==================== -->
+		<!-- Dependency Versions  -->
+		<!-- ==================== -->
+		<spring-boot.version>3.3.4</spring-boot.version>
+		<spring-framework.version>6.1.13</spring-framework.version>
+		<commons-compress.version>1.26.2</commons-compress.version>
+		<commons-io.version>2.16.1</commons-io.version>
+
+		<!-- Kubernetes Deployer -->
+		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
+		<hashids.version>1.0.1</hashids.version>
+
+		<!-- Cloudfoundry Deployer -->
+		<!-- @TODO boot3 updates need for jakarta ee -->
+		<cloudfoundry-java-lib.version>5.12.1.RELEASE</cloudfoundry-java-lib.version>
+		<pivotal-cf-client-reactor.version>2.2.0.RELEASE</pivotal-cf-client-reactor.version>
+
+		<!-- ==================== -->
+		<!-- Plugin Versions      -->
+		<!-- ==================== -->
 		<!-- @TODO boot3 waiting for 4.x to support jakarta ee -->
 		<maven.version>3.9.6</maven.version>
 		<!-- @TODO boot3 waiting for 4.x to support jakarta ee -->
 		<maven-resolver.version>1.9.18</maven-resolver.version>
 		<maven-wagon.version>3.5.3</maven-wagon.version>
-		<commons-compress.version>1.26.2</commons-compress.version>
-		<commons-io.version>2.16.1</commons-io.version>
-		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
-		<spring-boot.version>3.3.4</spring-boot.version>
-		<spring-framework.version>6.1.13</spring-framework.version>
-		<hashids.version>1.0.1</hashids.version>
-		<!-- @TODO boot3 updates need for jakarta ee -->
-		<cloudfoundry-java-lib.version>5.12.1.RELEASE</cloudfoundry-java-lib.version>
-		<pivotal-cf-client-reactor.version>2.2.0.RELEASE</pivotal-cf-client-reactor.version>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
 	</properties>
 
 	<modules>
