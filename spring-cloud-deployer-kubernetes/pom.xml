@@ -15,23 +15,18 @@
 	</parent>
 
 	<properties>
-		<java.version>17</java.version>
-		<java-semver.version>0.9.0</java-semver.version>
-		<maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
+		<!-- TODO remove this when spring-cloud-deployer/issues/484 is complete -->
 		<powermock.version>2.0.2</powermock.version>
 	</properties>
-
 
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-deployer-spi</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-deployer-resource-docker</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -48,7 +43,7 @@
 		<dependency>
 			<groupId>org.hashids</groupId>
 			<artifactId>hashids</artifactId>
-			<version>1.0.1</version>
+			<version>${hashids.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -76,7 +71,6 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<version>2.23.4</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

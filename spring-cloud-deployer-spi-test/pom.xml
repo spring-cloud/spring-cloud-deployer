@@ -34,12 +34,10 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-deployer-spi</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-deployer-resource-maven</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -59,8 +57,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-all</artifactId>
-			<version>${hamcrest.version}</version>
+			<artifactId>hamcrest-library</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.awaitility</groupId>

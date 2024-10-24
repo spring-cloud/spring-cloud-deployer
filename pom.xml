@@ -58,14 +58,17 @@
 		<!-- @TODO boot3 waiting for 4.x to support jakarta ee -->
 		<maven-resolver.version>1.9.18</maven-resolver.version>
 		<maven-wagon.version>3.5.3</maven-wagon.version>
-        <commons-compress.version>1.26.1</commons-compress.version>
-        <commons-io.version>2.16.1</commons-io.version>
+		<commons-compress.version>1.26.2</commons-compress.version>
+		<commons-io.version>2.16.1</commons-io.version>
 		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
-		<spring-boot.version>3.3.0</spring-boot.version>
-		<spring-framework.version>6.1.8</spring-framework.version>
+		<spring-boot.version>3.3.4</spring-boot.version>
+		<spring-framework.version>6.1.13</spring-framework.version>
+		<hashids.version>1.0.1</hashids.version>
+		<!-- @TODO boot3 updates need for jakarta ee -->
+		<cloudfoundry-java-lib.version>5.12.1.RELEASE</cloudfoundry-java-lib.version>
+		<pivotal-cf-client-reactor.version>2.2.0.RELEASE</pivotal-cf-client-reactor.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<json-path.version>2.9.0</json-path.version>
 	</properties>
 
 	<modules>
@@ -85,11 +88,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-            <dependency>
-                <groupId>com.jayway.jsonpath</groupId>
-                <artifactId>json-path</artifactId>
-                <version>${json-path.version}</version>
-            </dependency>
 			<dependency>
 				<groupId>io.fabric8</groupId>
 				<artifactId>kubernetes-client-bom</artifactId>
@@ -125,6 +123,21 @@
 				<groupId>org.apache.maven.wagon</groupId>
 				<artifactId>wagon-http</artifactId>
 				<version>${maven-wagon.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.cloudfoundry</groupId>
+				<artifactId>cloudfoundry-client-reactor</artifactId>
+				<version>${cloudfoundry-java-lib.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.cloudfoundry</groupId>
+				<artifactId>cloudfoundry-operations</artifactId>
+				<version>${cloudfoundry-java-lib.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.pivotal</groupId>
+				<artifactId>pivotal-cloudfoundry-client-reactor</artifactId>
+				<version>${pivotal-cf-client-reactor.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
