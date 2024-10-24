@@ -13,20 +13,10 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<properties>
-		<java.version>17</java.version>
-		<!-- @TODO boot3 updates need for jakarta ee -->
-		<cloudfoundry-java-lib.version>5.12.1.RELEASE</cloudfoundry-java-lib.version>
-		<pivotal-cf-client-reactor.version>2.2.0.RELEASE</pivotal-cf-client-reactor.version>
-		<commons-compress.version>1.26.2</commons-compress.version>
-        <okhttp.version>3.14.9</okhttp.version>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-deployer-spi</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -44,7 +34,6 @@
 		<dependency>
 			<groupId>org.cloudfoundry</groupId>
 			<artifactId>cloudfoundry-client-reactor</artifactId>
-			<version>${cloudfoundry-java-lib.version}</version>
 			<!-- @TODO boot3 remove when updated -->
 			<exclusions>
 				<exclusion>
@@ -54,14 +43,16 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-compress</artifactId>
-			<version>${commons-compress.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.cloudfoundry</groupId>
 			<artifactId>cloudfoundry-operations</artifactId>
-			<version>${cloudfoundry-java-lib.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.pivotal</groupId>
+			<artifactId>pivotal-cloudfoundry-client-reactor</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
@@ -74,11 +65,6 @@
 		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.pivotal</groupId>
-			<artifactId>pivotal-cloudfoundry-client-reactor</artifactId>
-			<version>${pivotal-cf-client-reactor.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.retry</groupId>
@@ -98,31 +84,26 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-deployer-resource-docker</artifactId>
-			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-deployer-resource-support</artifactId>
-			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-deployer-autoconfigure</artifactId>
-			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
-			<version>${okhttp.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>mockwebserver</artifactId>
-			<version>${okhttp.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
