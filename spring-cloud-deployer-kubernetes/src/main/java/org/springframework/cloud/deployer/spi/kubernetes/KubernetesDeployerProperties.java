@@ -19,6 +19,8 @@ package org.springframework.cloud.deployer.spi.kubernetes;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PodAffinity;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
@@ -58,10 +60,10 @@ public class KubernetesDeployerProperties {
      */
     private int maximumConcurrentTasks = 20;
 
-	/**
-	 * The number of seconds to wait before terminating the container.
-	 */
-	private Long terminationGracePeriodSeconds;
+    /**
+     * The number of seconds to wait before terminating the container.
+     */
+    private Long terminationGracePeriodSeconds;
 
     @NestedConfigurationProperty
     private Config fabric8 = Config.autoConfigure(null);
@@ -346,57 +348,57 @@ public class KubernetesDeployerProperties {
     }
 
     public static class PodSecurityContext {
-		/**
-		 * The numeric user ID to run pod container processes under
-		 */
-		private Long runAsUser;
+        /**
+         * The numeric user ID to run pod container processes under
+         */
+        private Long runAsUser;
 
-		/**
-		 * The numeric group id to run the entrypoint of the container process
-		 */
-		private Long runAsGroup;
+        /**
+         * The numeric group id to run the entrypoint of the container process
+         */
+        private Long runAsGroup;
 
-		/**
-		 * Indicates that the container must run as a non-root user
-		 */
-		private Boolean runAsNonRoot;
+        /**
+         * Indicates that the container must run as a non-root user
+         */
+        private Boolean runAsNonRoot;
 
         /**
          * The numeric group ID for the volumes of the pod
          */
         private Long fsGroup;
 
-		/**
-		 * Defines behavior of changing ownership and permission of the volume before being
-		 * exposed inside pod (only applies to volume types which support fsGroup based
-		 * ownership and permissions) - possible values are "OnRootMismatch", "Always"
-		 */
-		private String fsGroupChangePolicy;
+        /**
+         * Defines behavior of changing ownership and permission of the volume before being
+         * exposed inside pod (only applies to volume types which support fsGroup based
+         * ownership and permissions) - possible values are "OnRootMismatch", "Always"
+         */
+        private String fsGroupChangePolicy;
 
         /**
          * The numeric group IDs applied to the pod container processes, in addition to the container's primary group ID
          */
         private Long[] supplementalGroups;
 
-		/**
-		 * The seccomp options to use for the pod containers
-		 */
-		private SeccompProfile seccompProfile;
+        /**
+         * The seccomp options to use for the pod containers
+         */
+        private SeccompProfile seccompProfile;
 
-		/**
-		 * The SELinux context to be applied to the pod containers
-		 */
-		private SELinuxOptions seLinuxOptions;
+        /**
+         * The SELinux context to be applied to the pod containers
+         */
+        private SELinuxOptions seLinuxOptions;
 
-		/**
-		 * List of namespaced sysctls used for the pod (not used when spec.os.name is windows).
-		 */
-		private List<SysctlInfo> sysctls;
+        /**
+         * List of namespaced sysctls used for the pod (not used when spec.os.name is windows).
+         */
+        private List<SysctlInfo> sysctls;
 
-		/**
-		 * The Windows specific settings applied to all containers.
-		 */
-		private WindowsSecurityContextOptions windowsOptions;
+        /**
+         * The Windows specific settings applied to all containers.
+         */
+        private WindowsSecurityContextOptions windowsOptions;
 
         public void setRunAsUser(Long runAsUser) {
             this.runAsUser = runAsUser;
@@ -406,23 +408,23 @@ public class KubernetesDeployerProperties {
             return this.runAsUser;
         }
 
-		public Long getRunAsGroup() {
-			return runAsGroup;
-		}
+        public Long getRunAsGroup() {
+            return runAsGroup;
+        }
 
-		public void setRunAsGroup(Long runAsGroup) {
-			this.runAsGroup = runAsGroup;
-		}
+        public void setRunAsGroup(Long runAsGroup) {
+            this.runAsGroup = runAsGroup;
+        }
 
-		public Boolean getRunAsNonRoot() {
-			return runAsNonRoot;
-		}
+        public Boolean getRunAsNonRoot() {
+            return runAsNonRoot;
+        }
 
-		public void setRunAsNonRoot(Boolean runAsNonRoot) {
-			this.runAsNonRoot = runAsNonRoot;
-		}
+        public void setRunAsNonRoot(Boolean runAsNonRoot) {
+            this.runAsNonRoot = runAsNonRoot;
+        }
 
-		public void setFsGroup(Long fsGroup) {
+        public void setFsGroup(Long fsGroup) {
             this.fsGroup = fsGroup;
         }
 
@@ -430,15 +432,15 @@ public class KubernetesDeployerProperties {
             return fsGroup;
         }
 
-		public String getFsGroupChangePolicy() {
-			return fsGroupChangePolicy;
-		}
+        public String getFsGroupChangePolicy() {
+            return fsGroupChangePolicy;
+        }
 
-		public void setFsGroupChangePolicy(String fsGroupChangePolicy) {
-			this.fsGroupChangePolicy = fsGroupChangePolicy;
-		}
+        public void setFsGroupChangePolicy(String fsGroupChangePolicy) {
+            this.fsGroupChangePolicy = fsGroupChangePolicy;
+        }
 
-		public void setSupplementalGroups(Long[] supplementalGroups) {
+        public void setSupplementalGroups(Long[] supplementalGroups) {
             this.supplementalGroups = supplementalGroups;
         }
 
@@ -454,212 +456,212 @@ public class KubernetesDeployerProperties {
             this.seccompProfile = seccompProfile;
         }
 
-		public SELinuxOptions getSeLinuxOptions() {
-			return seLinuxOptions;
-		}
+        public SELinuxOptions getSeLinuxOptions() {
+            return seLinuxOptions;
+        }
 
-		public void setSeLinuxOptions(SELinuxOptions seLinuxOptions) {
-			this.seLinuxOptions = seLinuxOptions;
-		}
+        public void setSeLinuxOptions(SELinuxOptions seLinuxOptions) {
+            this.seLinuxOptions = seLinuxOptions;
+        }
 
-		public List<SysctlInfo> getSysctls() {
-			return sysctls;
-		}
+        public List<SysctlInfo> getSysctls() {
+            return sysctls;
+        }
 
-		public void setSysctls(List<SysctlInfo> sysctls) {
-			this.sysctls = sysctls;
-		}
+        public void setSysctls(List<SysctlInfo> sysctls) {
+            this.sysctls = sysctls;
+        }
 
-		public WindowsSecurityContextOptions getWindowsOptions() {
-			return windowsOptions;
-		}
+        public WindowsSecurityContextOptions getWindowsOptions() {
+            return windowsOptions;
+        }
 
-		public void setWindowsOptions(WindowsSecurityContextOptions windowsOptions) {
-			this.windowsOptions = windowsOptions;
-		}
-	}
+        public void setWindowsOptions(WindowsSecurityContextOptions windowsOptions) {
+            this.windowsOptions = windowsOptions;
+        }
+    }
 
-	public static class ContainerSecurityContext {
+    public static class ContainerSecurityContext {
 
-		/**
-		 * Whether a process can gain more privileges than its parent process
-		 */
-		private Boolean allowPrivilegeEscalation;
+        /**
+         * Whether a process can gain more privileges than its parent process
+         */
+        private Boolean allowPrivilegeEscalation;
 
-		/**
-		 * The capabilities to add/drop when running the container (cannot be set when spec.os.name is windows)
-		 */
-		private Capabilities capabilities;
+        /**
+         * The capabilities to add/drop when running the container (cannot be set when spec.os.name is windows)
+         */
+        private Capabilities capabilities;
 
-		/**
-		 * Run container in privileged mode.
-		 */
-		private Boolean privileged;
+        /**
+         * Run container in privileged mode.
+         */
+        private Boolean privileged;
 
-		/**
-		 * The type of proc mount to use for the container (cannot be set when spec.os.name is windows)
-		 */
-		private String procMount;
+        /**
+         * The type of proc mount to use for the container (cannot be set when spec.os.name is windows)
+         */
+        private String procMount;
 
-		/**
-		 * Mounts the container's root filesystem as read-only
-		 */
-		private Boolean readOnlyRootFilesystem;
+        /**
+         * Mounts the container's root filesystem as read-only
+         */
+        private Boolean readOnlyRootFilesystem;
 
-		/**
-		 * The numeric user ID to run pod container processes under
-		 */
-		private Long runAsUser;
+        /**
+         * The numeric user ID to run pod container processes under
+         */
+        private Long runAsUser;
 
-		/**
-		 * The numeric group id to run the entrypoint of the container process
-		 */
-		private Long runAsGroup;
+        /**
+         * The numeric group id to run the entrypoint of the container process
+         */
+        private Long runAsGroup;
 
-		/**
-		 * Indicates that the container must run as a non-root user
-		 */
-		private Boolean runAsNonRoot;
+        /**
+         * Indicates that the container must run as a non-root user
+         */
+        private Boolean runAsNonRoot;
 
-		/**
-		 * The seccomp options to use for the container
-		 */
-		private SeccompProfile seccompProfile;
+        /**
+         * The seccomp options to use for the container
+         */
+        private SeccompProfile seccompProfile;
 
-		/**
-		 * The SELinux context to be applied to the container.
-		 */
-		private SELinuxOptions seLinuxOptions;
+        /**
+         * The SELinux context to be applied to the container.
+         */
+        private SELinuxOptions seLinuxOptions;
 
-		/**
-		 * The Windows specific settings applied to the container.
-		 */
-		private WindowsSecurityContextOptions windowsOptions;
+        /**
+         * The Windows specific settings applied to the container.
+         */
+        private WindowsSecurityContextOptions windowsOptions;
 
-		public Boolean getAllowPrivilegeEscalation() {
-			return allowPrivilegeEscalation;
-		}
+        public Boolean getAllowPrivilegeEscalation() {
+            return allowPrivilegeEscalation;
+        }
 
-		public void setAllowPrivilegeEscalation(Boolean allowPrivilegeEscalation) {
-			this.allowPrivilegeEscalation = allowPrivilegeEscalation;
-		}
+        public void setAllowPrivilegeEscalation(Boolean allowPrivilegeEscalation) {
+            this.allowPrivilegeEscalation = allowPrivilegeEscalation;
+        }
 
-		public Capabilities getCapabilities() {
-			return capabilities;
-		}
+        public Capabilities getCapabilities() {
+            return capabilities;
+        }
 
-		public void setCapabilities(Capabilities capabilities) {
-			this.capabilities = capabilities;
-		}
+        public void setCapabilities(Capabilities capabilities) {
+            this.capabilities = capabilities;
+        }
 
-		public Boolean getPrivileged() {
-			return privileged;
-		}
+        public Boolean getPrivileged() {
+            return privileged;
+        }
 
-		public void setPrivileged(Boolean privileged) {
-			this.privileged = privileged;
-		}
+        public void setPrivileged(Boolean privileged) {
+            this.privileged = privileged;
+        }
 
-		public String getProcMount() {
-			return procMount;
-		}
+        public String getProcMount() {
+            return procMount;
+        }
 
-		public void setProcMount(String procMount) {
-			this.procMount = procMount;
-		}
+        public void setProcMount(String procMount) {
+            this.procMount = procMount;
+        }
 
-		public Boolean getReadOnlyRootFilesystem() {
-			return readOnlyRootFilesystem;
-		}
+        public Boolean getReadOnlyRootFilesystem() {
+            return readOnlyRootFilesystem;
+        }
 
-		public void setReadOnlyRootFilesystem(Boolean readOnlyRootFilesystem) {
-			this.readOnlyRootFilesystem = readOnlyRootFilesystem;
-		}
+        public void setReadOnlyRootFilesystem(Boolean readOnlyRootFilesystem) {
+            this.readOnlyRootFilesystem = readOnlyRootFilesystem;
+        }
 
-		public Long getRunAsUser() {
-			return runAsUser;
-		}
+        public Long getRunAsUser() {
+            return runAsUser;
+        }
 
-		public void setRunAsUser(Long runAsUser) {
-			this.runAsUser = runAsUser;
-		}
+        public void setRunAsUser(Long runAsUser) {
+            this.runAsUser = runAsUser;
+        }
 
-		public Long getRunAsGroup() {
-			return runAsGroup;
-		}
+        public Long getRunAsGroup() {
+            return runAsGroup;
+        }
 
-		public void setRunAsGroup(Long runAsGroup) {
-			this.runAsGroup = runAsGroup;
-		}
+        public void setRunAsGroup(Long runAsGroup) {
+            this.runAsGroup = runAsGroup;
+        }
 
-		public Boolean getRunAsNonRoot() {
-			return runAsNonRoot;
-		}
+        public Boolean getRunAsNonRoot() {
+            return runAsNonRoot;
+        }
 
-		public void setRunAsNonRoot(Boolean runAsNonRoot) {
-			this.runAsNonRoot = runAsNonRoot;
-		}
+        public void setRunAsNonRoot(Boolean runAsNonRoot) {
+            this.runAsNonRoot = runAsNonRoot;
+        }
 
-		public SeccompProfile getSeccompProfile() {
-			return seccompProfile;
-		}
+        public SeccompProfile getSeccompProfile() {
+            return seccompProfile;
+        }
 
-		public void setSeccompProfile(SeccompProfile seccompProfile) {
-			this.seccompProfile = seccompProfile;
-		}
+        public void setSeccompProfile(SeccompProfile seccompProfile) {
+            this.seccompProfile = seccompProfile;
+        }
 
-		public SELinuxOptions getSeLinuxOptions() {
-			return seLinuxOptions;
-		}
+        public SELinuxOptions getSeLinuxOptions() {
+            return seLinuxOptions;
+        }
 
-		public void setSeLinuxOptions(SELinuxOptions seLinuxOptions) {
-			this.seLinuxOptions = seLinuxOptions;
-		}
+        public void setSeLinuxOptions(SELinuxOptions seLinuxOptions) {
+            this.seLinuxOptions = seLinuxOptions;
+        }
 
-		public WindowsSecurityContextOptions getWindowsOptions() {
-			return windowsOptions;
-		}
+        public WindowsSecurityContextOptions getWindowsOptions() {
+            return windowsOptions;
+        }
 
-		public void setWindowsOptions(WindowsSecurityContextOptions windowsOptions) {
-			this.windowsOptions = windowsOptions;
-		}
-	}
+        public void setWindowsOptions(WindowsSecurityContextOptions windowsOptions) {
+            this.windowsOptions = windowsOptions;
+        }
+    }
 
-	/**
-	 * Adds and removes POSIX capabilities from running containers.
-	 */
-	public static class Capabilities {
-		/**
-		 * Added capabilities.
-		 */
-		private List<String> add;
+    /**
+     * Adds and removes POSIX capabilities from running containers.
+     */
+    public static class Capabilities {
+        /**
+         * Added capabilities.
+         */
+        private List<String> add;
 
-		/**
-		 * Removed capabilities.
-		 */
-		private List<String> drop;
+        /**
+         * Removed capabilities.
+         */
+        private List<String> drop;
 
-		public List<String> getAdd() {
-			return add;
-		}
+        public List<String> getAdd() {
+            return add;
+        }
 
-		public void setAdd(List<String> add) {
-			this.add = add;
-		}
+        public void setAdd(List<String> add) {
+            this.add = add;
+        }
 
-		public List<String> getDrop() {
-			return drop;
-		}
+        public List<String> getDrop() {
+            return drop;
+        }
 
-		public void setDrop(List<String> drop) {
-			this.drop = drop;
-		}
-	}
+        public void setDrop(List<String> drop) {
+            this.drop = drop;
+        }
+    }
 
-	/**
+    /**
      * Defines a pod seccomp profile settings.
      */
-	public static class SeccompProfile {
+    public static class SeccompProfile {
 
         /**
          * Type of seccomp profile.
@@ -688,154 +690,154 @@ public class KubernetesDeployerProperties {
         }
     }
 
-	/**
-	 * The labels to be applied to the container.
-	 */
-	public static class SELinuxOptions {
-		/**
-		 * Level label applied to the container
-		 */
-		private String level;
+    /**
+     * The labels to be applied to the container.
+     */
+    public static class SELinuxOptions {
+        /**
+         * Level label applied to the container
+         */
+        private String level;
 
-		/**
-		 * Role Level label applied to the container
-		 */
-		private String role;
+        /**
+         * Role Level label applied to the container
+         */
+        private String role;
 
-		/**
-		 * Type label applied to the container
-		 */
-		private String type;
+        /**
+         * Type label applied to the container
+         */
+        private String type;
 
-		/**
-		 * User label applied to the container
-		 */
-		private String user;
+        /**
+         * User label applied to the container
+         */
+        private String user;
 
-		public String getLevel() {
-			return level;
-		}
+        public String getLevel() {
+            return level;
+        }
 
-		public void setLevel(String level) {
-			this.level = level;
-		}
+        public void setLevel(String level) {
+            this.level = level;
+        }
 
-		public String getRole() {
-			return role;
-		}
+        public String getRole() {
+            return role;
+        }
 
-		public void setRole(String role) {
-			this.role = role;
-		}
+        public void setRole(String role) {
+            this.role = role;
+        }
 
-		public String getType() {
-			return type;
-		}
+        public String getType() {
+            return type;
+        }
 
-		public void setType(String type) {
-			this.type = type;
-		}
+        public void setType(String type) {
+            this.type = type;
+        }
 
-		public String getUser() {
-			return user;
-		}
+        public String getUser() {
+            return user;
+        }
 
-		public void setUser(String user) {
-			this.user = user;
-		}
-	}
+        public void setUser(String user) {
+            this.user = user;
+        }
+    }
 
-	/**
-	 * Sysctl defines a kernel parameter to be set on the pod.
-	 */
-	public static class SysctlInfo {
-		/**
-		 * Name of the property
-		 */
-		private String name;
+    /**
+     * Sysctl defines a kernel parameter to be set on the pod.
+     */
+    public static class SysctlInfo {
+        /**
+         * Name of the property
+         */
+        private String name;
 
-		/**
-		 * Value of the property
-		 */
-		private String value;
+        /**
+         * Value of the property
+         */
+        private String value;
 
-		public String getName() {
-			return name;
-		}
+        public String getName() {
+            return name;
+        }
 
-		public void setName(String name) {
-			this.name = name;
-		}
+        public void setName(String name) {
+            this.name = name;
+        }
 
-		public String getValue() {
-			return value;
-		}
+        public String getValue() {
+            return value;
+        }
 
-		public void setValue(String value) {
-			this.value = value;
-		}
-	}
+        public void setValue(String value) {
+            this.value = value;
+        }
+    }
 
-	/**
-	 * Contains Windows-specific options and credentials.
-	 */
-	public static class WindowsSecurityContextOptions {
+    /**
+     * Contains Windows-specific options and credentials.
+     */
+    public static class WindowsSecurityContextOptions {
 
-		/**
-		 * Where the GMSA admission webhook inlines the contents of the GMSA credential spec
-		 * named by the GMSACredentialSpecName field.
-		 */
-		private String gmsaCredentialSpec;
+        /**
+         * Where the GMSA admission webhook inlines the contents of the GMSA credential spec
+         * named by the GMSACredentialSpecName field.
+         */
+        private String gmsaCredentialSpec;
 
-		/**
-		 * The name of the GMSA credential spec to use.
-		 */
-		private String gmsaCredentialSpecName;
+        /**
+         * The name of the GMSA credential spec to use.
+         */
+        private String gmsaCredentialSpecName;
 
-		/**
-		 * Whether a container should be run as a 'Host Process' container.
-		 */
-		private Boolean hostProcess;
+        /**
+         * Whether a container should be run as a 'Host Process' container.
+         */
+        private Boolean hostProcess;
 
-		/**
-		 * The username in Windows to run the entrypoint of the container process.
-		 */
-		private String runAsUserName;
+        /**
+         * The username in Windows to run the entrypoint of the container process.
+         */
+        private String runAsUserName;
 
-		public String getGmsaCredentialSpec() {
-			return gmsaCredentialSpec;
-		}
+        public String getGmsaCredentialSpec() {
+            return gmsaCredentialSpec;
+        }
 
-		public void setGmsaCredentialSpec(String gmsaCredentialSpec) {
-			this.gmsaCredentialSpec = gmsaCredentialSpec;
-		}
+        public void setGmsaCredentialSpec(String gmsaCredentialSpec) {
+            this.gmsaCredentialSpec = gmsaCredentialSpec;
+        }
 
-		public String getGmsaCredentialSpecName() {
-			return gmsaCredentialSpecName;
-		}
+        public String getGmsaCredentialSpecName() {
+            return gmsaCredentialSpecName;
+        }
 
-		public void setGmsaCredentialSpecName(String gmsaCredentialSpecName) {
-			this.gmsaCredentialSpecName = gmsaCredentialSpecName;
-		}
+        public void setGmsaCredentialSpecName(String gmsaCredentialSpecName) {
+            this.gmsaCredentialSpecName = gmsaCredentialSpecName;
+        }
 
-		public Boolean getHostProcess() {
-			return hostProcess;
-		}
+        public Boolean getHostProcess() {
+            return hostProcess;
+        }
 
-		public void setHostProcess(Boolean hostProcess) {
-			this.hostProcess = hostProcess;
-		}
+        public void setHostProcess(Boolean hostProcess) {
+            this.hostProcess = hostProcess;
+        }
 
-		public String getRunAsUserName() {
-			return runAsUserName;
-		}
+        public String getRunAsUserName() {
+            return runAsUserName;
+        }
 
-		public void setRunAsUserName(String runAsUserName) {
-			this.runAsUserName = runAsUserName;
-		}
-	}
+        public void setRunAsUserName(String runAsUserName) {
+            this.runAsUserName = runAsUserName;
+        }
+    }
 
-	public static class Lifecycle {
+    public static class Lifecycle {
         private Hook postStart;
         private Hook preStop;
 
@@ -881,19 +883,25 @@ public class KubernetesDeployerProperties {
         }
     }
 
-	public static class InitContainer extends ContainerProperties {
+    public static class InitContainer extends ContainerProperties {
     }
 
     static class Container extends io.fabric8.kubernetes.api.model.Container {
     }
 
     public static class ContainerProperties {
-        private String imageName;
-
-        private String containerName;
-
-        private List<String> commands;
+        @JsonAlias("imageName")
+        @JsonProperty("image")
+        private String image;
+        @JsonAlias("containerName")
+        @JsonProperty("name")
+        private String name;
+        @JsonProperty("command")
+        @JsonAlias("commands")
+        private List<String> command;
         private List<String> args;
+        private String workingDir;
+        private String imagePullPolicy;
         private List<VolumeMount> volumeMounts;
 
         /**
@@ -901,28 +909,52 @@ public class KubernetesDeployerProperties {
          */
         private String[] environmentVariables = new String[]{};
 
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+        @Deprecated
         public String getImageName() {
-            return imageName;
+            return getImage();
+        }
+        @Deprecated
+        public void setImageName(String image) {
+            setImage(image);
         }
 
-        public void setImageName(String imageName) {
-            this.imageName = imageName;
+        public String getImage() {
+            return image;
         }
 
+        public void setImage(String image) {
+            this.image = image;
+        }
+        @Deprecated
         public String getContainerName() {
-            return containerName;
+            return getName();
         }
-
+        @Deprecated
         public void setContainerName(String containerName) {
-            this.containerName = containerName;
+            setName(containerName);
         }
 
+        public List<String> getCommand() {
+            return command;
+        }
+
+        public void setCommand(List<String> command) {
+            this.command = command;
+        }
+        @Deprecated
         public List<String> getCommands() {
-            return commands;
+            return getCommand();
         }
-
+        @Deprecated
         public void setCommands(List<String> commands) {
-            this.commands = commands;
+            setCommand(commands);
         }
 
         public List<String> getArgs() {
@@ -931,6 +963,22 @@ public class KubernetesDeployerProperties {
 
         public void setArgs(List<String> args) {
             this.args = args;
+        }
+
+        public String getWorkingDir() {
+            return workingDir;
+        }
+
+        public void setWorkingDir(String workingDir) {
+            this.workingDir = workingDir;
+        }
+
+        public String getImagePullPolicy() {
+            return imagePullPolicy;
+        }
+
+        public void setImagePullPolicy(String imagePullPolicy) {
+            this.imagePullPolicy = imagePullPolicy;
         }
 
         public List<VolumeMount> getVolumeMounts() {
@@ -1499,37 +1547,37 @@ public class KubernetesDeployerProperties {
         this.imagePullSecrets = imagePullSecrets;
     }
 
-	public static class CronConfig {
-		private String concurrencyPolicy;
+    public static class CronConfig {
+        private String concurrencyPolicy;
 
-		private Integer ttlSecondsAfterFinished;
+        private Integer ttlSecondsAfterFinished;
 
-		private Integer backoffLimit;
+        private Integer backoffLimit;
 
-		public String getConcurrencyPolicy() {
-			return concurrencyPolicy;
-		}
+        public String getConcurrencyPolicy() {
+            return concurrencyPolicy;
+        }
 
-		public void setConcurrencyPolicy(String concurrencyPolicy) {
-			this.concurrencyPolicy = concurrencyPolicy;
-		}
+        public void setConcurrencyPolicy(String concurrencyPolicy) {
+            this.concurrencyPolicy = concurrencyPolicy;
+        }
 
-		public Integer getTtlSecondsAfterFinished() {
-			return ttlSecondsAfterFinished;
-		}
+        public Integer getTtlSecondsAfterFinished() {
+            return ttlSecondsAfterFinished;
+        }
 
-		public void setTtlSecondsAfterFinished(Integer ttlSecondsAfterFinished) {
-			this.ttlSecondsAfterFinished = ttlSecondsAfterFinished;
-		}
+        public void setTtlSecondsAfterFinished(Integer ttlSecondsAfterFinished) {
+            this.ttlSecondsAfterFinished = ttlSecondsAfterFinished;
+        }
 
-		public Integer getBackoffLimit() {
-			return backoffLimit;
-		}
+        public Integer getBackoffLimit() {
+            return backoffLimit;
+        }
 
-		public void setBackoffLimit(Integer backoffLimit) {
-			this.backoffLimit = backoffLimit;
-		}
-	}
+        public void setBackoffLimit(Integer backoffLimit) {
+            this.backoffLimit = backoffLimit;
+        }
+    }
 
     public Boolean getShareProcessNamespace() {
         return shareProcessNamespace;
@@ -1548,8 +1596,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #getLivenessHttpProbeDelay()
      * @deprecated
-	 * @see #getLivenessHttpProbeDelay()
      */
     @Deprecated
     public int getLivenessProbeDelay() {
@@ -1557,8 +1605,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #setLivenessHttpProbeDelay(int)
      * @deprecated
-	 * @see #setLivenessHttpProbeDelay(int)
      */
     @Deprecated
     public void setLivenessProbeDelay(int livenessProbeDelay) {
@@ -1566,8 +1614,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #getLivenessHttpProbePeriod()
      * @deprecated
-	 * @see #getLivenessHttpProbePeriod()
      */
     @Deprecated
     public int getLivenessProbePeriod() {
@@ -1575,8 +1623,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #setLivenessHttpProbePeriod(int)
      * @deprecated
-	 * @see #setLivenessHttpProbePeriod(int)
      */
     @Deprecated
     public void setLivenessProbePeriod(int livenessProbePeriod) {
@@ -1584,8 +1632,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #getLivenessHttpProbeTimeout()
      * @deprecated
-	 * @see #getLivenessHttpProbeTimeout()
      */
     @Deprecated
     public int getLivenessProbeTimeout() {
@@ -1593,8 +1641,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #setLivenessHttpProbeTimeout(int)
      * @deprecated
-	 * @see #setLivenessHttpProbeTimeout(int)
      */
     @Deprecated
     public void setLivenessProbeTimeout(int livenessProbeTimeout) {
@@ -1602,8 +1650,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #getLivenessHttpProbePath()
      * @deprecated
-	 * @see #getLivenessHttpProbePath()
      */
     @Deprecated
     public String getLivenessProbePath() {
@@ -1611,8 +1659,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #setLivenessHttpProbePath(String)
      * @deprecated
-	 * @see #setLivenessHttpProbePath(String)
      */
     @Deprecated
     public void setLivenessProbePath(String livenessProbePath) {
@@ -1620,8 +1668,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #getLivenessHttpProbePort()
      * @deprecated
-	 * @see #getLivenessHttpProbePort()
      */
     @Deprecated
     public Integer getLivenessProbePort() {
@@ -1629,8 +1677,8 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @see #setLivenessHttpProbePort(Integer)
      * @deprecated
-	 * @see #setLivenessHttpProbePort(Integer)
      */
     @Deprecated
     public void setLivenessProbePort(Integer livenessProbePort) {
@@ -1882,11 +1930,11 @@ public class KubernetesDeployerProperties {
     public void setStartupTcpProbeTimeout(int startupTcpProbeTimeout) {
         this.startupTcpProbeTimeout = startupTcpProbeTimeout;
     }
-	
-	/**
-	 * Cron configuration for job scheduling
-	 */
-	private CronConfig cron = new CronConfig();
+
+    /**
+     * Cron configuration for job scheduling
+     */
+    private CronConfig cron = new CronConfig();
 
     public int getStartupTcpProbePeriod() {
         return startupTcpProbePeriod;
@@ -1929,9 +1977,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @return the probe delay
+     * @see #getReadinessHttpProbeDelay()
      * @deprecated
-	 * @see #getReadinessHttpProbeDelay()
-	 * @return the probe delay
      */
     @Deprecated
     public int getReadinessProbeDelay() {
@@ -1939,9 +1987,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @param readinessProbeDelay the probe delay
+     * @see #setReadinessHttpProbeDelay(int)
      * @deprecated
-	 * @param readinessProbeDelay the probe delay
-	 * @see #setReadinessHttpProbeDelay(int)
      */
     @Deprecated
     public void setReadinessProbeDelay(int readinessProbeDelay) {
@@ -1949,9 +1997,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @return the probe period
+     * @see #getReadinessHttpProbePeriod()
      * @deprecated
-	 * @see #getReadinessHttpProbePeriod()
-	 * @return the probe period
      */
     @Deprecated
     public int getReadinessProbePeriod() {
@@ -2012,9 +2060,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @param readinessProbePeriod the period
+     * @see #setReadinessHttpProbePeriod(int)
      * @deprecated
-	 * @param readinessProbePeriod the period
-	 * @see #setReadinessHttpProbePeriod(int)
      */
     @Deprecated
     public void setReadinessProbePeriod(int readinessProbePeriod) {
@@ -2022,9 +2070,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @return the timeout
+     * @see #getReadinessHttpProbeTimeout()
      * @deprecated
-	 * @see #getReadinessHttpProbeTimeout()
-	 * @return the timeout
      */
     @Deprecated
     public int getReadinessProbeTimeout() {
@@ -2032,9 +2080,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @param readinessProbeTimeout the timeout of the probe
+     * @see #setReadinessHttpProbeTimeout(int)
      * @deprecated
-	 * @param readinessProbeTimeout the timeout of the probe
-	 * @see #setReadinessHttpProbeTimeout(int)
      */
     @Deprecated
     public void setReadinessProbeTimeout(int readinessProbeTimeout) {
@@ -2042,9 +2090,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @return the path
+     * @see #getReadinessHttpProbePath()
      * @deprecated
-	 * @see #getReadinessHttpProbePath()
-	 * @return the path
      */
     @Deprecated
     public String getReadinessProbePath() {
@@ -2052,9 +2100,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @param readinessProbePath the path to use for http request
+     * @see #setReadinessHttpProbePath(String)
      * @deprecated
-	 * @param readinessProbePath the path to use for http request
-	 * @see #setReadinessHttpProbePath(String)
      */
     @Deprecated
     public void setReadinessProbePath(String readinessProbePath) {
@@ -2062,9 +2110,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @return the port of the probe
+     * @see #getReadinessHttpProbePort()
      * @deprecated
-	 * @see #getReadinessHttpProbePort()
-	 * @return the port of the probe
      */
     @Deprecated
     public Integer getReadinessProbePort() {
@@ -2072,9 +2120,9 @@ public class KubernetesDeployerProperties {
     }
 
     /**
+     * @param readinessProbePort the port number use by the probe
+     * @see #setReadinessHttpProbePort(Integer)
      * @deprecated
-	 * @param readinessProbePort the port number use by the probe
-	 * @see #setReadinessHttpProbePort(Integer)
      */
     @Deprecated
     public void setReadinessProbePort(Integer readinessProbePort) {
@@ -2434,15 +2482,15 @@ public class KubernetesDeployerProperties {
         this.maximumConcurrentTasks = maximumConcurrentTasks;
     }
 
-	public Long getTerminationGracePeriodSeconds() {
-		return terminationGracePeriodSeconds;
-	}
+    public Long getTerminationGracePeriodSeconds() {
+        return terminationGracePeriodSeconds;
+    }
 
-	public void setTerminationGracePeriodSeconds(Long terminationGracePeriodSeconds) {
-		this.terminationGracePeriodSeconds = terminationGracePeriodSeconds;
-	}
+    public void setTerminationGracePeriodSeconds(Long terminationGracePeriodSeconds) {
+        this.terminationGracePeriodSeconds = terminationGracePeriodSeconds;
+    }
 
-	public void setNodeSelector(String nodeSelector) {
+    public void setNodeSelector(String nodeSelector) {
         this.nodeSelector = nodeSelector;
     }
 
@@ -2562,11 +2610,11 @@ public class KubernetesDeployerProperties {
         this.appAdmin = appAdmin;
     }
 
-	public CronConfig getCron() {
-		return cron;
-	}
+    public CronConfig getCron() {
+        return cron;
+    }
 
-	public void setCron(CronConfig cron) {
-		this.cron = cron;
-	}
+    public void setCron(CronConfig cron) {
+        this.cron = cron;
+    }
 }
