@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -349,7 +350,7 @@ public class AbstractKubernetesDeployer {
 			deploymentId = String.format("%s-%s", groupId, request.getDefinition().getName());
 		}
 		// Kubernetes does not allow . in the name and does not allow uppercase in the name
-		return deploymentId.replace('.', '-').toLowerCase();
+		return deploymentId.replace('.', '-').toLowerCase(Locale.ROOT);
 	}
 
 	/**

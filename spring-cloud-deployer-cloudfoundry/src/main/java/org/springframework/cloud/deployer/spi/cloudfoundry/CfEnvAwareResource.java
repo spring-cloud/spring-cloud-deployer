@@ -25,6 +25,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import org.apache.commons.logging.Log;
@@ -120,7 +121,7 @@ class CfEnvAwareResource implements Resource {
 		static boolean hasCfEnv(CfEnvAwareResource app
 		) {
 			try {
-				String scheme = app.getURI().getScheme().toLowerCase();
+				String scheme = app.getURI().getScheme().toLowerCase(Locale.ROOT);
 				if (scheme.equals("docker")) {
 					return false;
 				}

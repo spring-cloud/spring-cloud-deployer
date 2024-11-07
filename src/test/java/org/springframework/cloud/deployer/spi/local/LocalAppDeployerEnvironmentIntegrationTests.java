@@ -283,7 +283,7 @@ public class LocalAppDeployerEnvironmentIntegrationTests extends AbstractAppDepl
 				Collections.singletonMap("configuredLevel", "debug"),  Object.class);
 		loggers = actuatorOperations
 				.getFromActuator(deploymentId, id, "/loggers/org.springframework", Map.class);
-		assertThat(((String)loggers.get("configuredLevel")).toLowerCase()).isEqualTo("debug");
+		assertThat(((String)loggers.get("configuredLevel")).toLowerCase(Locale.ROOT)).isEqualTo("debug");
 
 	}
 
