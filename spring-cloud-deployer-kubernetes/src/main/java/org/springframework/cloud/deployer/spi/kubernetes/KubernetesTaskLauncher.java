@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -227,7 +228,7 @@ public class KubernetesTaskLauncher extends AbstractKubernetesDeployer implement
 		String hashid = hashids.encode(idToEncode);
 		String deploymentId = name + "-" + hashid;
 		// Kubernetes does not allow . in the name and does not allow uppercase in the name
-		return deploymentId.replace('.', '-').toLowerCase();
+		return deploymentId.replace('.', '-').toLowerCase(Locale.ROOT);
 	}
 
 

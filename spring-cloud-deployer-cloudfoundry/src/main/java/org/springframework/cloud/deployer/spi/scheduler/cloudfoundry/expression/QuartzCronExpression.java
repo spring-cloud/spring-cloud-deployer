@@ -106,7 +106,7 @@ public final class QuartzCronExpression {
 			throw new IllegalArgumentException("cronExpression cannot be null");
 		}
 
-		this.cronExpression = cronExpression.toUpperCase(Locale.US);
+		this.cronExpression = cronExpression.toUpperCase(Locale.ROOT);
 
 		buildExpression(this.cronExpression);
 	}
