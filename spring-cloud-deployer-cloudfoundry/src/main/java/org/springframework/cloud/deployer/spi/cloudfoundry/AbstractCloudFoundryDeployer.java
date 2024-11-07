@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -317,7 +318,7 @@ class AbstractCloudFoundryDeployer {
 	 * Delete maven resources if property is set.
 	 */
 	private Optional<File> fileToDelete(Resource resource) throws IOException {
-		String scheme = resource.getURI().getScheme().toLowerCase();
+		String scheme = resource.getURI().getScheme().toLowerCase(Locale.ROOT);
 		if (scheme.startsWith("http")) {
 			return Optional.of(resource.getFile());
 		}

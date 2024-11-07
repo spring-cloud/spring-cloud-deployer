@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -1048,7 +1049,7 @@ class DeploymentPropertiesResolver {
 
 		if (deployerPropertyValue != null) {
 			try {
-				entryPointStyle = EntryPointStyle.valueOf(deployerPropertyValue.toLowerCase());
+				entryPointStyle = EntryPointStyle.valueOf(deployerPropertyValue.toLowerCase(Locale.ROOT));
 			}
 			catch (IllegalArgumentException ignore) {
 			}
@@ -1067,7 +1068,7 @@ class DeploymentPropertiesResolver {
 				this.propertyPrefix + ".probeType", null);
 
 		if (StringUtils.hasText(deployerPropertyValue)) {
-			probeType = ProbeType.valueOf(deployerPropertyValue.toUpperCase());
+			probeType = ProbeType.valueOf(deployerPropertyValue.toUpperCase(Locale.ROOT));
 		}
 
 		return probeType;

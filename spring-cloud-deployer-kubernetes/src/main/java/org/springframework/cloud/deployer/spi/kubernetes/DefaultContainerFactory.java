@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -126,7 +127,7 @@ public class DefaultContainerFactory implements ContainerFactory {
                 break;
             case shell:
                 for (String key : request.getDefinition().getProperties().keySet()) {
-                    String envVar = key.replace('.', '_').toUpperCase();
+                    String envVar = key.replace('.', '_').toUpperCase(Locale.ROOT);
                     envVarsMap.put(envVar, request.getDefinition().getProperties().get(key));
                     envVarsMap.putAll(appAdminCredentials);
 
@@ -144,7 +145,7 @@ public class DefaultContainerFactory implements ContainerFactory {
                     }
 
                     String cmdLineArgValue = cmdLineArg.substring(cmdLineArg.indexOf("=") + 1);
-                    envVarsMap.put(cmdLineArgKey.replace('.', '_').toUpperCase(), cmdLineArgValue);
+                    envVarsMap.put(cmdLineArgKey.replace('.', '_').toUpperCase(Locale.ROOT), cmdLineArgValue);
                 }
                 break;
         }
