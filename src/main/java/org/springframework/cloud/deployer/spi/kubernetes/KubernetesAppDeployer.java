@@ -364,7 +364,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
         if (createLoadBalancer == null) {
             isCreateLoadBalancer = properties.isCreateLoadBalancer();
         } else {
-            if ("true".equals(createLoadBalancer.toLowerCase())) {
+            if ("true".equals(createLoadBalancer.toLowerCase(Locale.ROOT))) {
                 isCreateLoadBalancer = true;
             }
         }
@@ -379,7 +379,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
 
         if (createNodePort != null) {
             spec.withType("NodePort");
-            if (!"true".equals(createNodePort.toLowerCase())) {
+            if (!"true".equals(createNodePort.toLowerCase(Locale.ROOT))) {
                 try {
                     Integer nodePort = Integer.valueOf(createNodePort);
                     servicePort.setNodePort(nodePort);
@@ -462,7 +462,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
         String serviceName = groupId == null ? String.format("%s", appName)
                 : String.format("%s-%s", groupId, appName);
 
-        return serviceName.replace('.', '-').toLowerCase();
+        return serviceName.replace('.', '-').toLowerCase(Locale.ROOT);
     }
 
     private Set<ServicePort> addAdditionalServicePorts(String additionalServicePorts) {

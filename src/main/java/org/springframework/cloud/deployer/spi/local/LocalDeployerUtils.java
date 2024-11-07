@@ -33,6 +33,6 @@ public class LocalDeployerUtils {
 	protected static boolean isWindows() {
 		String osName = System.getProperty("os.name");
 
-		return osName != null && osName.toLowerCase().startsWith("windows");
+		return osName != null && osName.toLowerCase(Locale.ROOT).startsWith("windows");
 	}
 }

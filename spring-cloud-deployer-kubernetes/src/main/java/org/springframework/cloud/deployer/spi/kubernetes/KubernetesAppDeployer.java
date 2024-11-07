@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -473,7 +474,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
         String serviceName = groupId == null ? String.format("%s", appName)
                 : String.format("%s-%s", groupId, appName);
 
-        return serviceName.replace('.', '-').toLowerCase();
+        return serviceName.replace('.', '-').toLowerCase(Locale.ROOT);
     }
 
     private Set<ServicePort> addAdditionalServicePorts(String additionalServicePorts) {
