@@ -653,7 +653,7 @@ class DeploymentPropertiesResolver {
 		if (StringUtils.hasText(containerName) && StringUtils.hasText(imageName)) {
 			String commandsStr = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".commands");
 			List<String> commands = StringUtils.hasText(commandsStr) ? Arrays.asList(commandsStr.split(",")) : Collections.emptyList();
-			String envString = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".environmentVariables");
+			String envString = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + "environmentVariables");
 			List<VolumeMount> vms = this.getInitContainerVolumeMounts(kubeProps, propertyKey);
 			return new ContainerBuilder()
 					.withName(containerName)
