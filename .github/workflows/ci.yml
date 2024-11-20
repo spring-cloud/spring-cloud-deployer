@@ -37,17 +37,17 @@ jobs:
         maven-version: 3.8.8
         maven-mirror: 'https://dlcdn.apache.org/maven/maven-3/'
     # jfrog cli
-    - uses: jfrog/setup-jfrog-cli@v1
-      with:
-        version: 1.46.4
+    - uses: jfrog/setup-jfrog-cli@v3
       env:
-        JF_ARTIFACTORY_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+        JF_URL: 'https://repo.spring.io'
+        JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
     # setup frog cli
     - name: Configure JFrog Cli
-      run: |
-        jfrog rt mvnc \
-          --server-id-resolve=repo.spring.io \
-          --server-id-deploy=repo.spring.io \
+      run: |        
+        jfrog rt ping
+        jfrog mvnc \
+          --server-id-resolve=${{ vars.JF_SERVER_ID }} \
+          --server-id-deploy=${{ vars.JF_SERVER_ID }} \
           --repo-resolve-releases=libs-milestone \
           --repo-resolve-snapshots=libs-snapshot \
           --repo-deploy-releases=libs-release-local \
@@ -57,7 +57,7 @@ jobs:
     # build and publish
     - name: Build and Publish
       run: |
-        jfrog rt mvn -U -B clean install -T 0.5C
+        jfrog mvn -U -B clean install -T 0.5C
         jfrog rt build-publish
     - name: Test Report
       uses: dorny/test-reporter@v1
