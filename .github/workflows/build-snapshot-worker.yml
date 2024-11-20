@@ -24,7 +24,7 @@ jobs:
     - uses: jfrog/setup-jfrog-cli@v3
       env:
         JF_URL: 'https://repo.spring.io'
-        JF_ARTIFACTORY_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+        JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
 
     # cache maven .m2
     - uses: actions/cache@v3
