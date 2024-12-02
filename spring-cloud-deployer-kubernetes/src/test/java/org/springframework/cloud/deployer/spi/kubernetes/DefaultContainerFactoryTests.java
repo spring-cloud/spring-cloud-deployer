@@ -313,7 +313,7 @@ public class DefaultContainerFactoryTests {
     @Deprecated
     public void createCustomLivenessPortFromProperties() {
         KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-        kubernetesDeployerProperties.setLivenessProbePort(8090);
+        kubernetesDeployerProperties.setLivenessHttpProbePort(8090);
         DefaultContainerFactory defaultContainerFactory = new DefaultContainerFactory(
                 kubernetesDeployerProperties);
 
@@ -593,7 +593,7 @@ public class DefaultContainerFactoryTests {
     @Deprecated
     public void createCustomReadinessPortFromProperties() {
         KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-        kubernetesDeployerProperties.setReadinessProbePort(8090);
+        kubernetesDeployerProperties.setReadinessHttpProbePort(8090);
         DefaultContainerFactory defaultContainerFactory = new DefaultContainerFactory(
                 kubernetesDeployerProperties);
 
@@ -809,8 +809,8 @@ public class DefaultContainerFactoryTests {
     @Deprecated
     public void createProbesWithPropertyOverrides() {
         KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-        kubernetesDeployerProperties.setReadinessProbePath("/readiness");
-        kubernetesDeployerProperties.setLivenessProbePath("/liveness");
+        kubernetesDeployerProperties.setReadinessHttpProbePath("/readiness");
+        kubernetesDeployerProperties.setLivenessHttpProbePath("/liveness");
         DefaultContainerFactory defaultContainerFactory = new DefaultContainerFactory(
                 kubernetesDeployerProperties);
 

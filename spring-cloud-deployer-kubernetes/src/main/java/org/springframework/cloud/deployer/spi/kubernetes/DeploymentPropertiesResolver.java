@@ -181,16 +181,15 @@ class DeploymentPropertiesResolver {
 		if (StringUtils.hasText(cpu)) {
 			limits.put("cpu", new Quantity(cpu));
 		}
-
-		if (StringUtils.hasText(ephemeralStorage)) {
+		if(StringUtils.hasText(ephemeralStorage)) {
 			limits.put("ephemeral-storage", new Quantity(ephemeralStorage));
 		}
 
-		if (StringUtils.hasText(hugePages2Mi)) {
+		if(StringUtils.hasText(hugePages2Mi)) {
 			limits.put("hugepages-2Mi", new Quantity(hugePages2Mi));
 		}
 
-		if (StringUtils.hasText(hugePages1Gi)) {
+		if(StringUtils.hasText(hugePages1Gi)) {
 			limits.put("hugepages-1Gi", new Quantity(hugePages1Gi));
 		}
 
