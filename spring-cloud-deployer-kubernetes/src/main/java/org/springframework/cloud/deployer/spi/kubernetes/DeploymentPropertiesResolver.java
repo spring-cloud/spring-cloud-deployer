@@ -164,33 +164,13 @@ class DeploymentPropertiesResolver {
 	 * @return the resource limits to use
 	 */
 	Map<String, Quantity> deduceResourceLimits(Map<String, String> kubernetesDeployerProperties) {
-		String memory = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".limits.memory");
-
-		if (!StringUtils.hasText(memory)) {
-			memory = properties.getLimits().getMemory();
-		}
-
-		String cpu = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".limits.cpu");
-
-		if (!StringUtils.hasText(cpu)) {
-			cpu = properties.getLimits().getCpu();
-		}
-
-		String gpuVendor = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-			this.propertyPrefix + ".limits.gpuVendor");
-
-		if (!StringUtils.hasText(gpuVendor)) {
-			gpuVendor = properties.getLimits().getGpuVendor();
-		}
-
-		String gpuCount = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-			this.propertyPrefix + ".limits.gpuCount");
-
-		if (!StringUtils.hasText(gpuCount)) {
-			gpuCount = properties.getLimits().getGpuCount();
-		}
+		String memory = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".limits.memory", properties.getLimits().getMemory());
+		String cpu = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".limits.cpu", properties.getLimits().getCpu());
+		String ephemeralStorage = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, ".limits.ephemeral-storage", properties.getLimits().getEphemeralStorage());
+		String hugePages2Mi = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, ".limits.hugepages-2Mi", properties.getLimits().getHugepages2Mi());
+		String hugePages1Gi = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, ".limits.hugepages-1Gi", properties.getLimits().getHugepages1Gi());
+		String gpuVendor = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".limits.gpuVendor", properties.getLimits().getGpuVendor());
+		String gpuCount = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".limits.gpuCount", properties.getLimits().getGpuCount());
 
 		Map<String,Quantity> limits = new HashMap<String,Quantity>();
 
@@ -200,6 +180,18 @@ class DeploymentPropertiesResolver {
 
 		if (StringUtils.hasText(cpu)) {
 			limits.put("cpu", new Quantity(cpu));
+		}
+
+		if(StringUtils.hasText(ephemeralStorage)) {
+			limits.put("ephemeral-storage", new Quantity(ephemeralStorage));
+		}
+
+		if(StringUtils.hasText(hugePages2Mi)) {
+			limits.put("hugepages-2Mi", new Quantity(hugePages2Mi));
+		}
+
+		if(StringUtils.hasText(hugePages1Gi)) {
+			limits.put("hugepages-1Gi", new Quantity(hugePages1Gi));
 		}
 
 		if (StringUtils.hasText(gpuVendor) && StringUtils.hasText(gpuCount)) {
@@ -245,32 +237,36 @@ class DeploymentPropertiesResolver {
 	 * @return the resource requests to use
 	 */
 	Map<String, Quantity> deduceResourceRequests(Map<String, String> kubernetesDeployerProperties) {
-		String memOverride = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".requests.memory");
-
-		if (memOverride == null) {
-			memOverride = properties.getRequests().getMemory();
-		}
-
-
-		String cpuOverride = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
-				this.propertyPrefix + ".requests.cpu");
-
-		if (cpuOverride == null) {
-			cpuOverride = properties.getRequests().getCpu();
-		}
+		String memOverride = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".requests.memory", properties.getRequests().getMemory());
+		String cpuOverride = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, this.propertyPrefix + ".requests.cpu", properties.getRequests().getCpu());
 
 		logger.debug("Using requests - cpu: " + cpuOverride + " mem: " + memOverride);
 
+		String ephemeralStorage = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, ".requests.ephemeral-storage", properties.getRequests().getEphemeralStorage());
+		String hugePages2Mi = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, ".requests.hugepages-2Mi", properties.getRequests().getHugepages2Mi());
+		String hugePages1Gi = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties, ".requests.hugepages-1Gi", properties.getRequests().getHugepages1Gi());
+
 		Map<String,Quantity> requests = new HashMap<String, Quantity>();
 
-		if (memOverride != null) {
+		if (StringUtils.hasText(memOverride)) {
 			requests.put("memory", new Quantity(memOverride));
 		}
 
-		if (cpuOverride != null) {
+		if (StringUtils.hasText(cpuOverride)) {
 			requests.put("cpu", new Quantity(cpuOverride));
 		}
+		if(StringUtils.hasText(ephemeralStorage)) {
+			requests.put("ephemeral-storage", new Quantity(ephemeralStorage));
+		}
+
+		if(StringUtils.hasText(hugePages2Mi)) {
+			requests.put("hugepages-2Mi", new Quantity(hugePages2Mi));
+		}
+
+		if(StringUtils.hasText(hugePages1Gi)) {
+			requests.put("hugepages-1Gi", new Quantity(hugePages1Gi));
+		}
+
 
 		return requests;
 	}
