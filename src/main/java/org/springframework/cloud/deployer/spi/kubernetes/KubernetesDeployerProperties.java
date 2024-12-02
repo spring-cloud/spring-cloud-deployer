@@ -84,9 +84,28 @@ public class KubernetesDeployerProperties {
          * Container resource memory limit.
          */
         private String memory;
+        /**
+         * Container resource ephemeral storage size limit.
+         */
+        private String ephemeralStorage;
+
+        /**
+         * Container resource hugepages-2Mi limit.
+         */
+        private String hugepages2Mi;
+
+        /**
+         * Container resource hugepages-1Gi limit.
+         */
+        private String hugepages1Gi;
 
         /**
          * Container GPU vendor name for limit
+         * If gpuVendor=nvidia.com/gpu and gpuCount=2 then the following will be used
+         * {@code
+         * limits:
+         *   nvidia.com/gpu: 2
+         * }
          */
         private String gpuVendor;
 
@@ -113,6 +132,17 @@ public class KubernetesDeployerProperties {
             this.memory = memory;
         }
 
+        @Deprecated
+        public LimitsResources(String cpu, String memory, String ephemeralStorage, String hugepages2Mi, String hugepages1Gi, String gpuVendor, String gpuCount) {
+            this.cpu = cpu;
+            this.memory = memory;
+            this.ephemeralStorage = ephemeralStorage;
+            this.hugepages2Mi = hugepages2Mi;
+            this.hugepages1Gi = hugepages1Gi;
+            this.gpuVendor = gpuVendor;
+            this.gpuCount = gpuCount;
+        }
+
         public String getCpu() {
             return cpu;
         }
@@ -127,6 +157,30 @@ public class KubernetesDeployerProperties {
 
         public void setMemory(String memory) {
             this.memory = memory;
+        }
+
+        public String getEphemeralStorage() {
+            return ephemeralStorage;
+        }
+
+        public void setEphemeralStorage(String ephemeralStorage) {
+            this.ephemeralStorage = ephemeralStorage;
+        }
+
+        public String getHugepages2Mi() {
+            return hugepages2Mi;
+        }
+
+        public void setHugepages2Mi(String hugepages2Mi) {
+            this.hugepages2Mi = hugepages2Mi;
+        }
+
+        public String getHugepages1Gi() {
+            return hugepages1Gi;
+        }
+
+        public void setHugepages1Gi(String hugepages1Gi) {
+            this.hugepages1Gi = hugepages1Gi;
         }
 
         public String getGpuVendor() {
@@ -161,12 +215,35 @@ public class KubernetesDeployerProperties {
          */
         private String memory;
 
+        /**
+         * Container resource ephemeral storage size request.
+         */
+        private String ephemeralStorage;
+
+        /**
+         * Container resource hugepages-2Mi request.
+         */
+        private String hugepages2Mi;
+
+        /**
+         * Container resource hugepages-1Gi request.
+         */
+        private String hugepages1Gi;
+
         public RequestsResources() {
         }
 
         public RequestsResources(String cpu, String memory) {
             this.cpu = cpu;
             this.memory = memory;
+        }
+
+        public RequestsResources(String cpu, String memory, String ephemeralStorage, String hugepages2Mi, String hugepages1Gi) {
+            this.cpu = cpu;
+            this.memory = memory;
+            this.ephemeralStorage = ephemeralStorage;
+            this.hugepages2Mi = hugepages2Mi;
+            this.hugepages1Gi = hugepages1Gi;
         }
 
         public String getCpu() {
@@ -183,6 +260,30 @@ public class KubernetesDeployerProperties {
 
         public void setMemory(String memory) {
             this.memory = memory;
+        }
+
+        public String getEphemeralStorage() {
+            return ephemeralStorage;
+        }
+
+        public void setEphemeralStorage(String ephemeralStorage) {
+            this.ephemeralStorage = ephemeralStorage;
+        }
+
+        public String getHugepages2Mi() {
+            return hugepages2Mi;
+        }
+
+        public void setHugepages2Mi(String hugepages2Mi) {
+            this.hugepages2Mi = hugepages2Mi;
+        }
+
+        public String getHugepages1Gi() {
+            return hugepages1Gi;
+        }
+
+        public void setHugepages1Gi(String hugepages1Gi) {
+            this.hugepages1Gi = hugepages1Gi;
         }
     }
 

@@ -77,7 +77,7 @@ public class RunAbstractKubernetesDeployerTests {
 
 	@Test
 	public void limitGpu_noDeploymentProperty_serverProperty_usesServerProperty() {
-		kubernetesDeployerProperties.getLimits().setGpuVendor("nvidia.com");
+		kubernetesDeployerProperties.getLimits().setGpuVendor("nvidia.com/gpu");
 		kubernetesDeployerProperties.getLimits().setGpuCount("2");
 		Map<String, Quantity> limits = this.deploymentPropertiesResolver.deduceResourceLimits(deploymentRequest.getDeploymentProperties());
 		assertThat(limits.get("nvidia.com/gpu")).isEqualTo(new Quantity("2"));
@@ -85,16 +85,16 @@ public class RunAbstractKubernetesDeployerTests {
 
 	@Test
 	public void limitGpu_deploymentPropertyVendor_usesDeploymentProperty() {
-		kubernetesDeployerProperties.getLimits().setGpuVendor("nvidia.com");
+		kubernetesDeployerProperties.getLimits().setGpuVendor("nvidia.com/gpu");
 		kubernetesDeployerProperties.getLimits().setGpuCount("2");
-		deploymentProperties.put("spring.cloud.deployer.kubernetes.limits.gpu_vendor", "ati.com");
+		deploymentProperties.put("spring.cloud.deployer.kubernetes.limits.gpu_vendor", "ati.com/gpu");
 		Map<String, Quantity> limits = this.deploymentPropertiesResolver.deduceResourceLimits(deploymentRequest.getDeploymentProperties());
 		assertThat(limits.get("ati.com/gpu")).isEqualTo(new Quantity("2"));
 	}
 
 	@Test
 	public void limitGpu_deploymentPropertyCount_usesDeploymentProperty() {
-		kubernetesDeployerProperties.getLimits().setGpuVendor("nvidia.com");
+		kubernetesDeployerProperties.getLimits().setGpuVendor("nvidia.com/gpu");
 		kubernetesDeployerProperties.getLimits().setGpuCount("2");
 		deploymentProperties.put("spring.cloud.deployer.kubernetes.limits.gpu_count", "1");
 		Map<String, Quantity> limits = this.deploymentPropertiesResolver.deduceResourceLimits(deploymentRequest.getDeploymentProperties());
@@ -103,9 +103,9 @@ public class RunAbstractKubernetesDeployerTests {
 
 	@Test
 	public void limitGpu_deploymentPropertyBoth_usesDeploymentProperty() {
-		kubernetesDeployerProperties.getLimits().setGpuVendor("nvidia.com");
+		kubernetesDeployerProperties.getLimits().setGpuVendor("nvidia.com/gpu");
 		kubernetesDeployerProperties.getLimits().setGpuCount("2");
-		deploymentProperties.put("spring.cloud.deployer.kubernetes.limits.gpu_vendor", "ati.com");
+		deploymentProperties.put("spring.cloud.deployer.kubernetes.limits.gpu_vendor", "ati.com/gpu");
 		deploymentProperties.put("spring.cloud.deployer.kubernetes.limits.gpu_count", "1");
 		Map<String, Quantity> limits = this.deploymentPropertiesResolver.deduceResourceLimits(deploymentRequest.getDeploymentProperties());
 		assertThat(limits.get("ati.com/gpu")).isEqualTo(new Quantity("1"));
@@ -169,5 +169,52 @@ public class RunAbstractKubernetesDeployerTests {
 		deploymentProperties.put("spring.cloud.deployer.kubernetes.requests.memory", "256Mi");
 		Map<String, Quantity> requests = this.deploymentPropertiesResolver.deduceResourceRequests(deploymentRequest.getDeploymentProperties());
 		assertThat(requests.get("memory")).isEqualTo(new Quantity("256Mi"));
+	}
+	@Test
+	public void requestEphemeralStorage_deploymentProperty_usesDeploymentProperty() {
+		kubernetesDeployerProperties.getRequests().setEphemeralStorage("2Gi");
+		deploymentProperties.put("spring.cloud.deployer.kubernetes.requests.ephemeral-storage", "2Gi");
+		Map<String, Quantity> requests = this.deploymentPropertiesResolver.deduceResourceRequests(deploymentRequest.getDeploymentProperties());
+		assertThat(requests.get("ephemeral-storage")).isEqualTo(new Quantity("2Gi"));
+	}
+
+	@Test
+	public void limitEphemeralStorage_deploymentProperty_usesDeploymentProperty() {
+		kubernetesDeployerProperties.getLimits().setEphemeralStorage("2Gi");
+		deploymentProperties.put("spring.cloud.deployer.kubernetes.limits.ephemeral-storage", "2Gi");
+		Map<String, Quantity> limits = this.deploymentPropertiesResolver.deduceResourceLimits(deploymentRequest.getDeploymentProperties());
+		assertThat(limits.get("ephemeral-storage")).isEqualTo(new Quantity("2Gi"));
+	}
+
+	@Test
+	public void requestHugepages1Gi_deploymentProperty_usesDeploymentProperty() {
+		kubernetesDeployerProperties.getRequests().setHugepages1Gi("4");
+		deploymentProperties.put("spring.cloud.deployer.kubernetes.requests.hugepages-1Gi", "4");
+		Map<String, Quantity> requests = this.deploymentPropertiesResolver.deduceResourceRequests(deploymentRequest.getDeploymentProperties());
+		assertThat(requests.get("hugepages-1Gi")).isEqualTo(new Quantity("4"));
+	}
+
+	@Test
+	public void limitHugepages1Gi_deploymentProperty_usesDeploymentProperty() {
+		kubernetesDeployerProperties.getLimits().setHugepages1Gi("4");
+		deploymentProperties.put("spring.cloud.deployer.kubernetes.limits.hugepages-1Gi", "4");
+		Map<String, Quantity> limits = this.deploymentPropertiesResolver.deduceResourceLimits(deploymentRequest.getDeploymentProperties());
+		assertThat(limits.get("hugepages-1Gi")).isEqualTo(new Quantity("4"));
+	}
+
+	@Test
+	public void requestHugepages2Mi_deploymentProperty_usesDeploymentProperty() {
+		kubernetesDeployerProperties.getRequests().setHugepages2Mi("40");
+		deploymentProperties.put("spring.cloud.deployer.kubernetes.requests.hugepages-2Mi", "40");
+		Map<String, Quantity> requests = this.deploymentPropertiesResolver.deduceResourceRequests(deploymentRequest.getDeploymentProperties());
+		assertThat(requests.get("hugepages-2Mi")).isEqualTo(new Quantity("40"));
+	}
+
+	@Test
+	public void limitHugepages2Mi_deploymentProperty_usesDeploymentProperty() {
+		kubernetesDeployerProperties.getLimits().setHugepages2Mi("40");
+		deploymentProperties.put("spring.cloud.deployer.kubernetes.limits.hugepages-2Mi", "40");
+				Map<String, Quantity> limits = this.deploymentPropertiesResolver.deduceResourceLimits(deploymentRequest.getDeploymentProperties());
+		assertThat(limits.get("hugepages-2Mi")).isEqualTo(new Quantity("40"));
 	}
 }
