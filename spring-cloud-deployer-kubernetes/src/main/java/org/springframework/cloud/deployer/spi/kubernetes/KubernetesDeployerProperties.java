@@ -117,24 +117,6 @@ public class KubernetesDeployerProperties {
         public LimitsResources() {
         }
 
-        /**
-         * 'All' args constructor
-         *
-         * @param cpu    Container resource cpu limit
-         * @param memory Container resource memory limit
-         * @deprecated This method should no longer be used to set all fields at construct time.
-         * <p>
-         * Use the default constructor and set() methods instead.
-         */
-        @Deprecated
-        public LimitsResources(String cpu, String memory, String ephemeralStorage, String hugepages2Mi, String hugepages1Gi) {
-            this.cpu = cpu;
-            this.memory = memory;
-            this.ephemeralStorage = ephemeralStorage;
-            this.hugepages2Mi = hugepages2Mi;
-            this.hugepages1Gi = hugepages1Gi;
-        }
-
         public String getCpu() {
             return cpu;
         }
@@ -224,14 +206,6 @@ public class KubernetesDeployerProperties {
 
 
         public RequestsResources() {
-        }
-
-        public RequestsResources(String cpu, String memory, String ephemeralStorage, String hugepages2Mi, String hugepages1Gi) {
-            this.cpu = cpu;
-            this.memory = memory;
-            this.ephemeralStorage = ephemeralStorage;
-            this.hugepages2Mi = hugepages2Mi;
-            this.hugepages1Gi = hugepages1Gi;
         }
 
         public String getCpu() {
@@ -1631,97 +1605,6 @@ public class KubernetesDeployerProperties {
         this.priorityClassName = priorityClassName;
     }
 
-    /**
-     * @deprecated
-	 * @see #getLivenessHttpProbeDelay()
-     */
-    @Deprecated
-    public int getLivenessProbeDelay() {
-        return livenessHttpProbeDelay;
-    }
-
-    /**
-     * @deprecated
-	 * @see #setLivenessHttpProbeDelay(int)
-     */
-    @Deprecated
-    public void setLivenessProbeDelay(int livenessProbeDelay) {
-        this.livenessHttpProbeDelay = livenessProbeDelay;
-    }
-
-    /**
-     * @deprecated
-	 * @see #getLivenessHttpProbePeriod()
-     */
-    @Deprecated
-    public int getLivenessProbePeriod() {
-        return livenessHttpProbePeriod;
-    }
-
-    /**
-     * @deprecated
-	 * @see #setLivenessHttpProbePeriod(int)
-     */
-    @Deprecated
-    public void setLivenessProbePeriod(int livenessProbePeriod) {
-        this.livenessHttpProbePeriod = livenessProbePeriod;
-    }
-
-    /**
-     * @deprecated
-	 * @see #getLivenessHttpProbeTimeout()
-     */
-    @Deprecated
-    public int getLivenessProbeTimeout() {
-        return livenessHttpProbeTimeout;
-    }
-
-    /**
-     * @deprecated
-	 * @see #setLivenessHttpProbeTimeout(int)
-     */
-    @Deprecated
-    public void setLivenessProbeTimeout(int livenessProbeTimeout) {
-        this.livenessHttpProbeTimeout = livenessProbeTimeout;
-    }
-
-    /**
-     * @deprecated
-	 * @see #getLivenessHttpProbePath()
-     */
-    @Deprecated
-    public String getLivenessProbePath() {
-        return livenessHttpProbePath;
-    }
-
-    /**
-     * @deprecated
-	 * @see #setLivenessHttpProbePath(String)
-     */
-    @Deprecated
-    public void setLivenessProbePath(String livenessProbePath) {
-        this.livenessHttpProbePath = livenessProbePath;
-    }
-
-    /**
-     * @deprecated
-	 * @see #getLivenessHttpProbePort()
-     */
-    @Deprecated
-    public Integer getLivenessProbePort() {
-        return livenessHttpProbePort;
-    }
-
-    /**
-     * @deprecated
-	 * @see #setLivenessHttpProbePort(Integer)
-     */
-    @Deprecated
-    public void setLivenessProbePort(Integer livenessProbePort) {
-        this.livenessHttpProbePort = livenessProbePort;
-    }
-
-
     public int getLivenessTcpProbeSuccess() {
         return livenessTcpProbeSuccess;
     }
@@ -2012,36 +1895,6 @@ public class KubernetesDeployerProperties {
         this.startupCommandProbeCommand = startupCommandProbeCommand;
     }
 
-    /**
-     * @deprecated
-	 * @see #getReadinessHttpProbeDelay()
-	 * @return the probe delay
-     */
-    @Deprecated
-    public int getReadinessProbeDelay() {
-        return readinessHttpProbeDelay;
-    }
-
-    /**
-     * @deprecated
-	 * @param readinessProbeDelay the probe delay
-	 * @see #setReadinessHttpProbeDelay(int)
-     */
-    @Deprecated
-    public void setReadinessProbeDelay(int readinessProbeDelay) {
-        this.readinessHttpProbeDelay = readinessProbeDelay;
-    }
-
-    /**
-     * @deprecated
-	 * @see #getReadinessHttpProbePeriod()
-	 * @return the probe period
-     */
-    @Deprecated
-    public int getReadinessProbePeriod() {
-        return readinessHttpProbePeriod;
-    }
-
     public int getReadinessTcpProbeFailure() {
         return readinessTcpProbeFailure;
     }
@@ -2093,76 +1946,6 @@ public class KubernetesDeployerProperties {
 
     public void setReadinessCommandProbeSuccess(int readinessCommandProbeSuccess) {
         this.readinessCommandProbeSuccess = readinessCommandProbeSuccess;
-    }
-
-    /**
-     * @deprecated
-	 * @param readinessProbePeriod the period
-	 * @see #setReadinessHttpProbePeriod(int)
-     */
-    @Deprecated
-    public void setReadinessProbePeriod(int readinessProbePeriod) {
-        this.readinessHttpProbePeriod = readinessProbePeriod;
-    }
-
-    /**
-     * @deprecated
-	 * @see #getReadinessHttpProbeTimeout()
-	 * @return the timeout
-     */
-    @Deprecated
-    public int getReadinessProbeTimeout() {
-        return readinessHttpProbeTimeout;
-    }
-
-    /**
-     * @deprecated
-	 * @param readinessProbeTimeout the timeout of the probe
-	 * @see #setReadinessHttpProbeTimeout(int)
-     */
-    @Deprecated
-    public void setReadinessProbeTimeout(int readinessProbeTimeout) {
-        this.readinessHttpProbeTimeout = readinessProbeTimeout;
-    }
-
-    /**
-     * @deprecated
-	 * @see #getReadinessHttpProbePath()
-	 * @return the path
-     */
-    @Deprecated
-    public String getReadinessProbePath() {
-        return readinessHttpProbePath;
-    }
-
-    /**
-     * @deprecated
-	 * @param readinessProbePath the path to use for http request
-	 * @see #setReadinessHttpProbePath(String)
-     */
-    @Deprecated
-    public void setReadinessProbePath(String readinessProbePath) {
-        this.readinessHttpProbePath = readinessProbePath;
-    }
-
-    /**
-     * @deprecated
-	 * @see #getReadinessHttpProbePort()
-	 * @return the port of the probe
-     */
-    @Deprecated
-    public Integer getReadinessProbePort() {
-        return readinessHttpProbePort;
-    }
-
-    /**
-     * @deprecated
-	 * @param readinessProbePort the port number use by the probe
-	 * @see #setReadinessHttpProbePort(Integer)
-     */
-    @Deprecated
-    public void setReadinessProbePort(Integer readinessProbePort) {
-        this.readinessHttpProbePort = readinessProbePort;
     }
 
     public int getReadinessHttpProbeDelay() {
