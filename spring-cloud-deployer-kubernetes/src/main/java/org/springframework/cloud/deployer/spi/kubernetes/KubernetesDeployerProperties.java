@@ -998,6 +998,9 @@ public class KubernetesDeployerProperties {
          * Environment variables to set for any deployed init container.
          */
         private String[] environmentVariables = new String[]{};
+		private String[] environmentVariablesFromFieldRefs = new String[]{};
+        private String[] configMapRefEnvVars = new String[]{};
+        private String[] secretRefEnvVars = new String[]{};
 
 		public String getName() {
 			return name;
@@ -1071,6 +1074,30 @@ public class KubernetesDeployerProperties {
 
         public void setEnvironmentVariables(String[] environmentVariables) {
             this.environmentVariables = environmentVariables;
+        }
+
+		public String[] getEnvironmentVariablesFromFieldRefs() {
+			return environmentVariablesFromFieldRefs;
+		}
+
+		public void setEnvironmentVariablesFromFieldRefs(String[] environmentVariablesFromFieldRefs) {
+			this.environmentVariablesFromFieldRefs = environmentVariablesFromFieldRefs;
+		}
+
+        public String[] getConfigMapRefEnvVars() {
+            return configMapRefEnvVars;
+        }
+
+        public void setConfigMapRefEnvVars(String[] configMapRefEnvVars) {
+            this.configMapRefEnvVars = configMapRefEnvVars;
+        }
+
+        public String[] getSecretRefEnvVars() {
+            return secretRefEnvVars;
+        }
+
+        public void setSecretRefEnvVars(String[] secretRefEnvVars) {
+            this.secretRefEnvVars = secretRefEnvVars;
         }
     }
 
