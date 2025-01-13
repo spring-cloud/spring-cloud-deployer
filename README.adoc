@@ -53,3 +53,7 @@ Clone the repo and type
 ----
 $ ./mvnw clean install 
 ----
+
+## Contributing
+
+We welcome contributions! See the link:./CONTRIBUTING.adoc[CONTRIBUTING] guide for details.
