@@ -38,7 +38,11 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSource;
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSource;
+import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
+import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
+import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodSecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -663,12 +667,21 @@ class DeploymentPropertiesResolver {
 	}
 
 	private Container containerFromProps(InitContainer initContainerProps) {
+		List<EnvVar> envVarList = new ArrayList<>();
+		envVarList.addAll(toEnvironmentVariables(initContainerProps.getEnvironmentVariables()));
+		envVarList.addAll(toEnvironmentVariablesFromFieldRef(initContainerProps.getEnvironmentVariablesFromFieldRefs()));
+
+		List<EnvFromSource> envFromSourceList = new ArrayList<>();
+		envFromSourceList.addAll(Arrays.stream(initContainerProps.getConfigMapRefEnvVars()).map(this::buildConfigMapRefEnvVar).collect(Collectors.toList()));
+		envFromSourceList.addAll(Arrays.stream(initContainerProps.getSecretRefEnvVars()).map(this::buildSecretRefEnvVar).collect(Collectors.toList()));
+
 		return new ContainerBuilder()
 				.withName(initContainerProps.getContainerName())
 				.withImage(initContainerProps.getImageName())
 				.withCommand(initContainerProps.getCommands())
 				.withArgs(initContainerProps.getArgs())
-				.withEnv(toEnvironmentVariables(initContainerProps.getEnvironmentVariables()))
+				.withEnv(envVarList)
+				.withEnvFrom(envFromSourceList)
 				.addAllToVolumeMounts(Optional.ofNullable(initContainerProps.getVolumeMounts()).orElse(Collections.emptyList()))
 				.build();
 	}
@@ -688,6 +701,22 @@ class DeploymentPropertiesResolver {
 			envVars.add(new EnvVar(e.getKey(), e.getValue(), null));
 		}
 		return envVars;
+	}
+
+	private List<EnvVar> toEnvironmentVariablesFromFieldRef(String[] environmentVariablesFromFieldRef) {
+		Map<String, String> envVarsMap = new HashMap<>();
+		if (environmentVariablesFromFieldRef != null) {
+			for (String envVar : environmentVariablesFromFieldRef) {
+				String[] strings = envVar.split("=", 2);
+				Assert.isTrue(strings.length == 2, "Invalid environment variable declared from field ref: " + envVar);
+				envVarsMap.put(strings[0], strings[1]);
+			}
+		}
+		return envVarsMap.entrySet().stream()
+				.map(e -> {
+					ObjectFieldSelector fieldSelector = new ObjectFieldSelectorBuilder().withFieldPath(e.getValue()).build();
+					return new EnvVar(e.getKey(), null, new EnvVarSourceBuilder().withFieldRef(fieldSelector).build());
+				}).collect(Collectors.toList());
 	}
 
 	List<Container> getAdditionalContainers(Map<String, String> deploymentProperties) {
