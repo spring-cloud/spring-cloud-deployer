@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class RandomPortRangeContextTests {
 				.withUserConfiguration(LocalDeployerAutoConfiguration.class)
 				.run((context) -> {
 					assertThat(context).hasSingleBean(LocalDeployerProperties.class);
-					assertThat(context).hasSingleBean(LocalDeployerAutoConfiguration.class);
+					assertThat(context).hasBean("localDeployerAutoConfiguration");
 					assertThat(context).getBean(LocalDeployerProperties.class)
 							.hasFieldOrPropertyWithValue("portRange.low", 20000);
 					assertThat(context).getBean(LocalDeployerProperties.class)
@@ -51,7 +51,7 @@ public class RandomPortRangeContextTests {
 				.withPropertyValues("spring.cloud.deployer.local.portRange.low=20001", "spring.cloud.deployer.local.portRange.high=20003")
 				.run((context) -> {
 					assertThat(context).hasSingleBean(LocalDeployerProperties.class);
-					assertThat(context).hasSingleBean(LocalDeployerAutoConfiguration.class);
+					assertThat(context).hasBean("localDeployerAutoConfiguration");
 					assertThat(context).getBean(LocalDeployerProperties.class)
 							.hasFieldOrPropertyWithValue("portRange.low", 20001);
 					assertThat(context).getBean(LocalDeployerProperties.class)

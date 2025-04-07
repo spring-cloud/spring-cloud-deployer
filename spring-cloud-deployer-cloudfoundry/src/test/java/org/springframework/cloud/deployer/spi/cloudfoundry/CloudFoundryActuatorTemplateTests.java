@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,91 +17,41 @@
 package org.springframework.cloud.deployer.spi.cloudfoundry;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.net.ServerSocket;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import okhttp3.mockwebserver.Dispatcher;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.InstanceDetail;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Mono;
-
+import org.mockito.Mock;
 import org.springframework.cloud.deployer.spi.app.ActuatorOperations;
 import org.springframework.cloud.deployer.spi.app.AppAdmin;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
+import reactor.core.publisher.Mono;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class CloudFoundryActuatorTemplateTests extends AbstractAppDeployerTestSupport {
 
+	@Mock
+	private RestTemplate restTemplate;
+
 	private ActuatorOperations actuatorOperations;
-	private static MockWebServer mockActuator;
-	String appBaseUrl;
-
-	@BeforeAll
-	static void setupMockServer() throws IOException {
-		mockActuator = new MockWebServer();
-		mockActuator.start();
-		mockActuator.setDispatcher(new Dispatcher() {
-			@Override
-			public MockResponse dispatch(RecordedRequest recordedRequest) throws InterruptedException {
-				assertThat(recordedRequest.getHeader("X-Cf-App-Instance")).isEqualTo("test-application-id:0");
-				switch (recordedRequest.getPath()) {
-				case "/actuator/info":
-					return new MockResponse().setBody(resourceAsString("actuator-info.json"))
-							.addHeader("Content-Type", "application/json").setResponseCode(200);
-				case "/actuator/health":
-					return new MockResponse().setBody("\"status\":\"UP\"}")
-							.addHeader("Content-Type", "application/json").setResponseCode(200);
-				case "/actuator/bindings":
-					return new MockResponse().setBody(resourceAsString("actuator-bindings.json"))
-							.addHeader("Content-Type", "application/json").setResponseCode(200);
-				case "/actuator/bindings/input":
-					if (recordedRequest.getMethod().equals("GET")) {
-						return new MockResponse().setBody(resourceAsString("actuator-binding-input.json"))
-								.addHeader("Content-Type", "application/json")
-								.setResponseCode(200);
-					}
-					else if (recordedRequest.getMethod().equals("POST")) {
-						if (!StringUtils.hasText(recordedRequest.getBody().toString())) {
-							return new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value());
-						}
-						else {
-							return new MockResponse().setBody(recordedRequest.getBody())
-									.addHeader("Content-Type", "application/json").setResponseCode(200);
-						}
-					}
-					else {
-						return new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value());
-					}
-				default:
-					return new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.value());
-				}
-			}
-		});
-	}
-
-	@AfterAll
-	static void tearDown() throws IOException {
-		mockActuator.shutdown();
-	}
 
 	@Override
 	protected void postSetUp() {
-		this.actuatorOperations = new CloudFoundryActuatorTemplate(new RestTemplate(), this.deployer, new AppAdmin());
-		this.appBaseUrl = String.format("localhost:%s", mockActuator.getPort());
-		givenRequestGetApplication("test-application-id", Mono.just(ApplicationDetail.builder()
+		this.actuatorOperations = new CloudFoundryActuatorTemplate(restTemplate, this.deployer, new AppAdmin());
+		int port = findRandomOpenPort();
+		givenRequestGetApplication("test-application-id", Mono.just(
+			ApplicationDetail.builder()
 				.diskQuota(0)
 				.id("test-application-id")
 				.instances(1)
@@ -110,17 +60,30 @@ public class CloudFoundryActuatorTemplateTests extends AbstractAppDeployerTestSu
 				.requestedState("RUNNING")
 				.runningInstances(1)
 				.stack("test-stack")
-				.urls(appBaseUrl)
+				.urls("localhost:" + port) // No longer dynamic
 				.instanceDetail(InstanceDetail.builder().state("RUNNING").index("1").build())
-				.build()));
+				.build()
+		));
+
+		MultiValueMap<String, String> header  = new LinkedMultiValueMap<>();
+		header.add("X-Cf-App-Instance", "test-application-id:0");
+		header.add("Accept", "application/json");
+		header.add("Content-Type", "application/json");
+		when(restTemplate.exchange(getUrl(port) + "/actuator/info", HttpMethod.GET,new HttpEntity<>(header), Map.class))
+			.thenReturn(new ResponseEntity<>(Collections.singletonMap("app", Collections.singletonMap("name", "log-sink-rabbit")), HttpStatus.OK));
+		when(restTemplate.exchange(getUrl(port) + "/actuator/bindings",HttpMethod.GET,new HttpEntity<>(header), List.class))
+			.thenReturn(new ResponseEntity<>(Collections.singletonList(Collections.singletonMap("bindingName", "input")), HttpStatus.OK));
+		when(restTemplate.exchange(getUrl(port) + "/actuator/bindings/input",HttpMethod.GET,new HttpEntity<>(header), Map.class))
+			.thenReturn(new ResponseEntity<>(Collections.singletonMap("bindingName", "input"), HttpStatus.OK));
+		when(restTemplate.exchange(getUrl(port) + "/actuator/bindings/input", HttpMethod.POST, new HttpEntity<>(Collections.singletonMap("state", "STOPPED"), header), Map.class))
+			.thenReturn(new ResponseEntity<>(Collections.singletonMap("state", "STOPPED"), HttpStatus.OK));
 	}
 
 	@Test
 	void actuatorInfo() {
-		Map<String,Object> info = actuatorOperations
-				.getFromActuator("test-application-id", "test-application:0", "/info", Map.class);
-
-		assertThat(((Map<?,?>) (info.get("app"))).get("name")).isEqualTo("log-sink-rabbit");
+		Map<String, Object> info = actuatorOperations
+			.getFromActuator("test-application-id", "test-application:0", "/info", Map.class);
+		assertThat(((Map<?, ?>) info.get("app")).get("name")).isEqualTo("log-sink-rabbit");
 	}
 
 	@Test
@@ -146,12 +109,15 @@ public class CloudFoundryActuatorTemplateTests extends AbstractAppDeployerTestSu
 		assertThat(state.get("state")).isEqualTo("STOPPED");
 	}
 
-	private static String resourceAsString(String path) {
-		try {
-			return StreamUtils.copyToString(new ClassPathResource(path).getInputStream(), StandardCharsets.UTF_8);
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e.getMessage(), e);
+	public static String getUrl(int port) {
+		return "http://localhost:" + port;
+	}
+	public static int findRandomOpenPort() {
+		try (ServerSocket socket = new ServerSocket(0)) {
+			socket.setReuseAddress(true);
+			return socket.getLocalPort();
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to find a random open port", e);
 		}
 	}
 }

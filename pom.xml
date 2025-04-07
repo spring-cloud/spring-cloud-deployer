@@ -57,7 +57,7 @@
 		<!-- ==================== -->
 		<!-- Dependency Versions  -->
 		<!-- ==================== -->
-		<spring-boot.version>3.3.5</spring-boot.version>
+		<spring-boot.version>3.4.4</spring-boot.version>
 		<commons-compress.version>1.26.2</commons-compress.version>
 		<commons-io.version>2.16.1</commons-io.version>
 

@@ -17,33 +17,27 @@
 package org.springframework.cloud.deployer.spi.kubernetes;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.net.ServerSocket;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import okhttp3.mockwebserver.Dispatcher;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.cloud.deployer.spi.app.ActuatorOperations;
 import org.springframework.cloud.deployer.spi.app.AppAdmin;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -51,82 +45,60 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class KubernetesActuatorTemplateTests {
-	private static MockWebServer mockActuator;
 
+	private final RestTemplate restTemplate = mock(RestTemplate.class);
 	private final AppDeployer appDeployer = mock(AppDeployer.class);
-
-	private final ActuatorOperations actuatorOperations = new KubernetesActuatorTemplate(new RestTemplate(),
-			appDeployer, new AppAdmin());
+	private final ActuatorOperations actuatorOperations = new KubernetesActuatorTemplate(
+		restTemplate, appDeployer, new AppAdmin());
 
 	private AppInstanceStatus appInstanceStatus;
-
-	@BeforeAll
-	static void setupMockServer() throws IOException {
-		mockActuator = new MockWebServer();
-		mockActuator.start();
-		mockActuator.setDispatcher(new Dispatcher() {
-			@Override
-			public MockResponse dispatch(RecordedRequest recordedRequest) throws InterruptedException {
-				switch (recordedRequest.getPath()) {
-				case "/actuator/info":
-					return new MockResponse().setBody(resourceAsString("actuator-info.json"))
-							.addHeader("Content-Type", "application/json").setResponseCode(200);
-				case "/actuator/health":
-					return new MockResponse().setBody("\"status\":\"UP\"}")
-							.addHeader("Content-Type", "application/json").setResponseCode(200);
-				case "/actuator/bindings":
-					return new MockResponse().setBody(resourceAsString("actuator-bindings.json"))
-							.addHeader("Content-Type", "application/json").setResponseCode(200);
-				case "/actuator/bindings/input":
-					if (recordedRequest.getMethod().equals("GET")) {
-						return new MockResponse().setBody(resourceAsString("actuator-binding-input.json"))
-								.addHeader("Content-Type", "application/json")
-								.setResponseCode(200);
-					}
-					else if (recordedRequest.getMethod().equals("POST")) {
-						if (!StringUtils.hasText(recordedRequest.getBody().toString())) {
-							return new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value());
-						}
-						else {
-							return new MockResponse().setBody(recordedRequest.getBody())
-									.addHeader("Content-Type", "application/json").setResponseCode(200);
-						}
-					}
-					else {
-						return new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value());
-					}
-				default:
-					return new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.value());
-				}
-			}
-		});
-	}
-
-	@AfterAll
-	static void tearDown() throws IOException {
-		mockActuator.shutdown();
-	}
 
 	@BeforeEach
 	void setUp() {
 		appInstanceStatus = mock(AppInstanceStatus.class);
+		int port = findRandomOpenPort();
+
 		Map<String, String> attributes = new HashMap<>();
 		attributes.put("pod.ip", "127.0.0.1");
-		attributes.put("actuator.port", String.valueOf(mockActuator.getPort()));
+		attributes.put("actuator.port", String.valueOf(port));
 		attributes.put("actuator.path", "/actuator");
 		attributes.put("guid", "test-application-0");
+
 		when(appInstanceStatus.getAttributes()).thenReturn(attributes);
 		when(appInstanceStatus.getState()).thenReturn(DeploymentState.deployed);
+
 		AppStatus appStatus = AppStatus.of("test-application-id")
-				.with(appInstanceStatus)
-				.build();
+			.with(appInstanceStatus)
+			.build();
+
 		when(appDeployer.status(anyString())).thenReturn(appStatus);
+		// Mock the actual call to RestTemplate
+		Map<String, Object> appInfo = new HashMap<>();
+		Map<String, Object> appDetails = new HashMap<>();
+		appDetails.put("name", "log-sink-rabbit");
+		appInfo.put("app", appDetails);
+//		restTemplate.exchange(url, HttpMethod.GET, new HttpEntity(requestHeaders), responseType)
+		MultiValueMap<String, String> header  = new LinkedMultiValueMap<>();
+		header.add("Content-Type", "application/json");
+		header.add("Accept", "application/json");
+		when(restTemplate.exchange(getUrl(port) + "/actuator/info",HttpMethod.GET,new HttpEntity<>(header), Map.class))
+			.thenReturn(new ResponseEntity<>(Collections.singletonMap("app", Collections.singletonMap("name", "log-sink-rabbit")), HttpStatus.OK));
+		when(restTemplate.exchange(getUrl(port) + "/actuator/health",HttpMethod.GET,new HttpEntity<>(header), Map.class))
+			.thenReturn(new ResponseEntity<>(Collections.singletonMap("app", Collections.singletonMap("status", "UP")), HttpStatus.OK));
+		when(restTemplate.exchange(getUrl(port) + "/actuator/bindings",HttpMethod.GET,new HttpEntity<>(header), List.class))
+			.thenReturn(new ResponseEntity<>(Collections.singletonList(Collections.singletonMap("bindingName", "input")), HttpStatus.OK));
+		when(restTemplate.exchange(getUrl(port) + "/actuator/bindings/input",HttpMethod.GET,new HttpEntity<>(header), Map.class))
+			.thenReturn(new ResponseEntity<>(Collections.singletonMap("bindingName", "input"), HttpStatus.OK));
+		when(restTemplate.exchange(getUrl(port) + "/actuator/bindings/input", HttpMethod.POST, new HttpEntity<>(Collections.singletonMap("state", "STOPPED"), header), Map.class))
+			.thenReturn(new ResponseEntity<>(Collections.singletonMap("state", "STOPPED"), HttpStatus.OK));
+		;
+
 	}
 
 	@Test
 	void actuatorInfo() {
 		Map<String, Object> info = actuatorOperations
-				.getFromActuator("test-application-id", "test-application-0", "/info", Map.class);
+			.getFromActuator("test-application-id", "test-application-0", "/info", Map.class);
 
 		assertThat(((Map<?, ?>) (info.get("app"))).get("name")).isEqualTo("log-sink-rabbit");
 	}
@@ -164,12 +136,15 @@ public class KubernetesActuatorTemplateTests {
 		}).isInstanceOf(IllegalStateException.class).hasMessageContaining("not deployed");
 	}
 
-	private static String resourceAsString(String path) {
-		try {
-			return StreamUtils.copyToString(new ClassPathResource(path).getInputStream(), StandardCharsets.UTF_8);
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e.getMessage(), e);
+	public static String getUrl(int port) {
+		return "http://127.0.0.1:" + port;
+	}
+	public static int findRandomOpenPort() {
+		try (ServerSocket socket = new ServerSocket(0)) {
+			socket.setReuseAddress(true);
+			return socket.getLocalPort();
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to find a random open port", e);
 		}
 	}
 }
