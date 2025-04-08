@@ -1,0 +1,18 @@
+name: 'Trivy Scan'
+description: 'Run Trivy Scan on repository'
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Run Trivy vulnerability scanner in repo mode
+      env:
+        TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasec/trivy-db,ghcr.io/aquasecurity/trivy-db
+        TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db,aquasec/trivy-java-db,ghcr.io/aquasecurity/trivy-java-db
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scanners: 'vuln'
+        ignore-unfixed: true
+        severity: 'CRITICAL,HIGH'
+        exit-code: 1
+        trivyignores: .trivyignore
