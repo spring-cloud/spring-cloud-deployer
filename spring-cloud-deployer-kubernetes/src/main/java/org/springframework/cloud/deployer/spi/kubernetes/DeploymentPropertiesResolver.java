@@ -648,18 +648,12 @@ class DeploymentPropertiesResolver {
 	}
 
 	private @Nullable Container initContainerFromProperties(Map<String, String> kubeProps, String propertyKey) {
-		String name = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".name");
-		name = StringUtils.hasText(name) ? name : PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".containerName");
-		String image = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".image");
-		image =  StringUtils.hasText(image) ? image : PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".imageName");
-
+		String name = getFirstProperty(kubeProps, propertyKey, ".name", ".containerName");
+		String image = getFirstProperty(kubeProps, propertyKey, ".image", ".imageName");
 		if (StringUtils.hasText(name) && StringUtils.hasText(image)) {
-			String commandStr = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".command");
-			commandStr = StringUtils.hasText(commandStr) ? commandStr : PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".commands");
+			String commandStr = getFirstProperty(kubeProps, propertyKey, ".command", ".commands");
 			List<String> commands = StringUtils.hasText(commandStr) ? Arrays.asList(commandStr.split(",")) : Collections.emptyList();
-			String envString = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".env");
-			envString = StringUtils.hasText(envString) ? envString : PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".environmentVariables");
-
+			String envString = getFirstProperty(kubeProps, propertyKey, ".env", ".environmentVariables");
 			List<VolumeMount> vms = this.getInitContainerVolumeMounts(kubeProps, propertyKey);
 			return new ContainerBuilder()
 					.withName(name)
@@ -668,6 +662,16 @@ class DeploymentPropertiesResolver {
 					.withEnv(toEnvironmentVariables((envString != null) ? envString.split(",") : new String[0]))
 					.addAllToVolumeMounts(vms)
 					.build();
+		}
+		return null;
+	}
+
+	public static String getFirstProperty(Map<String, String> kubeProps, String baseKey, String... suffixes) {
+		for (String suffix : suffixes) {
+			String value = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, baseKey + suffix);
+			if (StringUtils.hasText(value)) {
+				return value;
+			}
 		}
 		return null;
 	}
