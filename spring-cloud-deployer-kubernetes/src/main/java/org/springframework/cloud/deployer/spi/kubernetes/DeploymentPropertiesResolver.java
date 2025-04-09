@@ -380,6 +380,11 @@ class DeploymentPropertiesResolver {
 		return nodeSelectors;
 	}
 
+	String getImagePullPolicy(Map<String, String> kubernetesDeployerProperties) {
+		ImagePullPolicy imagePullPolicy = deduceImagePullPolicy(kubernetesDeployerProperties);
+		return imagePullPolicy != null ? imagePullPolicy.name() : null;
+	}
+
 	String getImagePullSecret(Map<String, String> kubernetesDeployerProperties) {
 		String imagePullSecret = PropertyParserUtils.getDeploymentPropertyValue(kubernetesDeployerProperties,
 				this.propertyPrefix + ".imagePullSecret", "");
@@ -643,16 +648,16 @@ class DeploymentPropertiesResolver {
 	}
 
 	private @Nullable Container initContainerFromProperties(Map<String, String> kubeProps, String propertyKey) {
-		String containerName = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".containerName");
-		String imageName = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".imageName");
-		if (StringUtils.hasText(containerName) && StringUtils.hasText(imageName)) {
-			String commandsStr = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".commands");
-			List<String> commands = StringUtils.hasText(commandsStr) ? Arrays.asList(commandsStr.split(",")) : Collections.emptyList();
-			String envString = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, propertyKey + ".environmentVariables");
+		String name = getFirstProperty(kubeProps, propertyKey, ".name", ".containerName");
+		String image = getFirstProperty(kubeProps, propertyKey, ".image", ".imageName");
+		if (StringUtils.hasText(name) && StringUtils.hasText(image)) {
+			String commandStr = getFirstProperty(kubeProps, propertyKey, ".command", ".commands");
+			List<String> commands = StringUtils.hasText(commandStr) ? Arrays.asList(commandStr.split(",")) : Collections.emptyList();
+			String envString = getFirstProperty(kubeProps, propertyKey, ".env", ".environmentVariables");
 			List<VolumeMount> vms = this.getInitContainerVolumeMounts(kubeProps, propertyKey);
 			return new ContainerBuilder()
-					.withName(containerName)
-					.withImage(imageName)
+					.withName(name)
+					.withImage(image)
 					.withCommand(commands)
 					.withEnv(toEnvironmentVariables((envString != null) ? envString.split(",") : new String[0]))
 					.addAllToVolumeMounts(vms)
@@ -661,11 +666,21 @@ class DeploymentPropertiesResolver {
 		return null;
 	}
 
+	public static String getFirstProperty(Map<String, String> kubeProps, String baseKey, String... suffixes) {
+		for (String suffix : suffixes) {
+			String value = PropertyParserUtils.getDeploymentPropertyValue(kubeProps, baseKey + suffix);
+			if (StringUtils.hasText(value)) {
+				return value;
+			}
+		}
+		return null;
+	}
+
 	private Container containerFromProps(InitContainer initContainerProps) {
 		return new ContainerBuilder()
-				.withName(initContainerProps.getContainerName())
-				.withImage(initContainerProps.getImageName())
-				.withCommand(initContainerProps.getCommands())
+				.withName(initContainerProps.getName())
+				.withImage(initContainerProps.getImage())
+				.withCommand(initContainerProps.getCommand())
 				.withArgs(initContainerProps.getArgs())
 				.withEnv(toEnvironmentVariables(initContainerProps.getEnvironmentVariables()))
 				.addAllToVolumeMounts(Optional.ofNullable(initContainerProps.getVolumeMounts()).orElse(Collections.emptyList()))

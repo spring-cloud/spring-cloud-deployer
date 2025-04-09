@@ -931,15 +931,21 @@ public class KubernetesAppDeployerTests {
         props.put("spring.cloud.deployer.kubernetes.initContainers[1].imageName", "busybox:2");
         props.put("spring.cloud.deployer.kubernetes.initContainers[1].containerName", "bb_s2");
         props.put("spring.cloud.deployer.kubernetes.initContainers[1].commands", "sh,-c,script2.sh");
-        props.put("spring.cloud.deployer.kubernetes.initContainers[2]", "{ \"imageName\": \"busybox:3\", \"containerName\": \"bb_s3\", \"args\": [\"-c\", \"script3.sh\"], \"volumeMounts\": [{\"mountPath\": \"/data\", \"name\": \"s3vol\", \"readOnly\": true}] }");
+		props.put("spring.cloud.deployer.kubernetes.initContainers[1].environmentVariables", "foo=baz");
 
-        AppDefinition definition = new AppDefinition("app-test", null);
+		props.put("spring.cloud.deployer.kubernetes.initContainers[2]", "{ \"image\": \"busybox:3\", \"name\": \"bb_s3\", \"args\": [\"-c\", \"script3.sh\"], \"volumeMounts\": [{\"mountPath\": \"/data\", \"name\": \"s3vol\", \"readOnly\": true}] }");
+		props.put("spring.cloud.deployer.kubernetes.initContainers[3].image", "busybox:2");
+		props.put("spring.cloud.deployer.kubernetes.initContainers[3].name", "bb_s4");
+		props.put("spring.cloud.deployer.kubernetes.initContainers[3].command", "sh,-c,script4.sh");
+		props.put("spring.cloud.deployer.kubernetes.initContainers[3].env", "foo=bar");
+
+		AppDefinition definition = new AppDefinition("app-test", null);
         AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
 
         deployer = k8sAppDeployer(new KubernetesDeployerProperties());
         PodSpec podSpec = deployer.createPodSpec(appDeploymentRequest);
         assertThat(podSpec.getInitContainers()).isNotEmpty();
-        assertThat(podSpec.getInitContainers().size()).isEqualTo(3);
+        assertThat(podSpec.getInitContainers().size()).isEqualTo(4);
         Container container0 = podSpec.getInitContainers().get(0);
         assertThat(container0.getImage()).isEqualTo("busybox:1");
         assertThat(container0.getName()).isEqualTo("bb_s1");
@@ -948,7 +954,8 @@ public class KubernetesAppDeployerTests {
         assertThat(container1.getImage()).isEqualTo("busybox:2");
         assertThat(container1.getName()).isEqualTo("bb_s2");
         assertThat(container1.getCommand()).containsExactly("sh", "-c", "script2.sh");
-        Container container2 = podSpec.getInitContainers().get(2);
+		assertThat(container1.getEnv()).isEqualTo(Collections.singletonList(new EnvVar("foo","baz", null)));
+		Container container2 = podSpec.getInitContainers().get(2);
         assertThat(container2.getImage()).isEqualTo("busybox:3");
         assertThat(container2.getName()).isEqualTo("bb_s3");
         assertThat(container2.getArgs()).containsExactly("-c", "script3.sh");
@@ -956,7 +963,12 @@ public class KubernetesAppDeployerTests {
         assertThat(container2.getVolumeMounts().get(0).getName()).isEqualTo("s3vol");
         assertThat(container2.getVolumeMounts().get(0).getMountPath()).isEqualTo("/data");
         assertThat(container2.getVolumeMounts().get(0).getReadOnly()).isTrue();
-    }
+		Container container3 = podSpec.getInitContainers().get(3);
+		assertThat(container3.getImage()).isEqualTo("busybox:2");
+		assertThat(container3.getName()).isEqualTo("bb_s4");
+		assertThat(container3.getCommand()).containsExactly("sh", "-c", "script4.sh");
+		assertThat(container3.getEnv()).isEqualTo(Collections.singletonList(new EnvVar("foo","bar", null)));
+	}
 
     @Test
     public void testNodeAffinityProperty() {

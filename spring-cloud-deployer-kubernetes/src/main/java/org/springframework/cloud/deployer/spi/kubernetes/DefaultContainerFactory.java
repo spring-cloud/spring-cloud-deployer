@@ -170,7 +170,8 @@ public class DefaultContainerFactory implements ContainerFactory {
 
         ContainerBuilder container = new ContainerBuilder();
         container.withName(containerConfiguration.getAppId()).withImage(image).withEnv(envVars).withEnvFrom(envFromSources)
-                .withArgs(appArgs).withVolumeMounts(deploymentPropertiesResolver.getVolumeMounts(deploymentProperties));
+			.withArgs(appArgs).withImagePullPolicy(deploymentPropertiesResolver.getImagePullPolicy(deploymentProperties))
+			.withVolumeMounts(deploymentPropertiesResolver.getVolumeMounts(deploymentProperties));
 
         Set<Integer> ports = new HashSet<>();
 

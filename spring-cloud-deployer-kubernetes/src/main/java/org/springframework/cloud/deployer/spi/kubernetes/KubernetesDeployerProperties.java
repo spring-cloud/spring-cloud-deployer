@@ -19,6 +19,8 @@ package org.springframework.cloud.deployer.spi.kubernetes;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PodAffinity;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
@@ -980,42 +982,72 @@ public class KubernetesDeployerProperties {
     }
 
     public static class ContainerProperties {
-        private String imageName;
-
-        private String containerName;
-
-        private List<String> commands;
-        private List<String> args;
-        private List<VolumeMount> volumeMounts;
+		@JsonAlias("imageName")
+		@JsonProperty("image")
+		private String image;
+		@JsonAlias("containerName")
+		@JsonProperty("name")
+		private String name;
+		@JsonProperty("command")
+		@JsonAlias("commands")
+		private List<String> command;
+		private List<String> args;
+		private List<VolumeMount> volumeMounts;
 
         /**
          * Environment variables to set for any deployed init container.
          */
         private String[] environmentVariables = new String[]{};
 
-        public String getImageName() {
-            return imageName;
-        }
+		public String getName() {
+			return name;
+		}
 
-        public void setImageName(String imageName) {
-            this.imageName = imageName;
-        }
+		public void setName(String name) {
+			this.name = name;
+		}
+		@Deprecated
+		public String getImageName() {
+			return getImage();
+		}
+		@Deprecated
+		public void setImageName(String image) {
+			setImage(image);
+		}
+		public String getImage() {
+			return image;
+		}
 
-        public String getContainerName() {
-            return containerName;
-        }
+		public void setImage(String image) {
+			this.image = image;
+		}
 
-        public void setContainerName(String containerName) {
-            this.containerName = containerName;
-        }
+		@Deprecated
+		public String getContainerName() {
+			return getName();
+		}
 
-        public List<String> getCommands() {
-            return commands;
-        }
+		@Deprecated
+		public void setContainerName(String containerName) {
+			setName(containerName);
+		}
 
-        public void setCommands(List<String> commands) {
-            this.commands = commands;
-        }
+		public List<String> getCommand() {
+			return command;
+		}
+
+		public void setCommand(List<String> command) {
+			this.command = command;
+		}
+		@Deprecated
+		public List<String> getCommands() {
+			return getCommand();
+		}
+
+		@Deprecated
+		public void setCommands(List<String> commands) {
+			setCommand(commands);
+		}
 
         public List<String> getArgs() {
             return args;
