@@ -1327,9 +1327,9 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
     public void initContainerFromGlobalProps() {
         // Set up a global initContainer (it should be chosen)
         KubernetesDeployerProperties.InitContainer globalInitContainerProps = new KubernetesDeployerProperties.InitContainer();
-        globalInitContainerProps.setContainerName("test-global");
-        globalInitContainerProps.setImageName("busybox:latest");
-        globalInitContainerProps.setCommands(Arrays.asList("sh", "-c", "echo hello-global"));
+        globalInitContainerProps.setName("test-global");
+        globalInitContainerProps.setImage("busybox:latest");
+        globalInitContainerProps.setCommand(Arrays.asList("sh", "-c", "echo hello-global"));
 
         KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
         kubernetesDeployerProperties.setInitContainer(globalInitContainerProps);
