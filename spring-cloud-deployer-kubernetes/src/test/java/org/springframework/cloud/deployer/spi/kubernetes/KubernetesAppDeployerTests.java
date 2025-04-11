@@ -934,7 +934,7 @@ public class KubernetesAppDeployerTests {
     public void testInitContainerEnvironmentVariables() {
         Map<String, String> props = new HashMap<>();
         props.put("spring.cloud.deployer.kubernetes.initContainers[0]", "{ \"imageName\": \"busybox:1\", \"environmentVariablesFromFieldRefs\": [\"POD_UID=metadata.uid\"] }");
-        props.put("spring.cloud.deployer.kubernetes.initContainers[1]", "{ \"imageName\": \"busybox:2\", \"configMapRefEnvVars\": [\"myConfigMap\"], \"secretRefEnvVars\": [\"mySecret\"] }");
+        props.put("spring.cloud.deployer.kubernetes.initContainers[1]", "{ \"imageName\": \"busybox:2\", \"configMapRefEnvVars\": [\"myConfigMap\",\"theirMap\"], \"secretRefEnvVars\": [\"mySecret\"] }");
 
         AppDefinition definition = new AppDefinition("app-test", null);
         AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(definition, getResource(), props);
@@ -950,7 +950,8 @@ public class KubernetesAppDeployerTests {
         Container container1 = podSpec.getInitContainers().get(1);
         assertThat(container1.getImage()).isEqualTo("busybox:2");
         assertThat(container1.getEnvFrom().get(0).getConfigMapRef().getName()).isEqualTo("myConfigMap");
-        assertThat(container1.getEnvFrom().get(0).getSecretRef().getName()).isEqualTo("mySecret");
+		assertThat(container1.getEnvFrom().get(1).getConfigMapRef().getName()).isEqualTo("theirMap");
+        assertThat(container1.getEnvFrom().get(2).getSecretRef().getName()).isEqualTo("mySecret");
     }
 
     @Test

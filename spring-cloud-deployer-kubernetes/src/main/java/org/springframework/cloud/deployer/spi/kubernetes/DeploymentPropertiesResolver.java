@@ -718,19 +718,19 @@ class DeploymentPropertiesResolver {
 	}
 
 	private List<EnvVar> toEnvironmentVariablesFromFieldRef(String[] environmentVariablesFromFieldRef) {
-		Map<String, String> envVarsMap = new HashMap<>();
-		if (environmentVariablesFromFieldRef != null) {
-			for (String envVar : environmentVariablesFromFieldRef) {
-				String[] strings = envVar.split("=", 2);
-				Assert.isTrue(strings.length == 2, "Invalid environment variable declared from field ref: " + envVar);
-				envVarsMap.put(strings[0], strings[1]);
-			}
+		if (environmentVariablesFromFieldRef == null || environmentVariablesFromFieldRef.length == 0) {
+			return Collections.emptyList();
 		}
-		return envVarsMap.entrySet().stream()
-				.map(e -> {
-					ObjectFieldSelector fieldSelector = new ObjectFieldSelectorBuilder().withFieldPath(e.getValue()).build();
-					return new EnvVar(e.getKey(), null, new EnvVarSourceBuilder().withFieldRef(fieldSelector).build());
-				}).collect(Collectors.toList());
+		return Arrays.stream(environmentVariablesFromFieldRef)
+			.map(entry -> {
+				String[] tokens = entry.split("=", 2);
+				Assert.isTrue(tokens.length == 2 && StringUtils.hasText(tokens[0]) && StringUtils.hasText(tokens[1]),
+					"Invalid environment variable from field ref: " + entry);
+				ObjectFieldSelector fieldSelector = new ObjectFieldSelectorBuilder()
+					.withFieldPath(tokens[1])
+					.build();
+				return new EnvVar(tokens[0], null, new EnvVarSourceBuilder().withFieldRef(fieldSelector).build());
+			}).collect(Collectors.toList());
 	}
 
 	List<Container> getAdditionalContainers(Map<String, String> deploymentProperties) {
