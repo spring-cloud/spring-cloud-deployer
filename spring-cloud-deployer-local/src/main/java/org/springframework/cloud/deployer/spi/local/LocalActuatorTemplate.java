@@ -35,7 +35,7 @@ public class LocalActuatorTemplate extends AbstractActuatorTemplate {
 
 	@Override
 	protected String actuatorUrlForInstance(AppInstanceStatus appInstanceStatus) {
-		return UriComponentsBuilder.fromHttpUrl(appInstanceStatus.getAttributes().get("url"))
+		return UriComponentsBuilder.fromUriString(appInstanceStatus.getAttributes().get("url"))
 				.path("/actuator").toUriString();
 	}
 }

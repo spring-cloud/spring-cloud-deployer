@@ -49,6 +49,8 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.ScalableResource;
+import io.fabric8.kubernetes.client.dsl.internal.batch.v1.JobOperationsImpl;
+import io.fabric8.kubernetes.client.dsl.internal.core.v1.PodOperationsImpl;
 import org.hashids.Hashids;
 
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
@@ -262,23 +264,24 @@ public class KubernetesTaskLauncher extends AbstractKubernetesDeployer implement
 				.withBackoffLimit(getBackoffLimit(request))
 				.withTtlSecondsAfterFinished(getTtlSecondsAfterFinished(request))
 				.build();
+			JobOperationsImpl jobOperations = new JobOperationsImpl(this.client);
+			this.client.batch().v1().jobs().inNamespace(jobOperations.getNamespace()).resource(new JobBuilder()
+				.withNewMetadata()
+				.withName(appId)
+				.withLabels(Collections.singletonMap("task-name", podLabelMap.get("task-name")))
+				.addToLabels(idMap)
+				.withAnnotations(this.deploymentPropertiesResolver.getJobAnnotations(deploymentProperties))
+				.endMetadata()
+				.withSpec(jobSpec)
+				.build()
+			).create();
 
-			this.client.batch().v1().jobs().create(
-				new JobBuilder()
-					.withNewMetadata()
-					.withName(appId)
-					.withLabels(Collections.singletonMap("task-name", podLabelMap.get("task-name")))
-					.addToLabels(idMap)
-					.withAnnotations(this.deploymentPropertiesResolver.getJobAnnotations(deploymentProperties))
-					.endMetadata()
-					.withSpec(jobSpec)
-					.build()
-			);
+;
 		}
 		else {
 			logger.debug(String.format("Launching Pod for task: %s", appId));
-
-			this.client.pods().create(
+			PodOperationsImpl podOperations = new PodOperationsImpl(this.client);
+			this.client.pods().inNamespace(podOperations.getNamespace()).resource(
 				new PodBuilder()
 					.withNewMetadata()
 					.withName(appId)
@@ -290,7 +293,7 @@ public class KubernetesTaskLauncher extends AbstractKubernetesDeployer implement
 					.endMetadata()
 					.withSpec(podSpec)
 					.build()
-			);
+			).create();
 		}
 	}
 

@@ -17,8 +17,8 @@
 package org.springframework.cloud.deployer.spi.kubernetes;
 
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 
 /**
  * The class responsible for creating Kubernetes Client based on the deployer properties.
@@ -35,7 +35,7 @@ public class KubernetesClientFactory {
 		if (kubernetesDeployerProperties.getNamespace() != null) {
 			config.setNamespace(kubernetesDeployerProperties.getNamespace());
 		}
-
-		return new DefaultKubernetesClient(config);
+		KubernetesClientBuilder builder = new KubernetesClientBuilder();
+		return builder.withConfig(config).build();
 	}
 }

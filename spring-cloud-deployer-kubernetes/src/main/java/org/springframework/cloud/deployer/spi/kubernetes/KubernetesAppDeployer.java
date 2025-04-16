@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
@@ -54,11 +55,17 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
+import io.fabric8.kubernetes.client.dsl.NonDeletingOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.fabric8.kubernetes.client.dsl.ScalableResource;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
+import io.fabric8.kubernetes.client.dsl.TimeoutableScalable;
+import io.fabric8.kubernetes.client.dsl.internal.apps.v1.DeploymentOperationsImpl;
+import io.fabric8.kubernetes.client.dsl.internal.apps.v1.StatefulSetOperationsImpl;
+import io.fabric8.kubernetes.client.dsl.internal.batch.v1.JobOperationsImpl;
+import io.fabric8.kubernetes.client.dsl.internal.core.v1.ServiceOperationsImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -124,7 +131,7 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
             }
 
             String indexedProperty = request.getDeploymentProperties().get(INDEXED_PROPERTY_KEY);
-            boolean indexed = (indexedProperty != null) ? Boolean.valueOf(indexedProperty) : false;
+            boolean indexed = Boolean.parseBoolean(indexedProperty);
             logPossibleDownloadResourceMessage(request.getResource());
 
             createService(request);
@@ -231,7 +238,9 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
 			if (scalableResource.get() == null) {
 				throw new IllegalStateException(String.format("App '%s' is not deployed", deploymentId));
 			}
-			scalableResource.scale(appScaleRequest.getCount(), true);
+			JobOperationsImpl jobOperations = new JobOperationsImpl(this.client);
+			TimeoutableScalable<?> timeoutableScalable = scalableResource.withTimeoutInMillis(jobOperations.getRequestConfig().getScaleTimeout());
+			timeoutableScalable.scale(appScaleRequest.getCount());
 		} catch (KubernetesClientException x) {
 			logger.debug("scale:exception:" + x, x);
 			throw new IllegalStateException(x);
@@ -269,8 +278,8 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
                 .withNewTemplate().withNewMetadata().withLabels(idMap).addToLabels(SPRING_MARKER_KEY, SPRING_MARKER_VALUE)
                 .addToLabels(deploymentLabels).withAnnotations(annotations).endMetadata().withSpec(podSpec).endTemplate()
                 .endSpec().build();
-
-        d = client.apps().deployments().create(d);
+		DeploymentOperationsImpl deploymentOperations = new DeploymentOperationsImpl(this.client);
+		d = client.apps().deployments().inNamespace(deploymentOperations.getNamespace()).resource(d).create();
         if (logger.isDebugEnabled()) {
             logger.debug("created:" + d.getFullResourceName() + ":" + d.getStatus());
         }
@@ -340,8 +349,8 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
 
         StatefulSet statefulSet = new StatefulSetBuilder().withNewMetadata().withName(appId).withLabels(idMap)
                 .addToLabels(SPRING_MARKER_KEY, SPRING_MARKER_VALUE).addToLabels(deploymentLabels).endMetadata().withSpec(spec).build();
-
-        statefulSet = client.apps().statefulSets().create(statefulSet);
+		StatefulSetOperationsImpl statefulSetOperations = new StatefulSetOperationsImpl(this.client);
+        statefulSet = client.apps().statefulSets().inNamespace(statefulSetOperations.getNamespace()).resource(statefulSet).create();
         if (logger.isDebugEnabled()) {
             logger.debug("created:" + statefulSet.getFullResourceName() + ":" + statefulSet.getStatus());
         }
@@ -430,11 +439,18 @@ public class KubernetesAppDeployer extends AbstractKubernetesDeployer implements
             spec.withSelector(idMap);
         }
 
-        Service service = client.services().createOrReplace(
-                new ServiceBuilder().withNewMetadata().withName(serviceName)
-                        .withLabels(idMap).withAnnotations(annotations).addToLabels(SPRING_MARKER_KEY, SPRING_MARKER_VALUE)
-                        .endMetadata().withSpec(spec.build()).build()
-        );
+		Service service = new ServiceBuilder().withNewMetadata().withName(serviceName)
+			.withLabels(idMap).withAnnotations(annotations).addToLabels(SPRING_MARKER_KEY, SPRING_MARKER_VALUE)
+			.endMetadata().withSpec(spec.build()).build();
+		ServiceOperationsImpl serviceOperations = new ServiceOperationsImpl(client);
+		service = client.services().inNamespace(serviceOperations.getNamespace()).resource(service).createOr(
+			new Function<NonDeletingOperation<Service>, Service>() {
+			@Override
+			public Service apply(NonDeletingOperation<Service> serviceNonDeletingOperation) {
+				return serviceNonDeletingOperation.update();
+
+			}
+		});
         if (logger.isDebugEnabled()) {
             logger.debug("created:" + service.getFullResourceName() + ":" + service.getStatus());
         }

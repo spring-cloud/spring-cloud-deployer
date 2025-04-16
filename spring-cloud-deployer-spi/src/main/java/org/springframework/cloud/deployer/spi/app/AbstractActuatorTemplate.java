@@ -73,7 +73,7 @@ public abstract class AbstractActuatorTemplate implements ActuatorOperations {
 		HttpHeaders requestHeaders = requestHeaders(httpHeadersForInstance(appInstanceStatus), optionalRequestHeaders);
 
 		ResponseEntity<T> responseEntity = httpGet(UriComponentsBuilder
-				.fromHttpUrl(actuatorUrl).path(normalizePath(endpoint)).toUriString(), responseType, requestHeaders);
+				.fromUriString(actuatorUrl).path(normalizePath(endpoint)).toUriString(), responseType, requestHeaders);
 		if (responseEntity.getStatusCode().isError()) {
 			logger.error(responseEntity.getStatusCode().toString());
 		}
@@ -92,7 +92,7 @@ public abstract class AbstractActuatorTemplate implements ActuatorOperations {
 		HttpHeaders requestHeaders = requestHeaders(httpHeadersForInstance(appInstanceStatus), optionalRequestHeaders);
 
 		ResponseEntity<R> responseEntity = httpPost(UriComponentsBuilder
-				.fromHttpUrl(actuatorUrl).path(normalizePath(endpoint)).toUriString(), body, responseType,
+				.fromUriString(actuatorUrl).path(normalizePath(endpoint)).toUriString(), body, responseType,
 				requestHeaders);
 		if (responseEntity.getStatusCode().isError()) {
 			logger.error(responseEntity.getStatusCode().toString());

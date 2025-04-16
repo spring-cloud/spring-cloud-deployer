@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJobList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 
+import io.fabric8.kubernetes.client.dsl.internal.batch.v1.JobOperationsImpl;
 import org.springframework.cloud.deployer.spi.scheduler.CreateScheduleException;
 import org.springframework.cloud.deployer.spi.scheduler.ScheduleInfo;
 import org.springframework.cloud.deployer.spi.scheduler.ScheduleRequest;
@@ -272,8 +273,8 @@ public class KubernetesScheduler extends AbstractKubernetesDeployer implements S
 				.build();
 
 		setImagePullSecret(scheduleRequest, cronJob);
-
-		return this.client.batch().v1().cronjobs().create(cronJob);
+		JobOperationsImpl jobOperations = new JobOperationsImpl(this.client);
+		return this.client.batch().v1().cronjobs().inNamespace(jobOperations.getNamespace()).resource(cronJob).create();
 	}
 
 	protected String getExceptionMessageForField(KubernetesClientException clientException,

@@ -31,6 +31,7 @@ import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -76,7 +77,7 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 					try {
 						URI uri = new URI(properties.getProperty(key));
 						boolean validUri = true;
-						if (uri == null || StringUtils.isEmpty(uri)) {
+						if (ObjectUtils.isEmpty(uri)) {
 							logger.warn(String.format("Error when registering '%s': URI is required", key));
 							validUri = false;
 						}

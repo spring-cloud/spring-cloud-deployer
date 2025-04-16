@@ -31,7 +31,7 @@ public class DurationConverter implements Converter <String, Duration> {
 
 	@Override
 	public Duration convert(String source) {
-		if (StringUtils.isEmpty(source)) {
+		if (StringUtils.hasText(source)) {
 			return null;
 		}
 		try {
