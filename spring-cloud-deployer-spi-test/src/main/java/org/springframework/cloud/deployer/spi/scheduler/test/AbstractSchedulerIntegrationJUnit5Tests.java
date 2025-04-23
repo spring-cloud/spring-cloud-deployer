@@ -71,7 +71,7 @@ import static org.awaitility.Awaitility.await;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-@ContextConfiguration(classes = AbstractSchedulerIntegrationTests.Config.class)
+@ContextConfiguration(classes = AbstractSchedulerIntegrationJUnit5Tests.Config.class)
 public abstract class AbstractSchedulerIntegrationJUnit5Tests {
 
 	@Autowired
