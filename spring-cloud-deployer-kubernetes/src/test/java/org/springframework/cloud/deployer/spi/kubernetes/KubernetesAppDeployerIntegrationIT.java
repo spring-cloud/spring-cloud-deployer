@@ -446,7 +446,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .withName(mountName)
                 .build()));
         deployProperties.setVolumeMounts(Collections.singletonList(new VolumeMount(hostPathVolumeSource.getPath(), null,
-                mountName, false, null, null)));
+                mountName, false, null, null, null)));
         KubernetesAppDeployer lbAppDeployer = kubernetesAppDeployer(deployProperties);
 
         AppDefinition definition = new AppDefinition(randomName(),

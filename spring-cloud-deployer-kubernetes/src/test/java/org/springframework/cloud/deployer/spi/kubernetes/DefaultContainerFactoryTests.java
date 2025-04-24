@@ -276,17 +276,17 @@ public class DefaultContainerFactoryTests {
         Container container = defaultContainerFactory.create(containerConfiguration);
 
         assertThat(container.getVolumeMounts()).containsOnly(
-                new VolumeMount("/test/hostPath", null, "testhostpath", null, null, null),
-                new VolumeMount("/test/pvc", null, "testpvc", true, null, null),
-                new VolumeMount("/test/nfs", null, "testnfs", null, null, null));
+                new VolumeMount("/test/hostPath", null, "testhostpath", null, null, null, null),
+                new VolumeMount("/test/pvc", null, "testpvc", true, null, null, null),
+                new VolumeMount("/test/nfs", null, "testnfs", null, null, null, null));
 
         // test volume mounts defined as app deployment property, overriding the deployer property
         kubernetesDeployerProperties = new KubernetesDeployerProperties();
         kubernetesDeployerProperties
                 .setVolumeMounts(Stream.of(
-                                new VolumeMount("/test/hostPath", null, "testhostpath", false, null, null),
-                                new VolumeMount("/test/pvc", null, "testpvc", true, null, null),
-                                new VolumeMount("/test/nfs", null, "testnfs", false, null, null))
+                                new VolumeMount("/test/hostPath", null, "testhostpath", false, null, null, null),
+                                new VolumeMount("/test/pvc", null, "testpvc", true, null, null, null),
+                                new VolumeMount("/test/nfs", null, "testnfs", false, null, null, null))
                         .collect(Collectors.toList()));
         defaultContainerFactory = new DefaultContainerFactory(kubernetesDeployerProperties);
 
@@ -301,9 +301,9 @@ public class DefaultContainerFactoryTests {
         container = defaultContainerFactory.create(containerConfiguration);
 
         assertThat(container.getVolumeMounts()).containsOnly(
-                new VolumeMount("/test/hostPath", null, "testhostpath", false, null, null),
-                new VolumeMount("/test/pvc/overridden", null, "testpvc", null, null, null),
-                new VolumeMount("/test/nfs/overridden", null, "testnfs", true, null, null));
+                new VolumeMount("/test/hostPath", null, "testhostpath", false, null, null, null),
+                new VolumeMount("/test/pvc/overridden", null, "testpvc", null, null, null, null),
+                new VolumeMount("/test/nfs/overridden", null, "testnfs", true, null, null, null));
     }
 
     /**
