@@ -622,7 +622,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         ServiceAccount deploymentServiceAccount = new ServiceAccountBuilder().withNewMetadata().withName("appsa")
                 .endMetadata().build();
 
-        this.kubernetesClient.serviceAccounts().create(deploymentServiceAccount);
+        this.kubernetesClient.serviceAccounts().inNamespace("default").resource(deploymentServiceAccount).create();
 
         String serviceAccountName = deploymentServiceAccount.getMetadata().getName();
 
@@ -649,7 +649,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.serviceAccounts().delete(deploymentServiceAccount);
+        kubernetesClient.serviceAccounts().inNamespace("default").resource(deploymentServiceAccount).delete();
     }
 
     @Test
@@ -1919,7 +1919,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.secrets().delete(secret);
+        kubernetesClient.secrets().inNamespace("default").resource(secret).delete();
     }
 
     @Test

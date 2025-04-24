@@ -31,8 +31,6 @@ import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.Resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 
 /**
  * @author Patrick Peralta
@@ -59,10 +57,10 @@ public class UriRegistryPopulatorTests {
 		UriRegistry registry = new InMemoryUriRegistry();
 		populator.populateRegistry(true, registry, localUri);
 		assertThat(resourceLoader.getRequestedLocations().contains(localUri)).isTrue();
-		assertThat(resourceLoader.getRequestedLocations().size(), is(1));
-		assertThat(registry.findAll().size(), is(this.uris.size()));
+		assertThat(resourceLoader.getRequestedLocations().size()).isEqualTo(1);
+		assertThat(registry.findAll().size()).isEqualTo(this.uris.size());
 		for (String key : this.uris.stringPropertyNames()) {
-			assertThat(registry.find(key).toString(), is(this.uris.getProperty(key)));
+			assertThat(registry.find(key).toString()).isEqualTo(this.uris.getProperty(key));
 		}
 
 		boolean thrown = false;
@@ -109,13 +107,13 @@ public class UriRegistryPopulatorTests {
 		UriRegistry registry = new InMemoryUriRegistry();
 		populator.populateRegistry(true, registry, localUri);
 		assertThat(resourceLoader.getRequestedLocations().contains(localUri)).isTrue();
-		assertThat(resourceLoader.getRequestedLocations().size(), is(1));
-		assertThat(registry.findAll().size(), is(1));
-		assertThat(registry.find("test").toString(), is("file:///bar-1.2.3.jar"));
+		assertThat(resourceLoader.getRequestedLocations().size()).isEqualTo(1);
+		assertThat(registry.findAll().size()).isEqualTo(1);
+		assertThat(registry.find("test").toString()).isEqualTo("file:///bar-1.2.3.jar");
 		populator.populateRegistry(true, registry, localUri);
 		props.setProperty("test", "invalid");
 		populator.populateRegistry(true, registry, localUri);
-		assertThat(registry.find("test").toString(), is("file:///bar-1.2.3.jar"));
+		assertThat(registry.find("test").toString()).isEqualTo("file:///bar-1.2.3.jar");
 	}
 
 

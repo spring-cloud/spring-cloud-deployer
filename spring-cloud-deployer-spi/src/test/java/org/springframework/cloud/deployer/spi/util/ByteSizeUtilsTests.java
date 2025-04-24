@@ -15,11 +15,10 @@
  */
 package org.springframework.cloud.deployer.spi.util;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Unit tests for {@link ByteSizeUtils}.
@@ -30,11 +29,11 @@ public class ByteSizeUtilsTests {
 
 	@Test
 	public void testParse() {
-		assertThat(ByteSizeUtils.parseToMebibytes("1"), CoreMatchers.is(1L));
-		assertThat(ByteSizeUtils.parseToMebibytes("2m"), CoreMatchers.is(2L));
-		assertThat(ByteSizeUtils.parseToMebibytes("20M"), CoreMatchers.is(20L));
-		assertThat(ByteSizeUtils.parseToMebibytes("1000g"), CoreMatchers.is(1024_000L));
-		assertThat(ByteSizeUtils.parseToMebibytes("1G"), CoreMatchers.is(1024L));
+		assertThat(ByteSizeUtils.parseToMebibytes("1")).isEqualTo(1L);
+		assertThat(ByteSizeUtils.parseToMebibytes("2m")).isEqualTo(2L);
+		assertThat(ByteSizeUtils.parseToMebibytes("20M")).isEqualTo(20L);
+		assertThat(ByteSizeUtils.parseToMebibytes("1000g")).isEqualTo(1024_000L);
+		assertThat(ByteSizeUtils.parseToMebibytes("1G")).isEqualTo(1024L);
 	}
 
 	@Test
