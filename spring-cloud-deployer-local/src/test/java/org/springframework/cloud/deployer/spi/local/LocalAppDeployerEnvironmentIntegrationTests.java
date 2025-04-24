@@ -44,7 +44,7 @@ import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.local.LocalAppDeployerEnvironmentIntegrationTests.Config;
 import org.springframework.cloud.deployer.spi.test.AbstractAppDeployerIntegrationJUnit5Tests;
-import org.springframework.cloud.deployer.spi.test.AbstractIntegrationTests;
+import org.springframework.cloud.deployer.spi.test.AbstractIntegrationJUnit5Tests;
 import org.springframework.cloud.deployer.spi.test.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,7 +67,7 @@ import static org.awaitility.Awaitility.await;
  * @author Janne Valkealahti
  * @author Ilayaperumal Gopinathan
  */
-@SpringBootTest(classes = { Config.class, AbstractIntegrationTests.Config.class }, value = {
+@SpringBootTest(classes = { Config.class, AbstractIntegrationJUnit5Tests.Config.class }, value = {
 		"maven.remoteRepositories.springRepo.url=https://repo.spring.io/snapshot",
 		"spring.cloud.deployer.local.use-spring-application-json=false"
 })

@@ -24,15 +24,15 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Properties;
 
-import org.junit.Test;
-
 import org.springframework.cloud.deployer.resource.StubResourceLoader;
+
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.Resource;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Patrick Peralta

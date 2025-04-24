@@ -20,9 +20,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for the {@link DockerResource}.
@@ -45,8 +46,10 @@ public class DockerResourceTests {
 		assertEquals(image, r.getURI().getSchemeSpecificPart());
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	public void testInvalidUri() throws IOException, URISyntaxException {
-		DockerResource r = new DockerResource(URI.create("http:" + image));
+	@Test
+	public void testInvalidUri() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			DockerResource r = new DockerResource(URI.create("http:" + image));
+		});
 	}
 }

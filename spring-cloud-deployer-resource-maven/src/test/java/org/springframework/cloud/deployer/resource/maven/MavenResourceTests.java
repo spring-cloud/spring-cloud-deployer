@@ -28,13 +28,14 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for {@link MavenResource}
@@ -53,12 +54,11 @@ public class MavenResourceTests {
 				.groupId("org.springframework.cloud.task.app")
 				.version("1.0.0.BUILD-SNAPSHOT")
 				.build();
-		assertNotNull("getFilename() returned null", resource.getFilename());
-		assertEquals("getFilename() doesn't match the expected filename",
-				"timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename());
-		assertEquals("getURI doesn't match the expected URI",
-				"maven://org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT",
-				resource.getURI().toString());
+		assertNotNull(resource.getFilename(), "getFilename() returned null");
+		assertEquals("timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename(), "getFilename() doesn't match the expected filename");
+		assertEquals("maven://org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT",
+				resource.getURI().toString(),
+				"getURI doesn't match the expected URI");
 	}
 
 	@Test
@@ -89,11 +89,9 @@ public class MavenResourceTests {
 	public void coordinatesParsed() {
 		MavenResource resource = MavenResource
 				.parse("org.springframework.cloud.task.app:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT");
-		assertEquals("getFilename() doesn't match the expected filename",
-				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
+		assertEquals("timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename(), "getFilename() doesn't match the expected filename");
 		resource = MavenResource.parse("org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT");
-		assertEquals("getFilename() doesn't match the expected filename",
-				"timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename());
+		assertEquals("timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename(), "getFilename() doesn't match the expected filename");
 	}
 
 	@Test
@@ -108,23 +106,24 @@ public class MavenResourceTests {
 				new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot"));
 		properties.setRemoteRepositories(remoteRepositoryMap);
 		MavenResource resource = MavenResource.parse(coordinates, properties);
-		assertEquals("getFilename() doesn't match the expected filename",
-				"timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename());
+		assertEquals("timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename(), "getFilename() doesn't match the expected filename");
 	}
 
-	@Test(expected = IllegalStateException.class)
-	public void localResolutionFailsIfNotCached() throws Exception {
-		String tempLocalRepo = System.getProperty("java.io.tmpdir") + File.separator + ".m2-test2";
-		new File(tempLocalRepo).deleteOnExit();
-		MavenProperties properties = new MavenProperties();
-		properties.setLocalRepository(tempLocalRepo);
-		properties.setOffline(true);
-		MavenResource resource = new MavenResource.Builder(properties)
-				.artifactId("timestamp-task")
-				.groupId("org.springframework.cloud.task.app")
-				.version("1.0.0.BUILD-SNAPSHOT")
-				.build();
-		resource.getFile();
+	@Test
+	public void localResolutionFailsIfNotCached() {
+		assertThrows(IllegalStateException.class, () -> {
+			String tempLocalRepo = System.getProperty("java.io.tmpdir") + File.separator + ".m2-test2";
+			new File(tempLocalRepo).deleteOnExit();
+			MavenProperties properties = new MavenProperties();
+			properties.setLocalRepository(tempLocalRepo);
+			properties.setOffline(true);
+			MavenResource resource = new MavenResource.Builder(properties)
+					.artifactId("timestamp-task")
+					.groupId("org.springframework.cloud.task.app")
+					.version("1.0.0.BUILD-SNAPSHOT")
+					.build();
+			resource.getFile();
+		});
 	}
 
 	@Test

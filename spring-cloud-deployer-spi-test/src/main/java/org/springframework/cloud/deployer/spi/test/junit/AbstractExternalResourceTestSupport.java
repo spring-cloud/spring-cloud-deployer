@@ -18,15 +18,15 @@ package org.springframework.cloud.deployer.spi.test.junit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Assume;
 import org.junit.Rule;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import org.springframework.util.Assert;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Abstract base class for JUnit {@link Rule}s that detect the presence of some external
@@ -100,8 +100,8 @@ public abstract class AbstractExternalResourceTestSupport<R> implements TestRule
 
 				@Override
 				public void evaluate() throws Throwable {
-					Assume.assumeTrue("Skipping test due to " + resourceDescription
-							+ " not being available " + e, false);
+					Assumptions.assumeTrue(false, "Skipping test due to " + resourceDescription
+							+ " not being available " + e);
 				}
 			};
 		}

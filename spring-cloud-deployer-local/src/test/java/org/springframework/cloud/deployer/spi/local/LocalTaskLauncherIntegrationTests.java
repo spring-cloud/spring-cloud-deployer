@@ -47,7 +47,7 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.local.LocalTaskLauncherIntegrationTests.Config;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
-import org.springframework.cloud.deployer.spi.test.AbstractIntegrationTests;
+import org.springframework.cloud.deployer.spi.test.AbstractIntegrationJUnit5Tests;
 import org.springframework.cloud.deployer.spi.test.AbstractTaskLauncherIntegrationJUnit5Tests;
 import org.springframework.cloud.deployer.spi.test.Timeout;
 import org.springframework.context.annotation.Bean;
@@ -73,7 +73,7 @@ import static org.awaitility.Awaitility.await;
  * @author Ben Blinebury
  *
  */
-@SpringBootTest(classes = {Config.class, AbstractIntegrationTests.Config.class}, value = {
+@SpringBootTest(classes = {Config.class, AbstractIntegrationJUnit5Tests.Config.class}, value = {
 		"maven.remoteRepositories.springRepo.url=https://repo.spring.io/snapshot" })
 @ExtendWith(OutputCaptureExtension.class)
 public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherIntegrationJUnit5Tests {

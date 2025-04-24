@@ -54,7 +54,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment= WebEnvironment.NONE)
-@ContextConfiguration(classes = AbstractIntegrationTests.Config.class)
+@ContextConfiguration(classes = AbstractIntegrationJUnit5Tests.Config.class)
 public abstract class AbstractIntegrationJUnit5Tests {
 
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());

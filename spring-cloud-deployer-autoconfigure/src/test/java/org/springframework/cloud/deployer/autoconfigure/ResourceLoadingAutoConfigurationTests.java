@@ -16,7 +16,7 @@
 package org.springframework.cloud.deployer.autoconfigure;
 
 import org.assertj.core.api.Condition;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -81,27 +81,24 @@ public class ResourceLoadingAutoConfigurationTests {
 	public void testMavenProperties() {
 		this.contextRunner
 				.withPropertyValues("maven.offline=true")
-				.run((context) -> {
-					assertThat(context).getBean(MavenProperties.class).has(offlineCondition);
-				});
+				.run((context) ->
+					assertThat(context).getBean(MavenProperties.class).has(offlineCondition));
 	}
 
 	@Test
 	public void testBuilderRegistration() {
 		this.contextRunner
 				.withUserConfiguration(CustomBuilderCustomizerConfig.class)
-				.run((context) -> {
-					assertThat(context).getBean(DelegatingResourceLoader.class).has(foobarCondition);
-				});
+				.run((context) ->
+					assertThat(context).getBean(DelegatingResourceLoader.class).has(foobarCondition));
 	}
 
 	@Test
 	public void testBuilderOrderRegistration() {
 		this.contextRunner
 				.withUserConfiguration(MavenReplacingBuilderCustomizerConfig.class)
-				.run((context) -> {
-					assertThat(context).getBean(DelegatingResourceLoader.class).has(mavenReplacedCondition);
-				});
+				.run((context) ->
+					assertThat(context).getBean(DelegatingResourceLoader.class).has(mavenReplacedCondition));
 	}
 
 	@Configuration

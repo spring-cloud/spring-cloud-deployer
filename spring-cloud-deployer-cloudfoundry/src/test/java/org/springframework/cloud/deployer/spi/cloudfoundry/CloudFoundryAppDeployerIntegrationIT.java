@@ -18,6 +18,7 @@ package org.springframework.cloud.deployer.spi.cloudfoundry;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -67,6 +68,7 @@ public class CloudFoundryAppDeployerIntegrationIT extends AbstractAppDeployerInt
 	}
 
 	@Override
+	@Test
 	@Disabled("Need to look into args escaping better. Disabling for the time being")
 	public void testCommandLineArgumentsPassing() {
 	}

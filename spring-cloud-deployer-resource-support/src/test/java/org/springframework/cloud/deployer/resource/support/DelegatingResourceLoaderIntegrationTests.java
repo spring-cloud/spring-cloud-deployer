@@ -17,13 +17,13 @@ package org.springframework.cloud.deployer.resource.support;
 
 import java.io.File;
 
-import org.junit.Test;
-
 import org.springframework.core.io.Resource;
+
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author Mark Pollack

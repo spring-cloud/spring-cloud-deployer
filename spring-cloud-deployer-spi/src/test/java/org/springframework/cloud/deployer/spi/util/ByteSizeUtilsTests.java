@@ -16,9 +16,10 @@
 package org.springframework.cloud.deployer.spi.util;
 
 import org.hamcrest.CoreMatchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for {@link ByteSizeUtils}.
@@ -36,14 +37,16 @@ public class ByteSizeUtilsTests {
 		assertThat(ByteSizeUtils.parseToMebibytes("1G"), CoreMatchers.is(1024L));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testNotANumber() {
-		ByteSizeUtils.parseToMebibytes("wat?124");
+		assertThrows(IllegalArgumentException.class, () ->
+			ByteSizeUtils.parseToMebibytes("wat?124"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testUnsupportedUnit() {
-		ByteSizeUtils.parseToMebibytes("1PB");
+		assertThrows(IllegalArgumentException.class, () ->
+			ByteSizeUtils.parseToMebibytes("1PB"));
 	}
 
 }

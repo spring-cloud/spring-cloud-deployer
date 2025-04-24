@@ -18,11 +18,11 @@ package org.springframework.cloud.deployer.resource.docker;
 
 import java.io.IOException;
 
-import org.junit.Test;
-
 import org.springframework.core.io.Resource;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for the {@link DockerResourceLoader}.

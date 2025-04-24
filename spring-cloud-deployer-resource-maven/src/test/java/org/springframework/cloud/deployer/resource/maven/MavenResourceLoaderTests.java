@@ -16,11 +16,12 @@
 
 package org.springframework.cloud.deployer.resource.maven;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.io.Resource;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for the {@link MavenResourceLoader}.
@@ -41,10 +42,12 @@ public class MavenResourceLoaderTests {
 		assertEquals("1.0.1", mavenResource.getVersion());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void invalidPrefix() {
-		MavenResourceLoader loader = new MavenResourceLoader(new MavenProperties());
-		loader.getResource("foo://bar");
+		assertThrows(IllegalArgumentException.class, () -> {
+			MavenResourceLoader loader = new MavenResourceLoader(new MavenProperties());
+			loader.getResource("foo://bar");
+		});
 	}
 
 }
