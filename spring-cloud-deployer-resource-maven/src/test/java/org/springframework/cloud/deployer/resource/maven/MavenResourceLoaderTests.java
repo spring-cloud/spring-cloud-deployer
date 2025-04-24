@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.core.io.Resource;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for the {@link MavenResourceLoader}.
@@ -44,7 +44,7 @@ public class MavenResourceLoaderTests {
 
 	@Test
 	public void invalidPrefix() {
-		assertThrows(IllegalArgumentException.class, () -> {
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
 			MavenResourceLoader loader = new MavenResourceLoader(new MavenProperties());
 			loader.getResource("foo://bar");
 		});

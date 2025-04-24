@@ -20,10 +20,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.util.StringUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for {@link KubernetesSchedulerProperties}.
@@ -35,7 +33,7 @@ public class KubernetesSchedulerPropertiesTests {
 	@Test
 	public void testImagePullPolicyDefault() {
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
-		assertNotNull(kubernetesSchedulerProperties.getImagePullPolicy(), "Image pull policy should not be null");
+		assertThat(kubernetesSchedulerProperties.getImagePullPolicy()).as("Image pull policy should not be null").isNotNull();
 		assertEquals(ImagePullPolicy.IfNotPresent,
 				kubernetesSchedulerProperties.getImagePullPolicy(),
 				"Invalid default image pull policy");
@@ -45,7 +43,7 @@ public class KubernetesSchedulerPropertiesTests {
 	public void testImagePullPolicyCanBeCustomized() {
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
 		kubernetesSchedulerProperties.setImagePullPolicy(ImagePullPolicy.Never);
-		assertNotNull(kubernetesSchedulerProperties.getImagePullPolicy(), "Image pull policy should not be null");
+		assertThat(kubernetesSchedulerProperties.getImagePullPolicy()).as("Image pull policy should not be null").isNotNull();
 		assertEquals(ImagePullPolicy.Never,
 				kubernetesSchedulerProperties.getImagePullPolicy(),
 				"Unexpected image pull policy");
@@ -54,7 +52,7 @@ public class KubernetesSchedulerPropertiesTests {
 	@Test
 	public void testRestartPolicyDefault() {
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
-		assertNotNull(kubernetesSchedulerProperties.getRestartPolicy(), "Restart policy should not be null");
+		assertThat(kubernetesSchedulerProperties.getRestartPolicy()).as("Restart policy should not be null").isNotNull();
 		assertEquals(RestartPolicy.Never,
 				kubernetesSchedulerProperties.getRestartPolicy(),
 				"Invalid default restart policy");
@@ -64,7 +62,7 @@ public class KubernetesSchedulerPropertiesTests {
 	public void testRestartPolicyCanBeCustomized() {
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
 		kubernetesSchedulerProperties.setRestartPolicy(RestartPolicy.OnFailure);
-		assertNotNull(kubernetesSchedulerProperties.getRestartPolicy(), "Restart policy should not be null");
+		assertThat(kubernetesSchedulerProperties.getRestartPolicy()).as("Restart policy should not be null").isNotNull();
 		assertEquals(RestartPolicy.OnFailure,
 				kubernetesSchedulerProperties.getRestartPolicy(),
 				"Unexpected restart policy");
@@ -73,7 +71,7 @@ public class KubernetesSchedulerPropertiesTests {
 	@Test
 	public void testEntryPointStyleDefault() {
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
-		assertNotNull(kubernetesSchedulerProperties.getEntryPointStyle(), "Entry point style should not be null");
+		assertThat(kubernetesSchedulerProperties.getEntryPointStyle()).as("Entry point style should not be null").isNotNull();
 		assertEquals(EntryPointStyle.exec,
 				kubernetesSchedulerProperties.getEntryPointStyle(),
 				"Invalid default entry point style");
@@ -83,7 +81,7 @@ public class KubernetesSchedulerPropertiesTests {
 	public void testEntryPointStyleCanBeCustomized() {
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
 		kubernetesSchedulerProperties.setEntryPointStyle(EntryPointStyle.shell);
-		assertNotNull(kubernetesSchedulerProperties.getEntryPointStyle(), "Entry point style should not be null");
+		assertThat(kubernetesSchedulerProperties.getEntryPointStyle()).as("Entry point style should not be null").isNotNull();
 		assertEquals(EntryPointStyle.shell,
 				kubernetesSchedulerProperties.getEntryPointStyle(),
 				"Unexpected entry point stype");
@@ -95,8 +93,7 @@ public class KubernetesSchedulerPropertiesTests {
 		if (kubernetesSchedulerProperties.getNamespace() == null) {
 			kubernetesSchedulerProperties.setNamespace("default");
 
-			assertTrue(StringUtils.hasText(kubernetesSchedulerProperties.getNamespace()),
-					"Namespace should not be empty or null");
+			assertThat(StringUtils.hasText(kubernetesSchedulerProperties.getNamespace())).as("Namespace should not be empty or null").isTrue();
 			assertEquals("default", kubernetesSchedulerProperties.getNamespace(), "Invalid default namespace");
 		}
 	}
@@ -105,15 +102,14 @@ public class KubernetesSchedulerPropertiesTests {
 	public void testNamespaceCanBeCustomized() {
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
 		kubernetesSchedulerProperties.setNamespace("myns");
-		assertTrue(StringUtils.hasText(kubernetesSchedulerProperties.getNamespace()),
-				"Namespace should not be empty or null");
+		assertThat(StringUtils.hasText(kubernetesSchedulerProperties.getNamespace())).as("Namespace should not be empty or null").isTrue();
 		assertEquals("myns", kubernetesSchedulerProperties.getNamespace(), "Unexpected namespace");
 	}
 
 	@Test
 	public void testImagePullSecretDefault() {
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
-		assertNull(kubernetesSchedulerProperties.getImagePullSecret(), "No default image pull secret should be set");
+		assertThat(kubernetesSchedulerProperties.getImagePullSecret()).as("No default image pull secret should be set").isNull();
 	}
 
 	@Test
@@ -121,7 +117,7 @@ public class KubernetesSchedulerPropertiesTests {
 		String secret = "mysecret";
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
 		kubernetesSchedulerProperties.setImagePullSecret(secret);
-		assertNotNull(kubernetesSchedulerProperties.getImagePullSecret(), "Image pull secret should not be null");
+		assertThat(kubernetesSchedulerProperties.getImagePullSecret()).as("Image pull secret should not be null").isNotNull();
 		assertEquals(secret, kubernetesSchedulerProperties.getImagePullSecret(), "Unexpected image pull secret");
 	}
 
@@ -138,8 +134,7 @@ public class KubernetesSchedulerPropertiesTests {
 		String[] envVars = new String[] { "var1=val1", "var2=val2" };
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
 		kubernetesSchedulerProperties.setEnvironmentVariables(envVars);
-		assertNotNull(kubernetesSchedulerProperties.getEnvironmentVariables(),
-				"Environment variables should not be null");
+		assertThat(kubernetesSchedulerProperties.getEnvironmentVariables()).as("Environment variables should not be null").isNotNull();
 		assertEquals(2,
 				kubernetesSchedulerProperties.getEnvironmentVariables().length,
 				"Unexpected number of environment variables");
@@ -148,8 +143,7 @@ public class KubernetesSchedulerPropertiesTests {
 	@Test
 	public void testTaskServiceAccountNameDefault() {
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
-		assertNotNull(kubernetesSchedulerProperties.getTaskServiceAccountName(),
-				"Task service account name should not be null");
+		assertThat(kubernetesSchedulerProperties.getTaskServiceAccountName()).as("Task service account name should not be null").isNotNull();
 		assertEquals(KubernetesSchedulerProperties.DEFAULT_TASK_SERVICE_ACCOUNT_NAME,
 				kubernetesSchedulerProperties.getTaskServiceAccountName(),
 				"Unexpected default task service account name");
@@ -160,8 +154,7 @@ public class KubernetesSchedulerPropertiesTests {
 		String taskServiceAccountName = "mysa";
 		KubernetesSchedulerProperties kubernetesSchedulerProperties = new KubernetesSchedulerProperties();
 		kubernetesSchedulerProperties.setTaskServiceAccountName(taskServiceAccountName);
-		assertNotNull(kubernetesSchedulerProperties.getTaskServiceAccountName(),
-				"Task service account name should not be null");
+		assertThat(kubernetesSchedulerProperties.getTaskServiceAccountName()).as("Task service account name should not be null").isNotNull();
 		assertEquals(taskServiceAccountName,
 				kubernetesSchedulerProperties.getTaskServiceAccountName(),
 				"Unexpected task service account name");

@@ -162,7 +162,18 @@
 				<configuration>
 					<exportDatatables>true</exportDatatables>
 					<activeRecipes>
-						<recipe>org.openrewrite.java.testing.junit5.JUnit4to5Migration</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertArrayEqualsToAssertThat</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertThrowsToAssertExceptionType</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertNotEqualsToAssertThat</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertSameToAssertThat</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail</recipe>
+						<recipe>org.openrewrite.java.testing.assertj.StaticImports</recipe>
+
 					</activeRecipes>
 				</configuration>
 				<dependencies>

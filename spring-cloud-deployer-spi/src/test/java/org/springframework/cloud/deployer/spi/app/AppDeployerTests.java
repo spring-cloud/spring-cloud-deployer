@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests for {@link AppDeployer}
@@ -58,7 +58,7 @@ public class AppDeployerTests {
 		};
 		try {
 			customAppDeployer.getLog("test");
-			fail();
+			fail("");
 		}
 		catch (UnsupportedOperationException e) {
 			assertEquals(e.getMessage(), "'getLog' is not implemented.");

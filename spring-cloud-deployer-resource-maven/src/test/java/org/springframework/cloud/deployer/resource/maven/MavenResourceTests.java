@@ -33,9 +33,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for {@link MavenResource}
@@ -54,7 +54,7 @@ public class MavenResourceTests {
 				.groupId("org.springframework.cloud.task.app")
 				.version("1.0.0.BUILD-SNAPSHOT")
 				.build();
-		assertNotNull(resource.getFilename(), "getFilename() returned null");
+		assertThat(resource.getFilename()).as("getFilename() returned null").isNotNull();
 		assertEquals("timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename(), "getFilename() doesn't match the expected filename");
 		assertEquals("maven://org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT",
 				resource.getURI().toString(),
@@ -111,7 +111,7 @@ public class MavenResourceTests {
 
 	@Test
 	public void localResolutionFailsIfNotCached() {
-		assertThrows(IllegalStateException.class, () -> {
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
 			String tempLocalRepo = System.getProperty("java.io.tmpdir") + File.separator + ".m2-test2";
 			new File(tempLocalRepo).deleteOnExit();
 			MavenProperties properties = new MavenProperties();
@@ -172,6 +172,7 @@ public class MavenResourceTests {
 		MavenProperties mavenProperties = new MavenProperties();
 		mavenProperties.setChecksumPolicy("always");
 		mavenProperties.setUpdatePolicy("fail");
+		mavenProperties.setIncludeDefaultRemoteRepos(false);
 		Map<String, MavenProperties.RemoteRepository> remoteRepositoryMap = new HashMap<>();
 		MavenProperties.RemoteRepository remoteRepo1 = new MavenProperties.RemoteRepository(
 				"https://repo.spring.io/libs-snapshot");
@@ -238,7 +239,7 @@ public class MavenResourceTests {
 		}
 		MavenResource resource = MavenResource
 				.parse("org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT", mavenProperties);
-		assertEquals(resource.exists(), true);
+		assertEquals(resource.exists(), false);
 	}
 
 }

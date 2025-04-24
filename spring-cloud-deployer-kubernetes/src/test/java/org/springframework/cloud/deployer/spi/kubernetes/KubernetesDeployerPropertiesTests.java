@@ -20,10 +20,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.util.StringUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for {@link KubernetesDeployerProperties}.
@@ -35,7 +33,7 @@ public class KubernetesDeployerPropertiesTests {
 	@Test
 	public void testImagePullPolicyDefault() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-		assertNotNull(kubernetesDeployerProperties.getImagePullPolicy(), "Image pull policy should not be null");
+		assertThat(kubernetesDeployerProperties.getImagePullPolicy()).as("Image pull policy should not be null").isNotNull();
 		assertEquals(ImagePullPolicy.IfNotPresent,
 				kubernetesDeployerProperties.getImagePullPolicy(),
 				"Invalid default image pull policy");
@@ -45,7 +43,7 @@ public class KubernetesDeployerPropertiesTests {
 	public void testImagePullPolicyCanBeCustomized() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.setImagePullPolicy(ImagePullPolicy.Never);
-		assertNotNull(kubernetesDeployerProperties.getImagePullPolicy(), "Image pull policy should not be null");
+		assertThat(kubernetesDeployerProperties.getImagePullPolicy()).as("Image pull policy should not be null").isNotNull();
 		assertEquals(ImagePullPolicy.Never,
 				kubernetesDeployerProperties.getImagePullPolicy(),
 				"Unexpected image pull policy");
@@ -54,7 +52,7 @@ public class KubernetesDeployerPropertiesTests {
 	@Test
 	public void testRestartPolicyDefault() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-		assertNotNull(kubernetesDeployerProperties.getRestartPolicy(), "Restart policy should not be null");
+		assertThat(kubernetesDeployerProperties.getRestartPolicy()).as("Restart policy should not be null").isNotNull();
 		assertEquals(RestartPolicy.Always,
 				kubernetesDeployerProperties.getRestartPolicy(),
 				"Invalid default restart policy");
@@ -64,7 +62,7 @@ public class KubernetesDeployerPropertiesTests {
 	public void testRestartPolicyCanBeCustomized() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.setRestartPolicy(RestartPolicy.OnFailure);
-		assertNotNull(kubernetesDeployerProperties.getRestartPolicy(), "Restart policy should not be null");
+		assertThat(kubernetesDeployerProperties.getRestartPolicy()).as("Restart policy should not be null").isNotNull();
 		assertEquals(RestartPolicy.OnFailure,
 				kubernetesDeployerProperties.getRestartPolicy(),
 				"Unexpected restart policy");
@@ -73,7 +71,7 @@ public class KubernetesDeployerPropertiesTests {
 	@Test
 	public void testEntryPointStyleDefault() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-		assertNotNull(kubernetesDeployerProperties.getEntryPointStyle(), "Entry point style should not be null");
+		assertThat(kubernetesDeployerProperties.getEntryPointStyle()).as("Entry point style should not be null").isNotNull();
 		assertEquals(EntryPointStyle.exec,
 				kubernetesDeployerProperties.getEntryPointStyle(),
 				"Invalid default entry point style");
@@ -83,7 +81,7 @@ public class KubernetesDeployerPropertiesTests {
 	public void testEntryPointStyleCanBeCustomized() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.setEntryPointStyle(EntryPointStyle.shell);
-		assertNotNull(kubernetesDeployerProperties.getEntryPointStyle(), "Entry point style should not be null");
+		assertThat(kubernetesDeployerProperties.getEntryPointStyle()).as("Entry point style should not be null").isNotNull();
 		assertEquals(EntryPointStyle.shell,
 				kubernetesDeployerProperties.getEntryPointStyle(),
 				"Unexpected entry point stype");
@@ -95,8 +93,7 @@ public class KubernetesDeployerPropertiesTests {
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 
-			assertTrue(StringUtils.hasText(kubernetesDeployerProperties.getNamespace()),
-					"Namespace should not be empty or null");
+			assertThat(StringUtils.hasText(kubernetesDeployerProperties.getNamespace())).as("Namespace should not be empty or null").isTrue();
 			assertEquals("default", kubernetesDeployerProperties.getNamespace(), "Invalid default namespace");
 		}
 	}
@@ -105,15 +102,14 @@ public class KubernetesDeployerPropertiesTests {
 	public void testNamespaceCanBeCustomized() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.setNamespace("myns");
-		assertTrue(StringUtils.hasText(kubernetesDeployerProperties.getNamespace()),
-				"Namespace should not be empty or null");
+		assertThat(StringUtils.hasText(kubernetesDeployerProperties.getNamespace())).as("Namespace should not be empty or null").isTrue();
 		assertEquals("myns", kubernetesDeployerProperties.getNamespace(), "Unexpected namespace");
 	}
 
 	@Test
 	public void testImagePullSecretDefault() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-		assertNull(kubernetesDeployerProperties.getImagePullSecret(), "No default image pull secret should be set");
+		assertThat(kubernetesDeployerProperties.getImagePullSecret()).as("No default image pull secret should be set").isNull();
 	}
 
 	@Test
@@ -121,7 +117,7 @@ public class KubernetesDeployerPropertiesTests {
 		String secret = "mysecret";
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.setImagePullSecret(secret);
-		assertNotNull(kubernetesDeployerProperties.getImagePullSecret(), "Image pull secret should not be null");
+		assertThat(kubernetesDeployerProperties.getImagePullSecret()).as("Image pull secret should not be null").isNotNull();
 		assertEquals(secret, kubernetesDeployerProperties.getImagePullSecret(), "Unexpected image pull secret");
 	}
 
@@ -138,8 +134,7 @@ public class KubernetesDeployerPropertiesTests {
 		String[] envVars = new String[] { "var1=val1", "var2=val2" };
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.setEnvironmentVariables(envVars);
-		assertNotNull(kubernetesDeployerProperties.getEnvironmentVariables(),
-				"Environment variables should not be null");
+		assertThat(kubernetesDeployerProperties.getEnvironmentVariables()).as("Environment variables should not be null").isNotNull();
 		assertEquals(2,
 				kubernetesDeployerProperties.getEnvironmentVariables().length,
 				"Unexpected number of environment variables");
@@ -148,8 +143,7 @@ public class KubernetesDeployerPropertiesTests {
 	@Test
 	public void testTaskServiceAccountNameDefault() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
-		assertNotNull(kubernetesDeployerProperties.getTaskServiceAccountName(),
-				"Task service account name should not be null");
+		assertThat(kubernetesDeployerProperties.getTaskServiceAccountName()).as("Task service account name should not be null").isNotNull();
 		assertEquals(kubernetesDeployerProperties.DEFAULT_TASK_SERVICE_ACCOUNT_NAME,
 				kubernetesDeployerProperties.getTaskServiceAccountName(),
 				"Unexpected default task service account name");
@@ -160,8 +154,7 @@ public class KubernetesDeployerPropertiesTests {
 		String taskServiceAccountName = "mysa";
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 		kubernetesDeployerProperties.setTaskServiceAccountName(taskServiceAccountName);
-		assertNotNull(kubernetesDeployerProperties.getTaskServiceAccountName(),
-				"Task service account name should not be null");
+		assertThat(kubernetesDeployerProperties.getTaskServiceAccountName()).as("Task service account name should not be null").isNotNull();
 		assertEquals(taskServiceAccountName,
 				kubernetesDeployerProperties.getTaskServiceAccountName(),
 				"Unexpected task service account name");

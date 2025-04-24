@@ -18,8 +18,8 @@ package org.springframework.cloud.deployer.spi.util;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for {@link ByteSizeUtils}.
@@ -39,14 +39,14 @@ public class ByteSizeUtilsTests {
 
 	@Test
 	public void testNotANumber() {
-		assertThrows(IllegalArgumentException.class, () ->
-			ByteSizeUtils.parseToMebibytes("wat?124"));
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+				ByteSizeUtils.parseToMebibytes("wat?124"));
 	}
 
 	@Test
 	public void testUnsupportedUnit() {
-		assertThrows(IllegalArgumentException.class, () ->
-			ByteSizeUtils.parseToMebibytes("1PB"));
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+				ByteSizeUtils.parseToMebibytes("1PB"));
 	}
 
 }

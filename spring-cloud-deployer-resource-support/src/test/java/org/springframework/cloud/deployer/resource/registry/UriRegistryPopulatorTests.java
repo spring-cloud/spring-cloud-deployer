@@ -30,9 +30,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.Resource;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Patrick Peralta
@@ -58,7 +58,7 @@ public class UriRegistryPopulatorTests {
 
 		UriRegistry registry = new InMemoryUriRegistry();
 		populator.populateRegistry(true, registry, localUri);
-		assertTrue(resourceLoader.getRequestedLocations().contains(localUri));
+		assertThat(resourceLoader.getRequestedLocations().contains(localUri)).isTrue();
 		assertThat(resourceLoader.getRequestedLocations().size(), is(1));
 		assertThat(registry.findAll().size(), is(this.uris.size()));
 		for (String key : this.uris.stringPropertyNames()) {
@@ -73,7 +73,7 @@ public class UriRegistryPopulatorTests {
 			thrown = true;
 		}
 		finally {
-			assertTrue(thrown);
+			assertThat(thrown).isTrue();
 		}
 	}
 
@@ -86,16 +86,16 @@ public class UriRegistryPopulatorTests {
 		populator.setResourceLoader(resourceLoader);
 		UriRegistry registry = new InMemoryUriRegistry();
 		Map<String, URI> registered = populator.populateRegistry(true, registry, localUri);
-		assertTrue(registered.size() == 3);
+		assertThat(registered.size() == 3).isTrue();
 		// Perform overwrites on the existing keys
 		Map<String, URI> registeredWithNoOverwrites = populator.populateRegistry(false, registry, localUri);
-		assertTrue(registeredWithNoOverwrites.size() == 0);
+		assertThat(registeredWithNoOverwrites.size() == 0).isTrue();
 		propertiesResource.addNewProperty("another", "maven://somegroup:someartifact:jar:exec:1.0.0");
 		Map<String, URI> newlyRegisteredWithNoOverwrites = populator.populateRegistry(false, registry, localUri);
-		assertTrue(newlyRegisteredWithNoOverwrites.size() == 1);
+		assertThat(newlyRegisteredWithNoOverwrites.size() == 1).isTrue();
 		propertiesResource.addNewProperty("yet-another", "file:///tmp/yet-another.jar");
 		Map<String, URI> newlyRegisteredWithOverwrites = populator.populateRegistry(true, registry, localUri);
-		assertTrue(newlyRegisteredWithOverwrites.size() == 5);
+		assertThat(newlyRegisteredWithOverwrites.size() == 5).isTrue();
 	}
 
 	@Test
@@ -108,7 +108,7 @@ public class UriRegistryPopulatorTests {
 		populator.setResourceLoader(resourceLoader);
 		UriRegistry registry = new InMemoryUriRegistry();
 		populator.populateRegistry(true, registry, localUri);
-		assertTrue(resourceLoader.getRequestedLocations().contains(localUri));
+		assertThat(resourceLoader.getRequestedLocations().contains(localUri)).isTrue();
 		assertThat(resourceLoader.getRequestedLocations().size(), is(1));
 		assertThat(registry.findAll().size(), is(1));
 		assertThat(registry.find("test").toString(), is("file:///bar-1.2.3.jar"));

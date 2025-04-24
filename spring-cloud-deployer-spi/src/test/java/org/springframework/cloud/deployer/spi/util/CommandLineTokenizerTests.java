@@ -21,7 +21,7 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 /**
  * Unit tests for {@link CommandLineTokenizer}.
@@ -52,7 +52,7 @@ public class CommandLineTokenizerTests {
 
 	@Test
 	public void testUnbalancedQuotes() {
-		assertThrows(IllegalStateException.class, () -> {
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
 			CommandLineTokenizer tokenizer = new CommandLineTokenizer(" 'ab cd' 'ef gh");
 		});
 	}

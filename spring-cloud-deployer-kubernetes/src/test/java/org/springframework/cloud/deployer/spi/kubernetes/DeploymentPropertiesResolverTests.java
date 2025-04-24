@@ -19,9 +19,10 @@ package org.springframework.cloud.deployer.spi.kubernetes;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
@@ -37,7 +38,7 @@ public class DeploymentPropertiesResolverTests {
 		DeploymentPropertiesResolver deploymentPropertiesResolver = getDeploymentPropertiesResolver(isDeprecated, kubernetesDeployerProperties);
 		Map<String, String> properties = new HashMap<>();
 		RestartPolicy restartPolicy = deploymentPropertiesResolver.getRestartPolicy(properties);
-		Assertions.assertThat(restartPolicy).isEqualTo(RestartPolicy.Always);
+		assertThat(restartPolicy).isEqualTo(RestartPolicy.Always);
 		if (isDeprecated) {
 			properties.put(KubernetesSchedulerProperties.KUBERNETES_SCHEDULER_PROPERTIES_PREFIX + ".restartPolicy", RestartPolicy.Never.name());
 		}
@@ -45,7 +46,7 @@ public class DeploymentPropertiesResolverTests {
 			properties.put(KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".restartPolicy", RestartPolicy.Never.name());
 		}
 		restartPolicy = deploymentPropertiesResolver.getRestartPolicy(properties);
-		Assertions.assertThat(restartPolicy).isEqualTo(RestartPolicy.Never);
+		assertThat(restartPolicy).isEqualTo(RestartPolicy.Never);
 
 	}
 
@@ -56,7 +57,7 @@ public class DeploymentPropertiesResolverTests {
 		DeploymentPropertiesResolver deploymentPropertiesResolver = getDeploymentPropertiesResolver(isDeprecated, kubernetesDeployerProperties);
 		Map<String, String> properties = new HashMap<>();
 		String taskServiceAccountName = deploymentPropertiesResolver.getTaskServiceAccountName(properties);
-		Assertions.assertThat(taskServiceAccountName).isEqualTo("default");
+		assertThat(taskServiceAccountName).isEqualTo("default");
 		if (isDeprecated) {
 			properties.put(KubernetesSchedulerProperties.KUBERNETES_SCHEDULER_PROPERTIES_PREFIX + ".taskServiceAccountName", "FOO");
 		}
@@ -64,7 +65,7 @@ public class DeploymentPropertiesResolverTests {
 			properties.put(KubernetesDeployerProperties.KUBERNETES_DEPLOYER_PROPERTIES_PREFIX + ".task-service-account-name", "FOO");
 		}
 		taskServiceAccountName = deploymentPropertiesResolver.getTaskServiceAccountName(properties);
-		Assertions.assertThat(taskServiceAccountName).isEqualTo("FOO");
+		assertThat(taskServiceAccountName).isEqualTo("FOO");
 
 	}
 

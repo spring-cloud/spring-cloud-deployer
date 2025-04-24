@@ -29,8 +29,8 @@ import org.springframework.cloud.deployer.resource.StubResourceLoader;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.ResourceLoader;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * Tests for {@link DelegatingResourceLoader}.
@@ -50,8 +50,8 @@ public class DelegatingResourceLoaderTests {
 		NullResource two = new NullResource("two");
 		NullResource three = new NullResource("three");
 
-		assertNotEquals(one, two);
-		assertNotEquals(two, three);
+		assertThat(two).isNotEqualTo(one);
+		assertThat(three).isNotEqualTo(two);
 
 		Map<String, ResourceLoader> map = new HashMap<>();
 		map.put("one", new StubResourceLoader(one));

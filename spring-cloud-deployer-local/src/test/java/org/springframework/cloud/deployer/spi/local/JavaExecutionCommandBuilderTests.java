@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,6 +36,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -162,7 +162,7 @@ public class JavaExecutionCommandBuilderTests {
 
 	@Test
 	public void testBadResourceExecution() {
-		Assertions.assertThrows(IllegalStateException.class, () -> {
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
 			AppDefinition definition = new AppDefinition("randomApp", new HashMap<>());
 			deploymentProperties.put(LocalDeployerProperties.PREFIX + ".javaOpts", "-Dtest=foo -Dbar=baz");
 			AppDeploymentRequest appDeploymentRequest =

@@ -65,7 +65,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -172,10 +171,10 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(statefulSets).hasSize(1);
         StatefulSet statefulSet = statefulSets.get(0);
         StatefulSetSpec statefulSetSpec = statefulSet.getSpec();
-        Assertions.assertThat(statefulSetSpec.getPodManagementPolicy()).isEqualTo("Parallel");
-        Assertions.assertThat(statefulSetSpec.getReplicas()).isEqualTo(3);
-        Assertions.assertThat(statefulSetSpec.getServiceName()).isEqualTo(deploymentId);
-        Assertions.assertThat(statefulSet.getMetadata().getName()).isEqualTo(deploymentId);
+        assertThat(statefulSetSpec.getPodManagementPolicy()).isEqualTo("Parallel");
+        assertThat(statefulSetSpec.getReplicas()).isEqualTo(3);
+        assertThat(statefulSetSpec.getServiceName()).isEqualTo(deploymentId);
+        assertThat(statefulSet.getMetadata().getName()).isEqualTo(deploymentId);
 
         log.info("Scale Down {}...", request.getDefinition().getName());
         appDeployer.scale(new AppScaleRequest(deploymentId, 1));
@@ -186,9 +185,9 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         statefulSets = kubernetesClient.apps().statefulSets().withLabels(selector).list().getItems();
         assertThat(statefulSets).hasSize(1);
         statefulSetSpec = statefulSets.get(0).getSpec();
-        Assertions.assertThat(statefulSetSpec.getReplicas()).isEqualTo(1);
-        Assertions.assertThat(statefulSetSpec.getServiceName()).isEqualTo(deploymentId);
-        Assertions.assertThat(statefulSet.getMetadata().getName()).isEqualTo(deploymentId);
+        assertThat(statefulSetSpec.getReplicas()).isEqualTo(1);
+        assertThat(statefulSetSpec.getServiceName()).isEqualTo(deploymentId);
+        assertThat(statefulSet.getMetadata().getName()).isEqualTo(deploymentId);
 
         appDeployer.undeploy(deploymentId);
     }
@@ -689,39 +688,39 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         assertThat(statefulSetInitContainer.getImage()).isEqualTo(DeploymentPropertiesResolver.STATEFUL_SET_IMAGE_NAME);
 		assertThat(statefulSetInitContainer.getSecurityContext()).isNull();
 
-        Assertions.assertThat(statefulSetSpec.getPodManagementPolicy()).isEqualTo("Parallel");
-        Assertions.assertThat(statefulSetSpec.getReplicas()).isEqualTo(3);
-        Assertions.assertThat(statefulSetSpec.getServiceName()).isEqualTo(deploymentId);
+        assertThat(statefulSetSpec.getPodManagementPolicy()).isEqualTo("Parallel");
+        assertThat(statefulSetSpec.getReplicas()).isEqualTo(3);
+        assertThat(statefulSetSpec.getServiceName()).isEqualTo(deploymentId);
 
-        Assertions.assertThat(statefulSet.getMetadata().getName()).isEqualTo(deploymentId);
+        assertThat(statefulSet.getMetadata().getName()).isEqualTo(deploymentId);
 
-        Assertions.assertThat(statefulSetSpec.getSelector().getMatchLabels())
+        assertThat(statefulSetSpec.getSelector().getMatchLabels())
                 .containsAllEntriesOf(deployer.createIdMap(deploymentId, appDeploymentRequest));
-        Assertions.assertThat(statefulSetSpec.getSelector().getMatchLabels())
+        assertThat(statefulSetSpec.getSelector().getMatchLabels())
                 .contains(entry(KubernetesAppDeployer.SPRING_MARKER_KEY, KubernetesAppDeployer.SPRING_MARKER_VALUE));
 
-        Assertions.assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels()).containsAllEntriesOf(idMap);
-        Assertions.assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels())
+        assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels()).containsAllEntriesOf(idMap);
+        assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels())
                 .contains(entry(KubernetesAppDeployer.SPRING_MARKER_KEY, KubernetesAppDeployer.SPRING_MARKER_VALUE));
 
         Container container = statefulSetSpec.getTemplate().getSpec().getContainers().get(0);
 
-        Assertions.assertThat(container.getName()).isEqualTo(deploymentId);
-        Assertions.assertThat(container.getPorts().get(0).getContainerPort()).isEqualTo(8080);
-        Assertions.assertThat(container.getImage()).isEqualTo(testApplication().getURI().getSchemeSpecificPart());
+        assertThat(container.getName()).isEqualTo(deploymentId);
+        assertThat(container.getPorts().get(0).getContainerPort()).isEqualTo(8080);
+        assertThat(container.getImage()).isEqualTo(testApplication().getURI().getSchemeSpecificPart());
 
         PersistentVolumeClaim pvc = statefulSetSpec.getVolumeClaimTemplates().get(0);
-        Assertions.assertThat(pvc.getMetadata().getName()).isEqualTo(deploymentId);
+        assertThat(pvc.getMetadata().getName()).isEqualTo(deploymentId);
 
         PersistentVolumeClaimSpec pvcSpec = pvc.getSpec();
-        Assertions.assertThat(pvcSpec.getAccessModes()).containsOnly("ReadWriteOnce");
-        Assertions.assertThat(pvcSpec.getStorageClassName()).isNull();
+        assertThat(pvcSpec.getAccessModes()).containsOnly("ReadWriteOnce");
+        assertThat(pvcSpec.getStorageClassName()).isNull();
 
-        Assertions.assertThat(pvcSpec.getResources().getLimits().get("storage").getAmount()).isEqualTo("10");
-        Assertions.assertThat(pvcSpec.getResources().getRequests().get("storage").getAmount()).isEqualTo("10");
+        assertThat(pvcSpec.getResources().getLimits().get("storage").getAmount()).isEqualTo("10");
+        assertThat(pvcSpec.getResources().getRequests().get("storage").getAmount()).isEqualTo("10");
 
-        Assertions.assertThat(pvcSpec.getResources().getLimits().get("storage").getFormat()).isEqualTo("Mi");
-        Assertions.assertThat(pvcSpec.getResources().getRequests().get("storage").getFormat()).isEqualTo("Mi");
+        assertThat(pvcSpec.getResources().getLimits().get("storage").getFormat()).isEqualTo("Mi");
+        assertThat(pvcSpec.getResources().getRequests().get("storage").getFormat()).isEqualTo("Mi");
 
         log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
@@ -851,37 +850,37 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         StatefulSet statefulSet = kubernetesClient.apps().statefulSets().withLabels(selector).list().getItems().get(0);
         StatefulSetSpec statefulSetSpec = statefulSet.getSpec();
 
-        Assertions.assertThat(statefulSetSpec.getPodManagementPolicy()).isEqualTo("Parallel");
-        Assertions.assertThat(statefulSetSpec.getReplicas()).isEqualTo(3);
-        Assertions.assertThat(statefulSetSpec.getServiceName()).isEqualTo(deploymentId);
-        Assertions.assertThat(statefulSet.getMetadata().getName()).isEqualTo(deploymentId);
+        assertThat(statefulSetSpec.getPodManagementPolicy()).isEqualTo("Parallel");
+        assertThat(statefulSetSpec.getReplicas()).isEqualTo(3);
+        assertThat(statefulSetSpec.getServiceName()).isEqualTo(deploymentId);
+        assertThat(statefulSet.getMetadata().getName()).isEqualTo(deploymentId);
 
-        Assertions.assertThat(statefulSetSpec.getSelector().getMatchLabels())
+        assertThat(statefulSetSpec.getSelector().getMatchLabels())
                 .containsAllEntriesOf(deployer.createIdMap(deploymentId, appDeploymentRequest));
-        Assertions.assertThat(statefulSetSpec.getSelector().getMatchLabels())
+        assertThat(statefulSetSpec.getSelector().getMatchLabels())
                 .contains(entry(KubernetesAppDeployer.SPRING_MARKER_KEY, KubernetesAppDeployer.SPRING_MARKER_VALUE));
 
-        Assertions.assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels()).containsAllEntriesOf(idMap);
-        Assertions.assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels())
+        assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels()).containsAllEntriesOf(idMap);
+        assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels())
                 .contains(entry(KubernetesAppDeployer.SPRING_MARKER_KEY, KubernetesAppDeployer.SPRING_MARKER_VALUE));
 
         Container container = statefulSetSpec.getTemplate().getSpec().getContainers().get(0);
 
-        Assertions.assertThat(container.getName()).isEqualTo(deploymentId);
-        Assertions.assertThat(container.getPorts().get(0).getContainerPort()).isEqualTo(8080);
-        Assertions.assertThat(container.getImage()).isEqualTo(testApplication().getURI().getSchemeSpecificPart());
+        assertThat(container.getName()).isEqualTo(deploymentId);
+        assertThat(container.getPorts().get(0).getContainerPort()).isEqualTo(8080);
+        assertThat(container.getImage()).isEqualTo(testApplication().getURI().getSchemeSpecificPart());
 
         PersistentVolumeClaim pvc = statefulSetSpec.getVolumeClaimTemplates().get(0);
-        Assertions.assertThat(pvc.getMetadata().getName()).isEqualTo("mystorage");
+        assertThat(pvc.getMetadata().getName()).isEqualTo("mystorage");
 
         PersistentVolumeClaimSpec pvcSpec = pvc.getSpec();
-        Assertions.assertThat(pvcSpec.getAccessModes()).containsOnly("ReadWriteOnce");
+        assertThat(pvcSpec.getAccessModes()).containsOnly("ReadWriteOnce");
 
-        Assertions.assertThat(pvcSpec.getResources().getLimits().get("storage").getAmount()).isEqualTo("1");
-        Assertions.assertThat(pvcSpec.getResources().getRequests().get("storage").getAmount()).isEqualTo("1");
+        assertThat(pvcSpec.getResources().getLimits().get("storage").getAmount()).isEqualTo("1");
+        assertThat(pvcSpec.getResources().getRequests().get("storage").getAmount()).isEqualTo("1");
 
-        Assertions.assertThat(pvcSpec.getResources().getLimits().get("storage").getFormat()).isEqualTo("Gi");
-        Assertions.assertThat(pvcSpec.getResources().getRequests().get("storage").getFormat()).isEqualTo("Gi");
+        assertThat(pvcSpec.getResources().getLimits().get("storage").getFormat()).isEqualTo("Gi");
+        assertThat(pvcSpec.getResources().getRequests().get("storage").getFormat()).isEqualTo("Gi");
 
         log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
@@ -914,10 +913,10 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
         StatefulSetSpec statefulSetSpec = statefulSet.getSpec();
         Container container = statefulSetSpec.getTemplate().getSpec().getContainers().get(0);
 
-        Assertions.assertThat(container.getName()).isEqualTo(deploymentId);
+        assertThat(container.getName()).isEqualTo(deploymentId);
 
         PersistentVolumeClaim pvc = statefulSetSpec.getVolumeClaimTemplates().get(0);
-        Assertions.assertThat(pvc.getMetadata().getName()).isEqualTo(deploymentId);
+        assertThat(pvc.getMetadata().getName()).isEqualTo(deploymentId);
 
         log.info("Undeploying {}...", deploymentId);
         timeout = undeploymentTimeout();
@@ -1032,8 +1031,8 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         StatefulSet statefulSet = kubernetesClient.apps().statefulSets().withLabels(selector).list().getItems().get(0);
         StatefulSetSpec statefulSetSpec = statefulSet.getSpec();
-        Assertions.assertThat(statefulSetSpec.getReplicas()).isEqualTo(2);
-        Assertions.assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels()).containsAllEntriesOf(idMap);
+        assertThat(statefulSetSpec.getReplicas()).isEqualTo(2);
+        assertThat(statefulSetSpec.getTemplate().getMetadata().getLabels()).containsAllEntriesOf(idMap);
 
         //verify stateful set match labels
         Map<String, String> setLabels = statefulSet.getMetadata().getLabels();
