@@ -292,34 +292,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.openrewrite.maven</groupId>
-				<artifactId>rewrite-maven-plugin</artifactId>
-				<version>6.6.1</version>
-				<configuration>
-					<exportDatatables>true</exportDatatables>
-					<activeRecipes>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertArrayEqualsToAssertThat</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertThrowsToAssertExceptionType</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertNotEqualsToAssertThat</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertSameToAssertThat</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail</recipe>
-						<recipe>org.openrewrite.java.testing.assertj.StaticImports</recipe>
-					</activeRecipes>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.openrewrite.recipe</groupId>
-						<artifactId>rewrite-testing-frameworks</artifactId>
-						<version>3.6.1</version>
-					</dependency>
-				</dependencies>
-			</plugin>
 		</plugins>
 	</build>
 

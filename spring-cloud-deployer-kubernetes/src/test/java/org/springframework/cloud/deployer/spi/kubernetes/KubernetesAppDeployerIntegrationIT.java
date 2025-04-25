@@ -1970,7 +1970,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.secrets().delete(secret);
+        kubernetesClient.secrets().inNamespace("default").resource(secret).delete();
     }
 
     @Test
@@ -2028,8 +2028,8 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.secrets().delete(propertySecret);
-        kubernetesClient.secrets().delete(deployerPropertySecret);
+        kubernetesClient.secrets().inNamespace("default").resource(propertySecret).delete();
+        kubernetesClient.secrets().inNamespace("default").resource(deployerPropertySecret).delete();
     }
 
     @Test
@@ -2092,8 +2092,8 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.secrets().delete(secret1);
-        kubernetesClient.secrets().delete(secret2);
+        kubernetesClient.secrets().inNamespace("default").resource(secret1).delete();
+        kubernetesClient.secrets().inNamespace("default").resource(secret2).delete();
     }
 
     @Test
@@ -2153,8 +2153,8 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.secrets().delete(secret1);
-        kubernetesClient.secrets().delete(secret2);
+        kubernetesClient.secrets().inNamespace("default").resource(secret1).delete();
+        kubernetesClient.secrets().inNamespace("default").resource(secret2).delete();
     }
 
     @Test
@@ -2204,7 +2204,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.configMaps().delete(configMap);
+        kubernetesClient.configMaps().inNamespace("default").resource(configMap).delete();
     }
 
     @Test
@@ -2254,7 +2254,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.configMaps().delete(configMap);
+        kubernetesClient.configMaps().inNamespace("default").resource(configMap).delete();
     }
 
     @Test
@@ -2311,8 +2311,8 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.configMaps().delete(propertyConfigMap);
-        kubernetesClient.configMaps().delete(deployerPropertyConfigMap);
+        kubernetesClient.configMaps().inNamespace("default").resource(propertyConfigMap).delete();
+        kubernetesClient.configMaps().inNamespace("default").resource(deployerPropertyConfigMap).delete();
     }
 
     @Test
@@ -2374,8 +2374,8 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.configMaps().delete(configMap1);
-        kubernetesClient.configMaps().delete(configMap2);
+        kubernetesClient.configMaps().inNamespace("default").resource(configMap1).delete();
+        kubernetesClient.configMaps().inNamespace("default").resource(configMap2).delete();
     }
 
     @Test
@@ -2435,8 +2435,8 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
                 .atMost(Duration.ofMillis(timeout.totalTime))
                 .untilAsserted(() -> assertThat(appDeployer().status(deploymentId).getState()).isEqualTo(DeploymentState.unknown));
 
-        kubernetesClient.configMaps().delete(configMap1);
-        kubernetesClient.configMaps().delete(configMap2);
+        kubernetesClient.configMaps().inNamespace("default").resource(configMap1).delete();
+        kubernetesClient.configMaps().inNamespace("default").resource(configMap2).delete();
     }
 
     @Override
@@ -2503,7 +2503,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         secret.setMetadata(objectMeta);
 
-        return kubernetesClient.secrets().create(secret);
+		return kubernetesClient.secrets().inNamespace("default").resource(secret).create();
     }
 
     // Creates a ConfigMap with a name will be generated prefixed by "cm-" followed by random numbers.
@@ -2525,7 +2525,7 @@ public class KubernetesAppDeployerIntegrationIT extends AbstractAppDeployerInteg
 
         configMap.setMetadata(objectMeta);
 
-        return kubernetesClient.configMaps().create(configMap);
+        return kubernetesClient.configMaps().inNamespace("default").resource(configMap).create();
     }
 
     private KubernetesAppDeployer kubernetesAppDeployer() {

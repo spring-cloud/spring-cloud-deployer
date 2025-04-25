@@ -47,7 +47,7 @@ class MavenArtifactResolverTests {
         MavenResource mavenResource = (MavenResource) resource;
         MavenArtifactResolver resolver = new MavenArtifactResolver(mavenPropertiesWithProxyRepo());
         assertThatThrownBy(() -> resolver.resolve(mavenResource))
-                .getRootCause()
+                .rootCause()
                 .isInstanceOf(UnknownHostException.class)
                 .hasMessageStartingWith("proxy.example.com:");
     }

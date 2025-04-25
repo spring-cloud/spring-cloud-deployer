@@ -41,8 +41,8 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJobList;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -246,12 +246,12 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		cronJob3.setSpec(cronJobSpec);
 		cronJob3.setMetadata(objectMeta3);
 		cronJobList.setItems(Arrays.asList(cronJob1, cronJob2, cronJob3));
-		this.kubernetesClient.batch().v1().cronjobs().create(cronJob1);
-		this.kubernetesClient.batch().v1().cronjobs().create(cronJob2);
-		this.kubernetesClient.batch().v1().cronjobs().create(cronJob3);
+		this.kubernetesClient.batch().v1().cronjobs().inNamespace("default").resource(cronJob1).create();
+		this.kubernetesClient.batch().v1().cronjobs().inNamespace("default").resource(cronJob2).create();
+		this.kubernetesClient.batch().v1().cronjobs().inNamespace("default").resource(cronJob3).create();
 		List<ScheduleInfo> scheduleInfos = this.scheduler.list();
-		assertThat(scheduleInfos.size() == 1);
-		assertThat(scheduleInfos.get(0).getScheduleName().equals("job1"));
+		assertThat(scheduleInfos.size()).isEqualTo(1);
+		assertThat(scheduleInfos.get(0).getScheduleName()).isEqualTo("job1");
 	}
 
 	@ParameterizedTest
@@ -300,8 +300,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		}
 		kubernetesDeployerProperties.setEntryPointStyle(EntryPointStyle.exec);
 
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -333,8 +332,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		}
 		kubernetesDeployerProperties.setEntryPointStyle(EntryPointStyle.shell);
 
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -365,8 +363,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -442,8 +439,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -484,8 +480,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -514,8 +509,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -550,8 +544,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -580,8 +573,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -611,8 +603,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -659,8 +650,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -689,8 +679,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -717,8 +706,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -750,8 +738,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -781,8 +768,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 
 		String secretName = "image-secret";
 		kubernetesDeployerProperties.setImagePullSecret(secretName);
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -898,8 +884,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -927,8 +912,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -961,8 +945,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -991,8 +974,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -1015,8 +997,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -1040,8 +1021,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 			kubernetesDeployerProperties.setNamespace("default");
 		}
 		kubernetesDeployerProperties.getCron().setConcurrencyPolicy("Forbid");
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -1065,8 +1045,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -1107,8 +1086,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -1133,8 +1111,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 			kubernetesDeployerProperties.setNamespace("default");
 		}
 		kubernetesDeployerProperties.getCron().setTtlSecondsAfterFinished(86400);
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);
@@ -1157,8 +1134,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient, kubernetesDeployerProperties);
 
 		AppDefinition appDefinition = new AppDefinition(randomName(), getAppProperties());
@@ -1180,8 +1156,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 		if (kubernetesDeployerProperties.getNamespace() == null) {
 			kubernetesDeployerProperties.setNamespace("default");
 		}
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient, kubernetesDeployerProperties);
 
 		AppDefinition appDefinition = new AppDefinition(randomName(), getAppProperties());
@@ -1200,8 +1175,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 			kubernetesDeployerProperties.setNamespace("default");
 		}
 		kubernetesDeployerProperties.getCron().setBackoffLimit(7);
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace());
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient, kubernetesDeployerProperties);
 
 		AppDefinition appDefinition = new AppDefinition(randomName(), getAppProperties());
@@ -1217,9 +1191,7 @@ public class KubernetesSchedulerIT extends AbstractSchedulerIntegrationJUnit5Tes
 	public static void cleanup() {
 		KubernetesDeployerProperties kubernetesDeployerProperties = new KubernetesDeployerProperties();
 
-		KubernetesClient kubernetesClient = new DefaultKubernetesClient()
-				.inNamespace(kubernetesDeployerProperties.getNamespace() != null
-						? kubernetesDeployerProperties.getNamespace() : "default");
+		KubernetesClient kubernetesClient = (new KubernetesClientBuilder()).build();
 
 		KubernetesScheduler kubernetesScheduler = new KubernetesScheduler(kubernetesClient,
 				kubernetesDeployerProperties);

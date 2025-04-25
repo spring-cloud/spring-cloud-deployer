@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.utils.PodStatusUtil;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,7 +65,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractKubernetesTaskL
 				Collections.singletonMap("spring.cloud.deployer.kubernetes.jobAnnotations", "key1:val1,key2:val2,key3:val31:val32"),
 				(pod) -> {
 					assertThat(pod.getSpec().getContainers()).isNotEmpty()
-							.element(0).extracting(Container::getPorts).asList().isEmpty();
+							.element(0).extracting(Container::getPorts).asInstanceOf(InstanceOfAssertFactories.LIST).isEmpty();
 					assertThat(pod.getMetadata().getAnnotations()).isNotEmpty()
 							.contains(entry("key1", "val1"), entry("key2", "val2"), entry("key3", "val31:val32"));
 				});
@@ -77,7 +78,7 @@ public class KubernetesTaskLauncherIntegrationIT extends AbstractKubernetesTaskL
 				Collections.singletonMap("spring.cloud.deployer.kubernetes.deploymentLabels", "label1:value1,label2:value2"),
 				(pod) -> {
 					assertThat(pod.getSpec().getContainers()).isNotEmpty()
-							.element(0).extracting(Container::getPorts).asList().isEmpty();
+							.element(0).extracting(Container::getPorts).asInstanceOf(InstanceOfAssertFactories.LIST).isEmpty();
 					assertThat(pod.getMetadata().getLabels()).isNotEmpty()
 							.contains(entry("label1", "value1"), entry("label2", "value2"));
 				});
