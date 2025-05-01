@@ -1,14 +1,13 @@
+# Spring Cloud Data Flow is no longer maintained as an open-source project by Broadcom, Inc.
+
+## For information about extended support or enterprise options for Spring Cloud Data Flow, please read the official blog post [here](https://spring.io/blog/2025/04/21/spring-cloud-data-flow-commercial).
+
 == Spring Cloud Deployer
 
 [frame=none, grid=none, caption=, width="75%", cols="^2,^2"]
 .Build Status by Branches
 |===
 | *Main* | *2.9.x*
-| image:https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/build-snapshot-worker.yml/badge.svg[title="Build Snapshot Worker - Main" link="https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/build-snapshot-worker.yml"]
-image:https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/ci.yml/badge.svg[title="CI - Main" link="https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/ci.yml"]
-|
-image:https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/build-snapshot-worker.yml/badge.svg?branch=2.9.x[title="Build Snapshot Worker - 2.9.x", link="https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/build-snapshot-worker.yml?query=branch%3A2.9.x"]
-image:https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/ci.yml/badge.svg?branch=2.9.x[title="CI - 2.9.x", link="https://github.com/spring-cloud/spring-cloud-deployer/actions/workflows/ci.yml?query=branch%3A2.9.x"] |
 |===
 
 The Spring Cloud Deployer project defines a Service Provider Interface (SPI) for deploying long lived applications and short lived tasks.
